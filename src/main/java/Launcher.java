@@ -1,5 +1,5 @@
 
-import Protocols.Fasting;
+import Protocols.Restricted;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,17 +19,12 @@ public class Launcher {
 
         try {
 
-            Fasting p0 = new Fasting();
-            System.out.println(p0.getState());
+            Restricted p0 = new Restricted("0");
+            logger.info(p0.getState().toString());
             p0.receivedStartCal();
-            System.out.println(p0.getState());
+            logger.info(p0.getState().toString());
             p0.receivedEndCal();
-            System.out.println(p0.getState());
-
-            p0.receivedStartCal();
-            System.out.println(p0.getState());
-            //test
-            //test2
+            logger.info(p0.getState().toString());
 
         } catch (Exception ex) {
             ex.printStackTrace();

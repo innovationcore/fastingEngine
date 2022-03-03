@@ -2,14 +2,15 @@ package Protocols;/*PLEASE DO NOT EDIT THIS CODE*/
 /*This code was generated using the UMPLE 1.31.1.5860.78bb27cc6 modeling language!*/
 
 
-import java.util.*;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * UML State diagram for a library loan, represented in Umple
  */
 // line 3 "model.ump"
 // line 121 "model.ump"
-public class Fasting
+public class RestrictedBase
 {
 
   //------------------------
@@ -34,7 +35,7 @@ public class Fasting
   // CONSTRUCTOR
   //------------------------
 
-  public Fasting()
+  public RestrictedBase()
   {
     missedEndCals = 0;
     deadline = 1209600000;
@@ -520,12 +521,12 @@ public class Fasting
 
   public static class TimedEventHandler extends TimerTask  
   {
-    private Fasting controller;
+    private RestrictedBase controller;
     private String timeoutMethodName;
     private double howLongInSeconds;
     private Timer timer;
     
-    public TimedEventHandler(Fasting aController, String aTimeoutMethodName, double aHowLongInSeconds)
+    public TimedEventHandler(RestrictedBase aController, String aTimeoutMethodName, double aHowLongInSeconds)
     {
       controller = aController;
       timeoutMethodName = aTimeoutMethodName;
