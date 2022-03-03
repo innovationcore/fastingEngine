@@ -28,6 +28,7 @@ public class Launcher {
 
             p0.receivedStartCal();
             System.out.println(p0.getState());
+            //test
 
         } catch (Exception ex) {
             ex.printStackTrace();
