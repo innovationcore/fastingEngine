@@ -1,17 +1,11 @@
 
-import Protocols.Restricted;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 
 public class Launcher {
 
-
     private static Logger logger;
-    private static ConcurrentLinkedQueue<String> incomingQueue = new ConcurrentLinkedQueue<>();
-
 
     public static void main(String[] argv) {
 
@@ -19,12 +13,18 @@ public class Launcher {
 
         try {
 
+            //Create dummy person
             Restricted p0 = new Restricted("0");
-            logger.info(p0.getState().toString());
+            //set short deadline for cal end
+            p0.setDeadline(3);
+            //send start cal
             p0.receivedStartCal();
-            logger.info(p0.getState().toString());
-            p0.receivedEndCal();
-            logger.info(p0.getState().toString());
+
+            //loop until end
+            while(!(p0.getState() == RestrictedBase.State.endOfEpisode)) {
+                logger.info(p0.getState().toString());
+                Thread.sleep(1000);
+            }
 
         } catch (Exception ex) {
             ex.printStackTrace();
