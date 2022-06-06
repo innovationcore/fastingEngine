@@ -1,13 +1,26 @@
 // UML State diagram for a library loan, represented in Umple
 class RestrictedBase
 {
-  Integer fastExpired = {1000*60*60*24*2};
-  Integer missedEndCals = 0;
 
-  // Number of ms to the loan becoming due from entry to current state
-  Integer deadline = 1209600000; // 2 weeks
+  Integer startDeadline = 0;
+  Integer startWarnDeadline = 0;
+  Integer endDeadline = 0;
+  Integer endWarnDeadline = 0;
+
 
   state {
+
+    wait {
+      entry / {
+        // here we need to receive the message to start
+        // Possibly send missed fasts messages
+        stateNotify("wait");
+      };
+
+      receivedInitial -> initial;
+
+    }
+
     initial {
       entry / {
         // here we need to receive the message to start
@@ -16,101 +29,51 @@ class RestrictedBase
       };
 
       receivedStartCal -> startcal;
-      receivedDayOff -> dayOff;
+      after(startWarnDeadline) -> warnStartCal;
     }
 
+     warnStartCal {
+      entry / {
+        stateNotify("warnStartCal");
+      };
+
+      receivedStartCal -> startcal;
+      after(startDeadline) -> missedStartCal;
+
+    }
 
     startcal {
-
-
       receivedStartCal -> / {
           // Send Error about duplicate start
       } startcal;
-      receivedEndCal [endWithinWindow()] -> success;
-      receivedEndCal [endAfterEightPM()] -> endAfterEight;
-      receivedEndCal [endTooEarly()] -> endTooEarly;
-      receivedEndCal [endTooLate()] -> endTooLate;
-      after(deadline) -> missedEndCal;
+      receivedEndCal [isValidSubmission()] -> endOfEpisode;
+      after(endWarnDeadline) -> warnEndCal;
 
     }
 
-    dayOff {
+    missedStartCal {
       entry / {
-          //Send message saying you still want start/end
-        stateNotify("dayOff");
+        stateNotify("missedStartCal");
+      } -> endOfEpisode;
+
+    }
+
+    warnEndCal {
+      entry / {
+        stateNotify("warnEndCal");
       };
-      receivedStartCal -> dayOffReceivedStartcal;
-      after(deadline) -> endOfEpisode;
-    }
+      receivedEndCal [isValidSubmission()] -> endOfEpisode;
+      after(endDeadline) -> missedEndCal;
 
-    dayOffReceivedStartcal {
-      entry / {
-        // acknowledge
-        stateNotify("dayOffReceivedStartcal");
-      };
-
-        receivedEndCal -> dayOffReceivedEndCal;
-    }
-
-    dayOffReceivedEndCal {
-      entry / {
-         // acknowledge
-        stateNotify("dayOffReceivedEndCal");
-      } -> endOfEpisode;
-
-    }
-
-
-    endAfterEight {
-      entry / {
-        // Send random message from set
-        stateNotify("endAfterEight");
-      } -> endOfEpisode;
-    }
-
-    endTooEarly {
-      entry / {
-        // Send random message from set
-        stateNotify("endTooEarly");
-      } -> endOfEpisode;
-    }
-
-    endTooLate {
-      entry / {
-        // Send random message from set
-        stateNotify("endTooLate");
-      } -> endOfEpisode;
     }
 
     missedEndCal {
       entry / {
-        setMissedEndCals(missedEndCals + 1);
         stateNotify("missedEndCal");
-      };
-      after(deadline) [missedEndCals > 1] -> twoDaysNoEndCals;
-      after(deadline) -> reminderMessage;
+      } -> endOfEpisode;
+
     }
 
-    twoDaysNoEndCals {
-      entry / {
-          // Send Special message
-        stateNotify("twoDaysNoEndCals");
-      } -> endOfEpisode;
-    }
-
-    reminderMessage {
-      entry / {
-        // Send message in morning reminding to end episode
-        stateNotify("reminderMessage");
-      } -> endOfEpisode;
-    }
-
-    success {
-      entry / {
-        // Send Random success message
-        stateNotify("success");
-      } -> endOfEpisode;
-    }
 
     endOfEpisode {
       // Normal End state
@@ -122,13 +85,8 @@ class RestrictedBase
   }
 
   boolean stateNotify(String node) {return true;}
-
-  boolean endWithinWindow() {return true;}
-  boolean endAfterEightPM() {return true;}
-  boolean endTooEarly() { return true;}
-  boolean endTooLate() {return true;}
+  boolean isValidSubmission() {return true;}
   int currentTime() {return 1;}
-
 }
 
 namespace -;

@@ -16,5 +16,4 @@ private static final Logger logger = LoggerFactory.getLogger(Restricted.class.ge
         return true;
     }
 
-
 }
