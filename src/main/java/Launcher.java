@@ -26,7 +26,6 @@ public class Launcher {
             //send start cal
             p0.receivedStartCal();
 
-
             //loop until end
             while(!(p0.getState() == RestrictedBase.State.endOfEpisode)) {
                 logger.info(p0.getState().toString());
