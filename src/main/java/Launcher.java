@@ -34,9 +34,9 @@ public class Launcher {
                 p0.receivedEndCal();
             }
 
-            logger.info(p0.saveStateJSON());
+            //logger.info(p0.saveStateJSON());
             logger.info(p0.getState().toString());
-
+            p0.restoreSaveState(p0.stateJSON);
 
 
         } catch (Exception ex) {

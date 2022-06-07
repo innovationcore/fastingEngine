@@ -4,8 +4,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Type;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class Restricted extends RestrictedBase {
 
@@ -49,6 +52,7 @@ private static final Logger logger = LoggerFactory.getLogger(Restricted.class.ge
         try {
 
             Map<String,Long> timerMap = new HashMap<>();
+            timerMap.put("stateIndex", Long.valueOf(getState().ordinal()));
             timerMap.put("startTime", startTimestamp);
             timerMap.put("currentTime", System.currentTimeMillis() / 1000);
             timerMap.put("startDeadline", Long.valueOf(getStartDeadline()));
@@ -77,7 +81,10 @@ private static final Logger logger = LoggerFactory.getLogger(Restricted.class.ge
         }
         if(startTimestamp == 0) {
             startTimestamp = System.currentTimeMillis() / 1000;
+        } else {
+            stateJSON = saveStateJSON();
         }
+
         return true;
     }
 
@@ -88,12 +95,62 @@ private static final Logger logger = LoggerFactory.getLogger(Restricted.class.ge
             Type typeOfHashMap = new TypeToken<Map<String, Map<String,Long>>>() { }.getType();
             Map<String, Map<String,Long>> saveStateMap = gson.fromJson(saveStateJSON,typeOfHashMap);
 
-            logger.error(saveStateMap.toString());
+            Map<String,Long> historyMap = saveStateMap.get("history");
+            Map<String,Long> timerMap = saveStateMap.get("timers");
+
+            List<String> sortedHistoryList = saveStateMap.get("history").entrySet().stream()
+                    .sorted(Comparator.comparing(Map.Entry::getValue, Comparator.reverseOrder()))
+                    .map(Map.Entry::getKey)
+                    .collect(Collectors.toList());
+
+            String lastState = sortedHistoryList.get(0);
+
+            long lastStateStartTime = historyMap.get(lastState);
+            long saveStartTime = timerMap.get("startTime");
+            long saveCurrentTime = timerMap.get("currentTime");
+
+            long saveStartWarnDeadline = timerMap.get("startWarnDeadline");
+            long saveStartDeadline = timerMap.get("startDeadline");
+            long saveEndWarnDeadline = timerMap.get("endWarnDeadline");
+            long saveEndDeadline = timerMap.get("endDeadline");
+
+
+
+            switch (lastState) {
+                case "initial":
+                    //no timers
+                    break;
+                case "waitStart":
+                    //startTimeoutwaitStartTowarnStartCalHandler();
+                    break;
+                case "warnStartCal":
+                    //startTimeoutwarnStartCalTomissedStartCalHandler();
+                    break;
+                case "startcal":
+                    //startTimeoutstartcalTowarnEndCalHandler();
+                    break;
+                case "missedStartCal":
+                    //no timers
+                    break;
+                case "warnEndCal":
+                    //startTimeoutwarnEndCalTomissedEndCalHandler();
+                    break;
+                case "missedEndCal":
+                    break;
+                case "endOfEpisode":
+                    break;
+                default:
+                    logger.error("restoreSaveState: Invalid state: " + lastState);
+            }
+
+            logger.error("save json: " + saveStateMap.toString());
 
         } catch (Exception ex) {
             logger.error("restoreSaveState");
         }
 
     }
+
+
 
 }
