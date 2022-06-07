@@ -127,44 +127,44 @@ public class Restricted extends RestrictedBase {
             setEndWarnDeadline((int)saveEndWarnDeadline);
             setEndDeadline((int)saveEndDeadline);
 
-            switch (lastState) {
-                case "initial":
+            switch (State.valueOf(lastState)) {
+                case initial:
                     //no timers
                     break;
-                case "waitStart":
+                case waitStart:
                     //change startWarnDeadline
                     //startTimeoutwaitStartTowarnStartCalHandler();
                     long newStartWarnDeadline = saveStartWarnDeadline - diffStateTimer;
                     setStartWarnDeadline((int)newStartWarnDeadline);
                     receivedWaitStart();
                     break;
-                case "warnStartCal":
+                case warnStartCal:
                     //change startDeadline
                     //startTimeoutwarnStartCalTomissedStartCalHandler();
                     long newsStartDeadline = saveStartDeadline - diffStateTimer;
                     setStartDeadline((int)newsStartDeadline);
                     receivedWarnStartCal();
                     break;
-                case "startcal":
+                case startcal:
                     //change endWarnDeadline
                     //startTimeoutstartcalTowarnEndCalHandler();
                     long newEndWarnDeadline = saveEndWarnDeadline - diffStateTimer;
                     setEndWarnDeadline((int)newEndWarnDeadline);
                     receivedStartcal();
                     break;
-                case "missedStartCal":
+                case missedStartCal:
                     //no timers
                     break;
-                case "warnEndCal":
+                case warnEndCal:
                     //change endDeadline
                     //startTimeoutwarnEndCalTomissedEndCalHandler();
                     long newEndDeadline = saveEndDeadline - diffStateTimer;
                     setEndDeadline((int)newEndDeadline);
                     recievedWarnEndCal();
                     break;
-                case "missedEndCal":
+                case missedEndCal:
                     break;
-                case "endOfEpisode":
+                case endOfEpisode:
                     break;
                 default:
                     logger.error("restoreSaveState: Invalid state: " + lastState);
