@@ -170,7 +170,7 @@ public class Restricted extends RestrictedBase {
                     logger.error("restoreSaveState: Invalid state: " + lastState);
             }
 
-            logger.error("save json: " + saveStateMap.toString());
+            //logger.error("save json: " + saveStateMap.toString());
 
         } catch (Exception ex) {
             logger.error("restoreSaveState");
