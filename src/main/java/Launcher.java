@@ -27,16 +27,35 @@ public class Launcher {
             //p0.receivedStartCal();
 
             //loop until end
+            /*
             while(!(p0.getState() == RestrictedBase.State.endOfEpisode)) {
                 logger.info(p0.getState().toString());
                 Thread.sleep(1000);
                 //p0.receivedStartCal();
                 p0.receivedEndCal();
             }
+             */
 
-            //logger.info(p0.saveStateJSON());
-            logger.info(p0.getState().toString());
-            p0.restoreSaveState(p0.stateJSON);
+            logger.info(p0.saveStateJSON());
+            Thread.sleep(1000);
+            Thread.sleep(1000);
+            Thread.sleep(1000);
+            Thread.sleep(1000);
+            logger.info(p0.saveStateJSON());
+
+            Restricted p1 = new Restricted("1");
+            p1.restoreSaveState(p0.stateJSON);
+            logger.info("p0 state: " + p0.getState());
+            logger.info("p1 state: " + p1.getState());
+            logger.info(p1.saveStateJSON());
+            Thread.sleep(1000);
+            Thread.sleep(1000);
+            Thread.sleep(1000);
+            Thread.sleep(1000);
+            logger.info("p0: " + p0.saveStateJSON());
+            logger.info("p1: " + p1.saveStateJSON());
+            //logger.info(p0.getState().toString());
+            //p0.restoreSaveState(p0.stateJSON);
 
 
         } catch (Exception ex) {

@@ -22,7 +22,6 @@ class RestrictedBase
       receivedWarnStartCal -> warnStartCal;
       receivedStartcal -> startcal;
       recievedWarnEndCal -> warnEndCal;
-
     }
 
     waitStart {
@@ -55,7 +54,7 @@ class RestrictedBase
       receivedStartCal -> / {
           // Send Error about duplicate start
       } startcal;
-      receivedEndCal [isValidSubmission()] -> endOfEpisode;
+      receivedEndCal -> endcal;
       after(endWarnDeadline) -> warnEndCal;
 
     }
@@ -71,10 +70,20 @@ class RestrictedBase
       entry / {
         stateNotify("warnEndCal");
       };
-      receivedEndCal [isValidSubmission()] -> endOfEpisode;
+      receivedEndCal -> endcal;
       after(endDeadline) -> missedEndCal;
 
     }
+
+    endcal {
+      entry / {
+        // here we need to receive the message to start
+        // Possibly send missed fasts messages
+        stateNotify("endcal");
+      } -> endOfEpisode;
+
+    }
+
 
     missedEndCal {
       entry / {
@@ -94,7 +103,6 @@ class RestrictedBase
   }
 
   boolean stateNotify(String node) {return true;}
-  boolean isValidSubmission() {return true;}
   int currentTime() {return 1;}
 }
 

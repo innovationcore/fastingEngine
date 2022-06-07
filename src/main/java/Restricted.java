@@ -11,16 +11,17 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class Restricted extends RestrictedBase {
+    private Type typeOfHashMap = new TypeToken<Map<String, Map<String,Long>>>() { }.getType();
 
-private String person_id;
-private Map<String,Long> stateMap;
+    private String person_id;
+    private Map<String,Long> stateMap;
 
-private long startTimestamp = 0;
+    private long startTimestamp = 0;
 
-public String stateJSON;
+    public String stateJSON;
 
-private Gson gson;
-private static final Logger logger = LoggerFactory.getLogger(Restricted.class.getName());
+    private Gson gson;
+    private static final Logger logger = LoggerFactory.getLogger(Restricted.class.getName());
 
     public Restricted(String person_id) {
         this.person_id = person_id;
@@ -88,11 +89,16 @@ private static final Logger logger = LoggerFactory.getLogger(Restricted.class.ge
         return true;
     }
 
+    public Map<String, Map<String,Long>> getSaveStateMap() {
+        Map<String, Map<String,Long>> saveStateMap = gson.fromJson(stateJSON,typeOfHashMap);
+        return saveStateMap;
+    }
+
     public void restoreSaveState(String saveStateJSON) {
 
         try{
 
-            Type typeOfHashMap = new TypeToken<Map<String, Map<String,Long>>>() { }.getType();
+            //Type typeOfHashMap = new TypeToken<Map<String, Map<String,Long>>>() { }.getType();
             Map<String, Map<String,Long>> saveStateMap = gson.fromJson(saveStateJSON,typeOfHashMap);
 
             Map<String,Long> historyMap = saveStateMap.get("history");
@@ -108,32 +114,53 @@ private static final Logger logger = LoggerFactory.getLogger(Restricted.class.ge
             long lastStateStartTime = historyMap.get(lastState);
             long saveStartTime = timerMap.get("startTime");
             long saveCurrentTime = timerMap.get("currentTime");
+            long diffStateTimer = saveCurrentTime - lastStateStartTime;
 
             long saveStartWarnDeadline = timerMap.get("startWarnDeadline");
             long saveStartDeadline = timerMap.get("startDeadline");
             long saveEndWarnDeadline = timerMap.get("endWarnDeadline");
             long saveEndDeadline = timerMap.get("endDeadline");
 
-
+            //set all timers
+            setStartWarnDeadline((int)saveStartWarnDeadline);
+            setStartDeadline((int)saveStartDeadline);
+            setEndWarnDeadline((int)saveEndWarnDeadline);
+            setEndDeadline((int)saveEndDeadline);
 
             switch (lastState) {
                 case "initial":
                     //no timers
                     break;
                 case "waitStart":
+                    //change startWarnDeadline
                     //startTimeoutwaitStartTowarnStartCalHandler();
+                    long newStartWarnDeadline = saveStartWarnDeadline - diffStateTimer;
+                    setStartWarnDeadline((int)newStartWarnDeadline);
+                    receivedWaitStart();
                     break;
                 case "warnStartCal":
+                    //change startDeadline
                     //startTimeoutwarnStartCalTomissedStartCalHandler();
+                    long newsStartDeadline = saveStartDeadline - diffStateTimer;
+                    setStartDeadline((int)newsStartDeadline);
+                    receivedWarnStartCal();
                     break;
                 case "startcal":
+                    //change endWarnDeadline
                     //startTimeoutstartcalTowarnEndCalHandler();
+                    long newEndWarnDeadline = saveEndWarnDeadline - diffStateTimer;
+                    setEndWarnDeadline((int)newEndWarnDeadline);
+                    receivedStartcal();
                     break;
                 case "missedStartCal":
                     //no timers
                     break;
                 case "warnEndCal":
+                    //change endDeadline
                     //startTimeoutwarnEndCalTomissedEndCalHandler();
+                    long newEndDeadline = saveEndDeadline - diffStateTimer;
+                    setEndDeadline((int)newEndDeadline);
+                    recievedWarnEndCal();
                     break;
                 case "missedEndCal":
                     break;
@@ -150,7 +177,5 @@ private static final Logger logger = LoggerFactory.getLogger(Restricted.class.ge
         }
 
     }
-
-
 
 }
