@@ -10,22 +10,26 @@ class RestrictedBase
 
   state {
 
-    wait {
-      entry / {
-        // here we need to receive the message to start
-        // Possibly send missed fasts messages
-        stateNotify("wait");
-      };
-
-      receivedInitial -> initial;
-
-    }
-
     initial {
       entry / {
         // here we need to receive the message to start
         // Possibly send missed fasts messages
         stateNotify("initial");
+      };
+
+      //must be able to advance to any state
+      receivedWaitStart -> waitStart;
+      receivedWarnStartCal -> warnStartCal;
+      receivedStartcal -> startcal;
+      recievedWarnEndCal -> warnEndCal;
+
+    }
+
+    waitStart {
+      entry / {
+        // here we need to receive the message to start
+        // Possibly send missed fasts messages
+        stateNotify("waitStart");
       };
 
       receivedStartCal -> startcal;
@@ -43,6 +47,11 @@ class RestrictedBase
     }
 
     startcal {
+      entry / {
+        // here we need to receive the message to start
+        // Possibly send missed fasts messages
+        stateNotify("startcal");
+      };
       receivedStartCal -> / {
           // Send Error about duplicate start
       } startcal;

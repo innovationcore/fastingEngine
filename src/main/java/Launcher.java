@@ -21,17 +21,22 @@ public class Launcher {
             p0.setStartDeadline(5);
             p0.setEndWarnDeadline(10);
             p0.setEndDeadline(15);
-            p0.receivedInitial();
+            p0.receivedWaitStart();
 
             //send start cal
-            p0.receivedStartCal();
+            //p0.receivedStartCal();
 
             //loop until end
             while(!(p0.getState() == RestrictedBase.State.endOfEpisode)) {
                 logger.info(p0.getState().toString());
                 Thread.sleep(1000);
                 //p0.receivedStartCal();
+                p0.receivedEndCal();
             }
+
+            logger.info(p0.saveStateJSON());
+            logger.info(p0.getState().toString());
+
 
 
         } catch (Exception ex) {

@@ -10,7 +10,7 @@ import java.util.*;
  * UML State diagram for a library loan, represented in Umple
  */
 // line 3 "model.ump"
-// line 95 "model.ump"
+// line 104 "model.ump"
 public class RestrictedBase
 {
 
@@ -25,11 +25,11 @@ public class RestrictedBase
   private int endWarnDeadline;
 
   //RestrictedBase State Machines
-  public enum State { wait, initial, warnStartCal, startcal, missedStartCal, warnEndCal, missedEndCal, endOfEpisode }
+  public enum State { initial, waitStart, warnStartCal, startcal, missedStartCal, warnEndCal, missedEndCal, endOfEpisode }
   private State state;
 
   //Helper Variables
-  private TimedEventHandler timeoutinitialTowarnStartCalHandler;
+  private TimedEventHandler timeoutwaitStartTowarnStartCalHandler;
   private TimedEventHandler timeoutwarnStartCalTomissedStartCalHandler;
   private TimedEventHandler timeoutstartcalTowarnEndCalHandler;
   private TimedEventHandler timeoutwarnEndCalTomissedEndCalHandler;
@@ -44,7 +44,7 @@ public class RestrictedBase
     startWarnDeadline = 0;
     endDeadline = 0;
     endWarnDeadline = 0;
-    setState(State.wait);
+    setState(State.initial);
   }
 
   //------------------------
@@ -114,15 +114,69 @@ public class RestrictedBase
     return state;
   }
 
-  public boolean receivedInitial()
+  public boolean receivedWaitStart()
   {
     boolean wasEventProcessed = false;
 
     State aState = state;
     switch (aState)
     {
-      case wait:
-        setState(State.initial);
+      case initial:
+        setState(State.waitStart);
+        wasEventProcessed = true;
+        break;
+      default:
+        // Other states do respond to this event
+    }
+
+    return wasEventProcessed;
+  }
+
+  public boolean receivedWarnStartCal()
+  {
+    boolean wasEventProcessed = false;
+
+    State aState = state;
+    switch (aState)
+    {
+      case initial:
+        setState(State.warnStartCal);
+        wasEventProcessed = true;
+        break;
+      default:
+        // Other states do respond to this event
+    }
+
+    return wasEventProcessed;
+  }
+
+  public boolean receivedStartcal()
+  {
+    boolean wasEventProcessed = false;
+
+    State aState = state;
+    switch (aState)
+    {
+      case initial:
+        setState(State.startcal);
+        wasEventProcessed = true;
+        break;
+      default:
+        // Other states do respond to this event
+    }
+
+    return wasEventProcessed;
+  }
+
+  public boolean recievedWarnEndCal()
+  {
+    boolean wasEventProcessed = false;
+
+    State aState = state;
+    switch (aState)
+    {
+      case initial:
+        setState(State.warnEndCal);
         wasEventProcessed = true;
         break;
       default:
@@ -139,7 +193,7 @@ public class RestrictedBase
     State aState = state;
     switch (aState)
     {
-      case initial:
+      case waitStart:
         exitState();
         setState(State.startcal);
         wasEventProcessed = true;
@@ -151,7 +205,7 @@ public class RestrictedBase
         break;
       case startcal:
         exitState();
-        // line 47 "model.ump"
+        // line 56 "model.ump"
         // Send Error about duplicate start
         setState(State.startcal);
         wasEventProcessed = true;
@@ -163,14 +217,14 @@ public class RestrictedBase
     return wasEventProcessed;
   }
 
-  public boolean timeoutinitialTowarnStartCal()
+  public boolean timeoutwaitStartTowarnStartCal()
   {
     boolean wasEventProcessed = false;
 
     State aState = state;
     switch (aState)
     {
-      case initial:
+      case waitStart:
         exitState();
         setState(State.warnStartCal);
         wasEventProcessed = true;
@@ -252,7 +306,7 @@ public class RestrictedBase
     return wasEventProcessed;
   }
 
-  private boolean __autotransition3841__()
+  private boolean __autotransition4167__()
   {
     boolean wasEventProcessed = false;
 
@@ -289,7 +343,7 @@ public class RestrictedBase
     return wasEventProcessed;
   }
 
-  private boolean __autotransition3842__()
+  private boolean __autotransition4168__()
   {
     boolean wasEventProcessed = false;
 
@@ -311,8 +365,8 @@ public class RestrictedBase
   {
     switch(state)
     {
-      case initial:
-        stopTimeoutinitialTowarnStartCalHandler();
+      case waitStart:
+        stopTimeoutwaitStartTowarnStartCalHandler();
         break;
       case warnStartCal:
         stopTimeoutwarnStartCalTomissedStartCalHandler();
@@ -333,57 +387,61 @@ public class RestrictedBase
     // entry actions and do activities
     switch(state)
     {
-      case wait:
+      case initial:
         // line 15 "model.ump"
         // here we need to receive the message to start
         // Possibly send missed fasts messages
-        stateNotify("wait");
+        stateNotify("initial");
         break;
-      case initial:
-        // line 26 "model.ump"
+      case waitStart:
+        // line 30 "model.ump"
         // here we need to receive the message to start
         // Possibly send missed fasts messages
-        stateNotify("initial");
-        startTimeoutinitialTowarnStartCalHandler();
+        stateNotify("waitStart");
+        startTimeoutwaitStartTowarnStartCalHandler();
         break;
       case warnStartCal:
-        // line 37 "model.ump"
+        // line 41 "model.ump"
         stateNotify("warnStartCal");
         startTimeoutwarnStartCalTomissedStartCalHandler();
         break;
       case startcal:
+        // line 51 "model.ump"
+        // here we need to receive the message to start
+        // Possibly send missed fasts messages
+        stateNotify("startcal");
         startTimeoutstartcalTowarnEndCalHandler();
         break;
       case missedStartCal:
-        // line 56 "model.ump"
+        // line 65 "model.ump"
         stateNotify("missedStartCal");
-        __autotransition3841__();
+        __autotransition4167__();
         break;
       case warnEndCal:
-        // line 63 "model.ump"
+        // line 72 "model.ump"
         stateNotify("warnEndCal");
         startTimeoutwarnEndCalTomissedEndCalHandler();
         break;
       case missedEndCal:
-        // line 72 "model.ump"
+        // line 81 "model.ump"
         stateNotify("missedEndCal");
-        __autotransition3842__();
+        __autotransition4168__();
         break;
       case endOfEpisode:
-        // line 81 "model.ump"
+        // line 90 "model.ump"
         stateNotify("endOfEpisode");
         break;
     }
   }
 
-  private void startTimeoutinitialTowarnStartCalHandler()
+  private void startTimeoutwaitStartTowarnStartCalHandler()
   {
-    timeoutinitialTowarnStartCalHandler = new TimedEventHandler(this,"timeoutinitialTowarnStartCal",startWarnDeadline);
+    timeoutwaitStartTowarnStartCalHandler = new TimedEventHandler(this,"timeoutwaitStartTowarnStartCal",startWarnDeadline);
   }
 
-  private void stopTimeoutinitialTowarnStartCalHandler()
+  private void stopTimeoutwaitStartTowarnStartCalHandler()
   {
-    timeoutinitialTowarnStartCalHandler.stop();
+    timeoutwaitStartTowarnStartCalHandler.stop();
   }
 
   private void startTimeoutwarnStartCalTomissedStartCalHandler()
@@ -439,12 +497,12 @@ public class RestrictedBase
 
     public void run ()
     {
-      if ("timeoutinitialTowarnStartCal".equals(timeoutMethodName))
+      if ("timeoutwaitStartTowarnStartCal".equals(timeoutMethodName))
       {
-        boolean shouldRestart = !controller.timeoutinitialTowarnStartCal();
+        boolean shouldRestart = !controller.timeoutwaitStartTowarnStartCal();
         if (shouldRestart)
         {
-          controller.startTimeoutinitialTowarnStartCalHandler();
+          controller.startTimeoutwaitStartTowarnStartCalHandler();
         }
         return;
       }
@@ -481,17 +539,17 @@ public class RestrictedBase
   public void delete()
   {}
 
-  // line 88 "model.ump"
+  // line 97 "model.ump"
   public boolean stateNotify(String node){
     return true;
   }
 
-  // line 89 "model.ump"
+  // line 98 "model.ump"
   public boolean isValidSubmission(){
     return true;
   }
 
-  // line 90 "model.ump"
+  // line 99 "model.ump"
   public int currentTime(){
     return 1;
   }
