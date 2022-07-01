@@ -12,14 +12,13 @@ public class Launcher {
 
         logger = LoggerFactory.getLogger(Launcher.class);
 
-
         try {
 
             Testing testing = new Testing();
-            //testing.saveStateDemo();
-            testing.testWorking();
+            //testing.testWorking();
             //testing.testNoStart();
             //testing.testNoEnd();
+            //testing.saveStateDemo();
 
         } catch (Exception ex) {
             ex.printStackTrace();

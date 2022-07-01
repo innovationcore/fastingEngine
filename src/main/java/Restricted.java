@@ -88,7 +88,7 @@ public class Restricted extends RestrictedBase {
     @Override
     public boolean stateNotify(String state){
 
-        logger.info("\t\t\t\t person_id: " + person_id + " state change: " + state);
+        //logger.info("\t\t\t\t person_id: " + person_id + " state change: " + state);
 
         if(stateMap != null) {
             stateMap.put(state, System.currentTimeMillis() / 1000);
