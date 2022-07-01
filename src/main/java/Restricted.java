@@ -3,6 +3,8 @@ import com.google.gson.reflect.TypeToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.lang.reflect.Type;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -42,6 +44,10 @@ public class Restricted extends RestrictedBase {
                     }
                 } catch (Exception ex) {
                     logger.error("Restricted Thread: " + ex.toString());
+                    StringWriter sw = new StringWriter();
+                    PrintWriter pw = new PrintWriter(sw);
+                    ex.printStackTrace(pw);
+                    logger.error(pw.toString());
                 }
             }
         }.start();
@@ -70,21 +76,60 @@ public class Restricted extends RestrictedBase {
 
         } catch (Exception ex) {
             logger.error("saveStateJSON: " + ex.getMessage());
+            StringWriter sw = new StringWriter();
+            PrintWriter pw = new PrintWriter(sw);
+            ex.printStackTrace(pw);
+            logger.error(pw.toString());
+
         }
         return stateJSON;
     }
 
     @Override
-    public boolean stateNotify(String node){
-        //logger.info("person_id: " + person_id + " state change: " + node);
+    public boolean stateNotify(String state){
+
+        logger.info("\t\t\t\t person_id: " + person_id + " state change: " + state);
+
         if(stateMap != null) {
-            stateMap.put(node, System.currentTimeMillis() / 1000);
+            stateMap.put(state, System.currentTimeMillis() / 1000);
         }
         if(startTimestamp == 0) {
             startTimestamp = System.currentTimeMillis() / 1000;
         } else {
             stateJSON = saveStateJSON();
         }
+
+
+        switch (State.valueOf(state)) {
+            case initial:
+                //no timers
+                break;
+            case waitStart:
+                break;
+            case warnStartCal:
+                logger.warn("\t\t SEND STARTCAL WARNING TEXT");
+                break;
+            case startcal:
+                logger.info("\t\t SEND STARTCAL THANK YOU TEXT");
+                break;
+            case missedStartCal:
+                logger.error("\t\t SEND STARTCAL FAILURE TEXT");
+                break;
+            case warnEndCal:
+                logger.warn("\t\t SEND ENDCAL WARNING TEXT");
+                break;
+            case endcal:
+                logger.info("\t\t SEND ENDCAL THANK YOU TEXT");
+                break;
+            case missedEndCal:
+                logger.error("\t\t SEND ENDCAL FAILURE TEXT");
+                break;
+            case endOfEpisode:
+                break;
+            default:
+                logger.error("stateNotify: Invalid state: " + state);
+        }
+
 
         return true;
     }
@@ -174,6 +219,10 @@ public class Restricted extends RestrictedBase {
 
         } catch (Exception ex) {
             logger.error("restoreSaveState");
+            StringWriter sw = new StringWriter();
+            PrintWriter pw = new PrintWriter(sw);
+            ex.printStackTrace(pw);
+            logger.error(pw.toString());
         }
 
     }
