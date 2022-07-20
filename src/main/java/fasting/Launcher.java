@@ -4,6 +4,7 @@ import fasting.Configs.Config;
 import fasting.Configs.FileConfig;
 import fasting.Database.DBEngine;
 import fasting.MessagingUtils.MsgUtils;
+import fasting.Protocols.RestrictedWatcher;
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -25,6 +26,10 @@ public class Launcher {
     public static Config config;
     public static DBEngine dbEngine;
 
+    public static MsgUtils msgUtils;
+
+    public static RestrictedWatcher restrictedWatcher;
+
     public static void main(String[] argv) {
 
         logger = LoggerFactory.getLogger(Launcher.class);
@@ -40,9 +45,11 @@ public class Launcher {
             //init db engine
             dbEngine = new DBEngine();
 
-            //MsgUtils msgUtils = new MsgUtils();
+            //init message utils
+            msgUtils = new MsgUtils();
             //msgUtils.sendMessage("+18592702334", "Yo man");
             //protocols.Testing testing = new protocols.Testing();
+
             //testing.testWorking();
             //testing.testNoStart();
             //testing.testNoEnd();
@@ -50,6 +57,10 @@ public class Launcher {
 
             //Embedded HTTP initialization
             startServer();
+
+            //start protocols
+            restrictedWatcher = new RestrictedWatcher();
+            restrictedWatcher.startProtocols();
 
         } catch (Exception ex) {
             ex.printStackTrace();

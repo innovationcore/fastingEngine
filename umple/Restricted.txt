@@ -1,5 +1,5 @@
 // UML State diagram for a library loan, represented in Umple
-class fasting.Protocols.RestrictedBase
+class RestrictedBase
 {
 
   Integer startDeadline = 0;
@@ -20,7 +20,7 @@ class fasting.Protocols.RestrictedBase
       //must be able to advance to any state
       receivedWaitStart -> waitStart;
       receivedWarnStartCal -> warnStartCal;
-      receivedStartcal -> startcal;
+      receivedStartCal -> startcal;
       recievedWarnEndCal -> warnEndCal;
     }
 
@@ -108,7 +108,7 @@ class fasting.Protocols.RestrictedBase
 
 namespace -;
 
-class fasting.Protocols.RestrictedBase
+class RestrictedBase
 {
   position 50 30 109 45;
 }

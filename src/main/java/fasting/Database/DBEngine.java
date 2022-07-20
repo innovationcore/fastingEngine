@@ -99,6 +99,99 @@ public class DBEngine {
         return dataSource;
     }
 
+    public List<Map<String,String>> getParticipant(String ParticipantType) {
+        List<Map<String,String>> participantMapList = null;
+        try {
+
+            participantMapList = new ArrayList<>();
+
+            String queryString = null;
+
+            //fill in the query
+            queryString = "SELECT id, participant_id, phone_number, participant_type FROM fasting.participants " +
+                    "WHERE participant_type='" + ParticipantType + "'";
+
+            try(Connection conn = ds.getConnection()) {
+                try (Statement stmt = conn.createStatement()) {
+
+                    try(ResultSet rs = stmt.executeQuery(queryString)) {
+
+                        while (rs.next()) {
+                            Map<String, String> accessMap = new HashMap<>();
+                            accessMap.put("id", rs.getString("id"));
+                            accessMap.put("participant_id", rs.getString("participant_id"));
+                            accessMap.put("phone_number", rs.getString("phone_number"));
+                            accessMap.put("participant_type", rs.getString("participant_type"));
+                            participantMapList.add(accessMap);
+                        }
+
+                    }
+                }
+            }
+
+        } catch(Exception ex) {
+            ex.printStackTrace();
+        }
+
+        return participantMapList;
+    }
+
+    public String getParticipantIdFromPhoneNumber(String PhoneNumber) {
+        String participantId = null;
+        try {
+
+
+            String queryString = null;
+
+            //fill in the query
+            queryString = "SELECT id, participant_id, phone_number, participant_type FROM fasting.participants " +
+                    "WHERE phone_number='" + PhoneNumber + "'";
+
+            try(Connection conn = ds.getConnection()) {
+                try (Statement stmt = conn.createStatement()) {
+
+                    try(ResultSet rs = stmt.executeQuery(queryString)) {
+
+                        if (rs.next())
+                        {
+                            participantId = rs.getString("participant_id");
+                        }
+
+                    }
+                }
+            }
+
+        } catch(Exception ex) {
+            ex.printStackTrace();
+        }
+
+        return participantId;
+    }
+
+
+    public int executeUpdate(String stmtString) {
+        int result = -1;
+        try {
+            Connection conn = ds.getConnection();
+            try {
+                Statement stmt = conn.createStatement();
+                result = stmt.executeUpdate(stmtString);
+                stmt.close();
+            } catch (Exception e) {
+
+                e.printStackTrace();
+            } finally {
+                conn.close();
+            }
+
+        } catch(Exception ex) {
+            ex.printStackTrace();
+        }
+        return  result;
+    }
+
+
+    //Not used
     public void initDB() {
 
         String createRNode = "CREATE TABLE accesslog" +
@@ -125,27 +218,6 @@ public class DBEngine {
         }
         if (!f.delete())
             throw new FileNotFoundException("Failed to delete file: " + f);
-    }
-
-    public int executeUpdate(String stmtString) {
-        int result = -1;
-        try {
-            Connection conn = ds.getConnection();
-            try {
-                Statement stmt = conn.createStatement();
-                result = stmt.executeUpdate(stmtString);
-                stmt.close();
-            } catch (Exception e) {
-
-                e.printStackTrace();
-            } finally {
-                conn.close();
-            }
-
-        } catch(Exception ex) {
-            ex.printStackTrace();
-        }
-        return  result;
     }
 
     public int dropTable(String tableName) {
@@ -211,6 +283,9 @@ public class DBEngine {
         }
         return exist;
     }
+
+    //SELECT id, phone_number, participant_type FROM fasting.participants WHERE participant_type='other_participation_type'
+
 
     public List<Map<String,String>> getAccessLogs() {
         List<Map<String,String>> accessMapList = null;

@@ -13,6 +13,7 @@ import javax.ws.rs.core.Response;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 
@@ -66,7 +67,11 @@ public class API {
 
             logger.info(insertQuery);
 
+            //record incoming
             Launcher.dbEngine.executeUpdate(insertQuery);
+
+            //send to state machine
+            Launcher.restrictedWatcher.incomingText(convertMultiToRegularMap(formParams));
 
             Map<String,String> responce = new HashMap<>();
             responce.put("status","ok");
@@ -78,6 +83,7 @@ public class API {
             ex.printStackTrace(new PrintWriter(sw));
             String exceptionAsString = sw.toString();
             ex.printStackTrace();
+            logger.error("incomingText");
             logger.error(exceptionAsString);
 
             return Response.status(500).entity(exceptionAsString).build();
@@ -118,6 +124,24 @@ public class API {
         }
         //return accesslog data
         return Response.ok(responseString).header("Access-Control-Allow-Origin", "*").build();
+    }
+
+    private Map<String, String> convertMultiToRegularMap(MultivaluedMap<String, String> m) {
+        Map<String, String> map = new HashMap<String, String>();
+        if (m == null) {
+            return map;
+        }
+        for (Map.Entry<String, List<String>> entry : m.entrySet()) {
+            StringBuilder sb = new StringBuilder();
+            for (String s : entry.getValue()) {
+                if (sb.length() > 0) {
+                    sb.append(',');
+                }
+                sb.append(s);
+            }
+            map.put(entry.getKey(), sb.toString());
+        }
+        return map;
     }
 
 

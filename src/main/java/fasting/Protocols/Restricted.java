@@ -2,6 +2,7 @@ package fasting.Protocols;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import fasting.Launcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,6 +18,9 @@ import java.util.stream.Collectors;
 public class Restricted extends RestrictedBase {
     private Type typeOfHashMap = new TypeToken<Map<String, Map<String,Long>>>() { }.getType();
 
+    //id, participant_id, phone_number, participant_type
+    private Map<String, String> participantMap;
+
     private String person_id;
     private Map<String,Long> stateMap;
 
@@ -27,8 +31,12 @@ public class Restricted extends RestrictedBase {
     private Gson gson;
     private static final Logger logger = LoggerFactory.getLogger(Restricted.class.getName());
 
-    public Restricted(String person_id) {
-        this.person_id = person_id;
+    public Restricted(String participant_id) {
+
+    }
+
+    public Restricted(Map<String, String> participantMap) {
+        this.participantMap = participantMap;
         this.stateMap = new HashMap<>();
         this.gson = new Gson();
 
@@ -54,6 +62,60 @@ public class Restricted extends RestrictedBase {
             }
         }.start();
 
+    }
+
+    public void incomingText(Map<String,String> incomingMap) {
+
+        try {
+            State state = getState();
+            switch (state) {
+                case initial:
+                    //no timers
+                    break;
+                case waitStart:
+                    logger.info("Start State: " + getState());
+                    String waitStartCalMessage = "SEND STARTCAL TEXT " + incomingMap.get("Body");
+                    logger.warn("\t\t " + waitStartCalMessage);
+                    receivedStartCal();
+                    logger.info("End State: " + getState());
+                    break;
+                case warnStartCal:
+                    String warnStartCalMessage = "SEND WARNSTARTCAL TEXT " + incomingMap.get("Body");
+                    logger.warn("\t\t " + warnStartCalMessage);
+                    receivedStartCal();
+                    break;
+                case startcal:
+                    logger.info("\t\t SEND STARTCAL THANK YOU TEXT");
+                    break;
+                case missedStartCal:
+                    String missedStartCalMessage = "SEND STARTCAL FAILURE TEXT " + participantMap.get("participant_id");
+                    logger.warn("\t\t " + missedStartCalMessage);
+                    Launcher.msgUtils.sendMessage(participantMap.get("phone_number"), missedStartCalMessage);
+                    break;
+                case warnEndCal:
+                    logger.warn("\t\t SEND ENDCAL WARNING TEXT");
+                    break;
+                case endcal:
+                    logger.info("\t\t SEND ENDCAL THANK YOU TEXT");
+                    break;
+                case missedEndCal:
+                    logger.error("\t\t SEND ENDCAL FAILURE TEXT");
+                    break;
+                case endOfEpisode:
+                    break;
+                default:
+                    logger.error("stateNotify: Invalid state: " + getState());
+            }
+
+
+        } catch (Exception ex) {
+            StringWriter sw = new StringWriter();
+            ex.printStackTrace(new PrintWriter(sw));
+            String exceptionAsString = sw.toString();
+            ex.printStackTrace();
+            logger.error("incomingMessage");
+            logger.error(exceptionAsString);
+        }
     }
 
     public String saveStateJSON() {
@@ -109,13 +171,17 @@ public class Restricted extends RestrictedBase {
             case waitStart:
                 break;
             case warnStartCal:
-                logger.warn("\t\t SEND STARTCAL WARNING TEXT");
+                String warnStartCalMessage = "SEND STARTCAL WARNING TEXT " + participantMap.get("participant_id");
+                logger.warn("\t\t " + warnStartCalMessage);
+                Launcher.msgUtils.sendMessage(participantMap.get("phone_number"), warnStartCalMessage);
                 break;
             case startcal:
                 logger.info("\t\t SEND STARTCAL THANK YOU TEXT");
                 break;
             case missedStartCal:
-                logger.error("\t\t SEND STARTCAL FAILURE TEXT");
+                String missedStartCalMessage = "SEND STARTCAL FAILURE TEXT " + participantMap.get("participant_id");
+                logger.warn("\t\t " + missedStartCalMessage);
+                Launcher.msgUtils.sendMessage(participantMap.get("phone_number"), missedStartCalMessage);
                 break;
             case warnEndCal:
                 logger.warn("\t\t SEND ENDCAL WARNING TEXT");
@@ -197,7 +263,7 @@ public class Restricted extends RestrictedBase {
                     //startTimeoutstartcalTowarnEndCalHandler();
                     long newEndWarnDeadline = saveEndWarnDeadline - diffStateTimer;
                     setEndWarnDeadline((int)newEndWarnDeadline);
-                    receivedStartcal();
+                    receivedStartCal();
                     break;
                 case missedStartCal:
                     //no timers

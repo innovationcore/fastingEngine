@@ -1,4 +1,6 @@
-package fasting.Protocols;//%% NEW FILE protocols.RestrictedBase BEGINS HERE %%
+package fasting.Protocols;
+
+//%% NEW FILE RestrictedBase BEGINS HERE %%
 
 /*PLEASE DO NOT EDIT THIS CODE*/
 /*This code was generated using the UMPLE 1.31.1.5860.78bb27cc6 modeling language!*/
@@ -18,13 +20,13 @@ public class RestrictedBase
   // MEMBER VARIABLES
   //------------------------
 
-  //protocols.RestrictedBase Attributes
+  //RestrictedBase Attributes
   private int startDeadline;
   private int startWarnDeadline;
   private int endDeadline;
   private int endWarnDeadline;
 
-  //protocols.RestrictedBase State Machines
+  //RestrictedBase State Machines
   public enum State { initial, waitStart, warnStartCal, startcal, missedStartCal, warnEndCal, endcal, missedEndCal, endOfEpisode }
   private State state;
 
@@ -150,7 +152,7 @@ public class RestrictedBase
     return wasEventProcessed;
   }
 
-  public boolean receivedStartcal()
+  public boolean receivedStartCal()
   {
     boolean wasEventProcessed = false;
 
@@ -158,6 +160,23 @@ public class RestrictedBase
     switch (aState)
     {
       case initial:
+        setState(State.startcal);
+        wasEventProcessed = true;
+        break;
+      case waitStart:
+        exitState();
+        setState(State.startcal);
+        wasEventProcessed = true;
+        break;
+      case warnStartCal:
+        exitState();
+        setState(State.startcal);
+        wasEventProcessed = true;
+        break;
+      case startcal:
+        exitState();
+        // line 55 "model.ump"
+        // Send Error about duplicate start
         setState(State.startcal);
         wasEventProcessed = true;
         break;
@@ -177,37 +196,6 @@ public class RestrictedBase
     {
       case initial:
         setState(State.warnEndCal);
-        wasEventProcessed = true;
-        break;
-      default:
-        // Other states do respond to this event
-    }
-
-    return wasEventProcessed;
-  }
-
-  public boolean receivedStartCal()
-  {
-    boolean wasEventProcessed = false;
-
-    State aState = state;
-    switch (aState)
-    {
-      case waitStart:
-        exitState();
-        setState(State.startcal);
-        wasEventProcessed = true;
-        break;
-      case warnStartCal:
-        exitState();
-        setState(State.startcal);
-        wasEventProcessed = true;
-        break;
-      case startcal:
-        exitState();
-        // line 55 "model.ump"
-        // Send Error about duplicate start
-        setState(State.startcal);
         wasEventProcessed = true;
         break;
       default:
@@ -298,7 +286,7 @@ public class RestrictedBase
     return wasEventProcessed;
   }
 
-  private boolean __autotransition4372__()
+  private boolean __autotransition108__()
   {
     boolean wasEventProcessed = false;
 
@@ -335,7 +323,7 @@ public class RestrictedBase
     return wasEventProcessed;
   }
 
-  private boolean __autotransition4373__()
+  private boolean __autotransition109__()
   {
     boolean wasEventProcessed = false;
 
@@ -353,7 +341,7 @@ public class RestrictedBase
     return wasEventProcessed;
   }
 
-  private boolean __autotransition4374__()
+  private boolean __autotransition110__()
   {
     boolean wasEventProcessed = false;
 
@@ -425,7 +413,7 @@ public class RestrictedBase
       case missedStartCal:
         // line 64 "model.ump"
         stateNotify("missedStartCal");
-        __autotransition4372__();
+        __autotransition108__();
         break;
       case warnEndCal:
         // line 71 "model.ump"
@@ -437,12 +425,12 @@ public class RestrictedBase
         // here we need to receive the message to start
         // Possibly send missed fasts messages
         stateNotify("endcal");
-        __autotransition4373__();
+        __autotransition109__();
         break;
       case missedEndCal:
         // line 90 "model.ump"
         stateNotify("missedEndCal");
-        __autotransition4374__();
+        __autotransition110__();
         break;
       case endOfEpisode:
         // line 99 "model.ump"
