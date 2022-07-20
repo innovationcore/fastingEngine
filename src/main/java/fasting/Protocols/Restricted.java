@@ -85,7 +85,8 @@ public class Restricted extends RestrictedBase {
                     receivedStartCal();
                     break;
                 case startcal:
-                    logger.info("\t\t SEND STARTCAL THANK YOU TEXT");
+                    String startThankYou = "SEND STARTCAL THANK YOU TEXT";
+                    logger.info("\t\t " + startThankYou);
                     break;
                 case missedStartCal:
                     String missedStartCalMessage = "SEND STARTCAL FAILURE TEXT " + participantMap.get("participant_id");
@@ -176,7 +177,9 @@ public class Restricted extends RestrictedBase {
                 Launcher.msgUtils.sendMessage(participantMap.get("phone_number"), warnStartCalMessage);
                 break;
             case startcal:
-                logger.info("\t\t SEND STARTCAL THANK YOU TEXT");
+                String startCalMessage = "SEND STARTCAL THANK YOU TEXT " + participantMap.get("participant_id");
+                logger.info("\t\t " + startCalMessage);
+                Launcher.msgUtils.sendMessage(participantMap.get("phone_number"), startCalMessage);
                 break;
             case missedStartCal:
                 String missedStartCalMessage = "SEND STARTCAL FAILURE TEXT " + participantMap.get("participant_id");
