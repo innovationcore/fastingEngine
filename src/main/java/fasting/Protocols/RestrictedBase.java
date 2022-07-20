@@ -1,4 +1,4 @@
-//%% NEW FILE RestrictedBase BEGINS HERE %%
+package fasting.Protocols;//%% NEW FILE protocols.RestrictedBase BEGINS HERE %%
 
 /*PLEASE DO NOT EDIT THIS CODE*/
 /*This code was generated using the UMPLE 1.31.1.5860.78bb27cc6 modeling language!*/
@@ -18,13 +18,13 @@ public class RestrictedBase
   // MEMBER VARIABLES
   //------------------------
 
-  //RestrictedBase Attributes
+  //protocols.RestrictedBase Attributes
   private int startDeadline;
   private int startWarnDeadline;
   private int endDeadline;
   private int endWarnDeadline;
 
-  //RestrictedBase State Machines
+  //protocols.RestrictedBase State Machines
   public enum State { initial, waitStart, warnStartCal, startcal, missedStartCal, warnEndCal, endcal, missedEndCal, endOfEpisode }
   private State state;
 

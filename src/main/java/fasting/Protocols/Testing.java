@@ -1,3 +1,5 @@
+package fasting.Protocols;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -147,7 +149,7 @@ public class Testing {
 
             //loop until end
             /*
-            while(!(p0.getState() == RestrictedBase.State.endOfEpisode)) {
+            while(!(p0.getState() == protocols.RestrictedBase.State.endOfEpisode)) {
                 logger.info(p0.getState().toString());
                 Thread.sleep(1000);
                 //p0.receivedStartCal();

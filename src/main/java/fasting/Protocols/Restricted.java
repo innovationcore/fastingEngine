@@ -1,3 +1,5 @@
+package fasting.Protocols;
+
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.slf4j.Logger;
@@ -43,7 +45,7 @@ public class Restricted extends RestrictedBase {
                         Thread.sleep(1000);
                     }
                 } catch (Exception ex) {
-                    logger.error("Restricted Thread: " + ex.toString());
+                    logger.error("protocols.Restricted Thread: " + ex.toString());
                     StringWriter sw = new StringWriter();
                     PrintWriter pw = new PrintWriter(sw);
                     ex.printStackTrace(pw);

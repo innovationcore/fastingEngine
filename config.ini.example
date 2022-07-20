@@ -1,0 +1,13 @@
+[general]
+
+web_port=9000
+
+db_host=url
+db_name=name
+db_user=user
+db_password=pass
+
+twilio_account_sid=0
+twilio_auth_token=0
+twilio_from_number=0
+
