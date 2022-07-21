@@ -60,7 +60,7 @@ public class Launcher {
 
             //start protocols
             restrictedWatcher = new RestrictedWatcher();
-            restrictedWatcher.startProtocols();
+
 
         } catch (Exception ex) {
             ex.printStackTrace();

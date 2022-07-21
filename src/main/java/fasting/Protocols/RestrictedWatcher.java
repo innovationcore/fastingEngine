@@ -1,20 +1,25 @@
 package fasting.Protocols;
 
 import fasting.Launcher;
+import org.apache.logging.log4j.LogManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.nio.file.Paths;
+import java.util.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class RestrictedWatcher {
 
     private Logger logger;
+    private Timer checkTimer;
 
     private AtomicBoolean lockRestricted = new AtomicBoolean();
     private Map<String,Restricted> restrictedMap;
@@ -22,42 +27,17 @@ public class RestrictedWatcher {
     public RestrictedWatcher() {
         this.logger = LoggerFactory.getLogger(RestrictedWatcher.class);
         this.restrictedMap = Collections.synchronizedMap(new HashMap<>());
-    }
 
-    public void startProtocols() {
-        try {
-            List<Map<String, String>> participantMapList = Launcher.dbEngine.getParticipant("other_participation_type");
-            for (Map<String, String> participantMap : participantMapList) {
+        //how long to wait before checking protocols
+        long checkdelay = Launcher.config.getLongParam("checkdelay",0l);
+        long checktimer = Launcher.config.getLongParam("checktimer",30000l);
 
-                logger.info("Creating state machine for participant_id=" + participantMap.get("participant_id"));
-                //Create dummy person
-                Restricted p0 = new Restricted(participantMap);
+        //create timer
+        checkTimer = new Timer();
+        //set timer
+        checkTimer.scheduleAtFixedRate(new startRestricted(),checkdelay, checktimer);//remote
 
-                //set short deadline for cal end
-                p0.setStartWarnDeadline(60);
-                p0.setStartDeadline(120);
-                p0.setEndWarnDeadline(240);
-                p0.setEndDeadline(300);
 
-                logger.info("Set WaitStart for participant_id=" + participantMap.get("participant_id"));
-                p0.receivedWaitStart();
-
-                synchronized (lockRestricted) {
-                    restrictedMap.put(participantMap.get("participant_id"), p0);
-                }
-
-            }
-
-        } catch (Exception ex) {
-
-            StringWriter sw = new StringWriter();
-            ex.printStackTrace(new PrintWriter(sw));
-            String exceptionAsString = sw.toString();
-            ex.printStackTrace();
-            logger.error("startProtocols");
-            logger.error(exceptionAsString);
-
-        }
     }
 
     public void incomingText(Map<String,String> incomingMap) {
@@ -84,6 +64,64 @@ public class RestrictedWatcher {
             logger.error(exceptionAsString);
         }
     }
+
+    class startRestricted extends TimerTask {
+
+        private Logger logger;
+
+        public startRestricted() {
+            logger = LoggerFactory.getLogger(startRestricted.class);
+        }
+
+        public void run() {
+
+            try {
+                List<Map<String, String>> participantMapList = Launcher.dbEngine.getParticipant("other_participation_type");
+                for (Map<String, String> participantMap : participantMapList) {
+
+                    boolean isActive = false;
+                    synchronized (lockRestricted) {
+                        if(!restrictedMap.containsKey(participantMap.get("participant_id"))) {
+                            isActive = true;
+                        }
+
+                    }
+
+                    if(isActive) {
+                        logger.info("Creating state machine for participant_id=" + participantMap.get("participant_id"));
+                        //Create dummy person
+                        Restricted p0 = new Restricted(participantMap);
+
+                        //set short deadline for cal end
+                        p0.setStartWarnDeadline(60);
+                        p0.setStartDeadline(120);
+                        p0.setEndWarnDeadline(240);
+                        p0.setEndDeadline(300);
+
+                        logger.info("Set WaitStart for participant_id=" + participantMap.get("participant_id"));
+                        p0.receivedWaitStart();
+
+                        synchronized (lockRestricted) {
+                            restrictedMap.put(participantMap.get("participant_id"), p0);
+                        }
+                    }
+
+                }
+
+            } catch (Exception ex) {
+
+                StringWriter sw = new StringWriter();
+                ex.printStackTrace(new PrintWriter(sw));
+                String exceptionAsString = sw.toString();
+                ex.printStackTrace();
+                logger.error("startProtocols");
+                logger.error(exceptionAsString);
+            }
+
+        }
+
+    }
+
 
 
     public void testWorking() {
