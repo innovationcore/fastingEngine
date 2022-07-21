@@ -73,36 +73,44 @@ public class Restricted extends RestrictedBase {
                     //no timers
                     break;
                 case waitStart:
-                    logger.info("Start State: " + getState());
-                    String waitStartCalMessage = "SEND STARTCAL TEXT " + incomingMap.get("Body");
-                    logger.warn("\t\t " + waitStartCalMessage);
-                    receivedStartCal();
-                    logger.info("End State: " + getState());
+                    if(isStartCal(incomingMap.get("Body"))) {
+                        receivedStartCal();
+                    }
                     break;
                 case warnStartCal:
-                    String warnStartCalMessage = "SEND WARNSTARTCAL TEXT " + incomingMap.get("Body");
-                    logger.warn("\t\t " + warnStartCalMessage);
-                    receivedStartCal();
+                    if(isStartCal(incomingMap.get("Body"))) {
+                        receivedStartCal();
+                    }
                     break;
                 case startcal:
-                    String startThankYou = "SEND STARTCAL THANK YOU TEXT";
-                    logger.info("\t\t " + startThankYou);
+                    if(isEndCal(incomingMap.get("Body"))) {
+                        receivedEndCal();
+                    }
                     break;
                 case missedStartCal:
-                    String missedStartCalMessage = "SEND STARTCAL FAILURE TEXT " + participantMap.get("participant_id");
+                    String missedStartCalMessage = participantMap.get("participant_id") + " missedStartCal unexpected message";
                     logger.warn("\t\t " + missedStartCalMessage);
                     Launcher.msgUtils.sendMessage(participantMap.get("phone_number"), missedStartCalMessage);
                     break;
                 case warnEndCal:
-                    logger.warn("\t\t SEND ENDCAL WARNING TEXT");
+                    if(isEndCal(incomingMap.get("Body"))) {
+                        receivedEndCal();
+                    }
                     break;
                 case endcal:
-                    logger.info("\t\t SEND ENDCAL THANK YOU TEXT");
+                    if(isEndCal(incomingMap.get("Body"))) {
+                        receivedEndCal();
+                    }
                     break;
                 case missedEndCal:
-                    logger.error("\t\t SEND ENDCAL FAILURE TEXT");
+                    String missedEndCalMessage = participantMap.get("participant_id") + " missedEndCal unexpected message";
+                    logger.warn("\t\t " + missedEndCalMessage);
+                    Launcher.msgUtils.sendMessage(participantMap.get("phone_number"), missedEndCalMessage);
                     break;
                 case endOfEpisode:
+                    String endOfEpisodeMessage = participantMap.get("participant_id") + " endOfEpisode unexpected message";
+                    logger.warn("\t\t " + endOfEpisodeMessage);
+                    Launcher.msgUtils.sendMessage(participantMap.get("phone_number"), endOfEpisodeMessage);
                     break;
                 default:
                     logger.error("stateNotify: Invalid state: " + getState());
@@ -117,6 +125,49 @@ public class Restricted extends RestrictedBase {
             logger.error("incomingMessage");
             logger.error(exceptionAsString);
         }
+    }
+
+    private boolean isStartCal(String messageBody) {
+        boolean isStart = false;
+        try {
+
+            if(messageBody.toLowerCase().contains("startcal")) {
+                //Launcher.msgUtils.sendMessage(participantMap.get("phone_number"), "startcal accepted");
+                isStart = true;
+            } else {
+                Launcher.msgUtils.sendMessage(participantMap.get("phone_number"), "startcal not found please resend");
+                isStart = false;
+            }
+
+        } catch (Exception ex) {
+            logger.error("isStartCal(): " + ex.getMessage());
+            StringWriter sw = new StringWriter();
+            PrintWriter pw = new PrintWriter(sw);
+            ex.printStackTrace(pw);
+            logger.error(pw.toString());
+        }
+        return isStart;
+    }
+
+    private boolean isEndCal(String messageBody) {
+        boolean isEnd = false;
+        try {
+
+            if(messageBody.toLowerCase().contains("endcal")) {
+                isEnd = true;
+            } else {
+                isEnd = false;
+                Launcher.msgUtils.sendMessage(participantMap.get("phone_number"), "endcal not found please resend");
+            }
+
+        } catch (Exception ex) {
+            logger.error("isStartCal(): " + ex.getMessage());
+            StringWriter sw = new StringWriter();
+            PrintWriter pw = new PrintWriter(sw);
+            ex.printStackTrace(pw);
+            logger.error(pw.toString());
+        }
+        return isEnd;
     }
 
     public String saveStateJSON() {
@@ -172,35 +223,40 @@ public class Restricted extends RestrictedBase {
             case waitStart:
                 break;
             case warnStartCal:
-                String warnStartCalMessage = "SEND STARTCAL WARNING TEXT " + participantMap.get("participant_id");
+                String warnStartCalMessage = participantMap.get("participant_id") + " please submit startcal";
                 logger.warn("\t\t " + warnStartCalMessage);
                 Launcher.msgUtils.sendMessage(participantMap.get("phone_number"), warnStartCalMessage);
                 break;
             case startcal:
-                String startCalMessage = "SEND STARTCAL THANK YOU TEXT " + participantMap.get("participant_id");
+                String startCalMessage = participantMap.get("participant_id") + " thanks for sending startcal";
                 logger.info("\t\t " + startCalMessage);
                 Launcher.msgUtils.sendMessage(participantMap.get("phone_number"), startCalMessage);
                 break;
             case missedStartCal:
-                String missedStartCalMessage = "SEND STARTCAL FAILURE TEXT " + participantMap.get("participant_id");
+                String missedStartCalMessage = participantMap.get("participant_id") + " no startcal was recorded for today.";
                 logger.warn("\t\t " + missedStartCalMessage);
                 Launcher.msgUtils.sendMessage(participantMap.get("phone_number"), missedStartCalMessage);
                 break;
             case warnEndCal:
-                logger.warn("\t\t SEND ENDCAL WARNING TEXT");
+                String warnEndCalMessage = participantMap.get("participant_id") + " please submit endcal";
+                logger.warn("\t\t " + warnEndCalMessage);
+                Launcher.msgUtils.sendMessage(participantMap.get("phone_number"), warnEndCalMessage);
                 break;
             case endcal:
-                logger.info("\t\t SEND ENDCAL THANK YOU TEXT");
+                String endCalMessage = participantMap.get("participant_id") + " thanks for sending endcal";
+                logger.info("\t\t " + endCalMessage);
+                Launcher.msgUtils.sendMessage(participantMap.get("phone_number"), endCalMessage);
                 break;
             case missedEndCal:
-                logger.error("\t\t SEND ENDCAL FAILURE TEXT");
+                String missedEndCalMessage = participantMap.get("participant_id") + " no endcal was recorded for today.";
+                logger.warn("\t\t " + missedEndCalMessage);
+                Launcher.msgUtils.sendMessage(participantMap.get("phone_number"), missedEndCalMessage);
                 break;
             case endOfEpisode:
                 break;
             default:
                 logger.error("stateNotify: Invalid state: " + state);
         }
-
 
         return true;
     }
