@@ -29,7 +29,7 @@ public class RestrictedWatcher {
         this.restrictedMap = Collections.synchronizedMap(new HashMap<>());
 
         //how long to wait before checking protocols
-        long checkdelay = Launcher.config.getLongParam("checkdelay",0l);
+        long checkdelay = Launcher.config.getLongParam("checkdelay",5000l);
         long checktimer = Launcher.config.getLongParam("checktimer",30000l);
 
         //create timer
@@ -91,12 +91,6 @@ public class RestrictedWatcher {
                         logger.info("Creating state machine for participant_id=" + participantMap.get("participant_id"));
                         //Create dummy person
                         Restricted p0 = new Restricted(participantMap);
-
-                        //set short deadline for cal end
-                        p0.setStartWarnDeadline(60);
-                        p0.setStartDeadline(120);
-                        p0.setEndWarnDeadline(240);
-                        p0.setEndDeadline(300);
 
                         logger.info("Set WaitStart for participant_id=" + participantMap.get("participant_id"));
                         p0.receivedWaitStart();
@@ -308,6 +302,84 @@ public class RestrictedWatcher {
             ex.printStackTrace();
         }
 
+    }
+
+    private Restricted setRestrictedTimers(Restricted p0) {
+
+        try {
+
+            Date date = new Date();   // given date
+
+            Calendar calendar = GregorianCalendar.getInstance(); // creates a new calendar instance
+            calendar.setTime(date);   // assigns calendar to given date
+            long currentTime = calendar.getTime().getTime()/1000;
+
+            calendar.set(Calendar.HOUR_OF_DAY, 4);
+            calendar.set(Calendar.MINUTE, 0);
+            long d1t400am = calendar.getTime().getTime()/1000;
+
+            calendar.set(Calendar.HOUR_OF_DAY, 11);
+            calendar.set(Calendar.MINUTE, 59);
+            long d1t1159am = calendar.getTime().getTime()/1000;
+
+            calendar.set(Calendar.HOUR_OF_DAY, 12);
+            calendar.set(Calendar.MINUTE, 0);
+            long d1t1200pm = calendar.getTime().getTime()/1000;
+
+            calendar.set(Calendar.HOUR_OF_DAY, 21);
+            calendar.set(Calendar.MINUTE, 0);
+            long d1t900pm = calendar.getTime().getTime()/1000;
+
+            long d2t359am = d1t400am + 86400 - 60; //add full day of seconds and subtract a minute
+
+            /*
+            String none = "0";
+            none = "1";
+
+            String WaitS = "0";
+
+            String WarnS = "0";
+
+            String d14am1159am = "0";
+            if((currentTime >= d1t400am) && (currentTime <= d1t1159am)) {
+                d14am1159am = "1";
+            }
+
+            String d12pmd2359am = "0";
+            if((currentTime >= d1t1200pm) && (currentTime <= d2t359am)) {
+                d14am1159am = "1";
+            }
+
+            */
+            int startWarnDiff =  (int)(d1t1159am-currentTime);
+            if(startWarnDiff <= 0) {
+                startWarnDiff = (int)currentTime + 300;
+                p0.setStartWarnDeadline(startWarnDiff);
+            } else {
+                p0.setStartWarnDeadline(startWarnDiff);
+            }
+            p0.receivedWaitStart();
+
+
+            //p0.setStartDeadline((int)(d2t359am - currentTime));
+            //p0.setEndWarnDeadline((int)(d1t900pm - currentTime));
+            //p0.setEndDeadline((int)(d2t359am - currentTime));
+
+            //p0.receivedWaitStart();
+
+
+            /*
+            String routeString = GM + RM + GC + RC + TXp + RXp + TXa + RXa + TXr + RXr + TXpe + RXpe + TXae + RXae + TXre + RXre;
+            routePath = Integer.parseInt(routeString, 2);
+            //System.out.println("desc:" + rm.getParam("desc") + "\nroutePath:" + routePath + " RouteString:\n" + routeString + "\n" + rm.getParams());
+             */
+
+        } catch (Exception ex) {
+            logger.error("setRestrictedTimers Error");
+            logger.error(ex.toString());
+        }
+
+        return p0;
     }
 
 }

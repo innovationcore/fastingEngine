@@ -9,10 +9,7 @@ import org.slf4j.LoggerFactory;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.Type;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class Restricted extends RestrictedBase {
@@ -221,16 +218,32 @@ public class Restricted extends RestrictedBase {
                 //no timers
                 break;
             case waitStart:
+                String waitStartMessage = participantMap.get("participant_id") + " created state machine";
+                logger.warn("\t\t " + waitStartMessage);
+                Launcher.msgUtils.sendMessage(participantMap.get("phone_number"), waitStartMessage);
+
+                //setting warn timer
+                int startWarnDiff =  timeToD1T1159am();
+                if(startWarnDiff <= 0) {
+                    startWarnDiff = 300;
+                    setStartWarnDeadline(startWarnDiff);
+                } else {
+                    setStartWarnDeadline(startWarnDiff);
+                }
                 break;
             case warnStartCal:
                 String warnStartCalMessage = participantMap.get("participant_id") + " please submit startcal";
                 logger.warn("\t\t " + warnStartCalMessage);
                 Launcher.msgUtils.sendMessage(participantMap.get("phone_number"), warnStartCalMessage);
+                //set start fail timer
+                setStartDeadline(timeToD2359am());
                 break;
             case startcal:
                 String startCalMessage = participantMap.get("participant_id") + " thanks for sending startcal";
                 logger.info("\t\t " + startCalMessage);
                 Launcher.msgUtils.sendMessage(participantMap.get("phone_number"), startCalMessage);
+                //set warn and end
+                setEndWarnDeadline(timeToD19pm());
                 break;
             case missedStartCal:
                 String missedStartCalMessage = participantMap.get("participant_id") + " no startcal was recorded for today.";
@@ -241,6 +254,8 @@ public class Restricted extends RestrictedBase {
                 String warnEndCalMessage = participantMap.get("participant_id") + " please submit endcal";
                 logger.warn("\t\t " + warnEndCalMessage);
                 Launcher.msgUtils.sendMessage(participantMap.get("phone_number"), warnEndCalMessage);
+                //set end for end
+                setEndDeadline(timeToD2359am());
                 break;
             case endcal:
                 String endCalMessage = participantMap.get("participant_id") + " thanks for sending endcal";
@@ -353,5 +368,53 @@ public class Restricted extends RestrictedBase {
         }
 
     }
+
+    private int timeToD1T1159am() {
+        Date date = new Date();   // given date
+
+        Calendar calendar = GregorianCalendar.getInstance(); // creates a new calendar instance
+        calendar.setTime(date);   // assigns calendar to given date
+        long currentTime = calendar.getTime().getTime()/1000;
+
+        calendar.set(Calendar.HOUR_OF_DAY, 11);
+        calendar.set(Calendar.MINUTE, 59);
+        long d1t1159am = calendar.getTime().getTime()/1000;
+        return (int) (d1t1159am - currentTime);
+
+    }
+
+    private int timeToD19pm() {
+
+        Date date = new Date();   // given date
+
+        Calendar calendar = GregorianCalendar.getInstance(); // creates a new calendar instance
+        calendar.setTime(date);   // assigns calendar to given date
+        long currentTime = calendar.getTime().getTime()/1000;
+
+        calendar.set(Calendar.HOUR_OF_DAY, 21);
+        calendar.set(Calendar.MINUTE, 0);
+        long d1t900pm = calendar.getTime().getTime()/1000;
+        return (int) (d1t900pm - currentTime);
+
+    }
+
+    private int timeToD2359am() {
+
+        Date date = new Date();   // given date
+
+        Calendar calendar = GregorianCalendar.getInstance(); // creates a new calendar instance
+        calendar.setTime(date);   // assigns calendar to given date
+        long currentTime = calendar.getTime().getTime()/1000;
+
+        calendar.set(Calendar.HOUR_OF_DAY, 4);
+        calendar.set(Calendar.MINUTE, 0);
+        long d1t400am = calendar.getTime().getTime()/1000;
+
+        long d2t359am = d1t400am + 86400 - 60; //add full day of seconds and subtract a minute
+
+        return (int) (d2t359am - currentTime);
+
+    }
+
 
 }
