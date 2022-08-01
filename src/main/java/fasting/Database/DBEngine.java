@@ -27,11 +27,16 @@ public class DBEngine {
         try {
 
             //Driver needs to be identified in order to load the namespace in the JVM
-            String dbDriver = "com.mysql.cj.jdbc.Driver";
+            //String dbDriver = "com.mysql.cj.jdbc.Driver";
+            String dbDriver = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
+
             Class.forName(dbDriver).newInstance();
 
-            String dbConnectionString = "jdbc:mysql://" + Launcher.config.getStringParam("db_host") + "/" + Launcher.config.getStringParam("db_name") + "?" + "user=" + Launcher.config.getStringParam("db_user") + "&password=" + Launcher.config.getStringParam("db_password");
-            ds = setupDataSource(dbConnectionString);
+            //String dbConnectionString = "jdbc:mysql://" + Launcher.config.getStringParam("db_host") + "/" + Launcher.config.getStringParam("db_name") + "?" + "user=" + Launcher.config.getStringParam("db_user") + "&password=" + Launcher.config.getStringParam("db_password");
+            String dbConnectionString = "jdbc:sqlserver://" + Launcher.config.getStringParam("db_host") +":"+ 1433 + ";databaseName=" + Launcher.config.getStringParam("db_name") + ";encrypt=false";
+
+            //ds = setupDataSource(dbConnectionString);
+            ds = setupDataSource(dbConnectionString, Launcher.config.getStringParam("db_user"), Launcher.config.getStringParam("db_password"));
 
             /*
             if(!databaseExist(databaseName)) {
@@ -99,6 +104,59 @@ public class DBEngine {
         return dataSource;
     }
 
+    public static DataSource setupDataSource(String connectURI, String login, String password) {
+        //
+        // First, we'll create a ConnectionFactory that the
+        // pool will use to create Connections.
+        // We'll use the DriverManagerConnectionFactory,
+        // using the connect string passed in the command line
+        // arguments.
+        //
+        ConnectionFactory connectionFactory = null;
+        if((login == null) && (password == null)) {
+            connectionFactory = new DriverManagerConnectionFactory(connectURI, null);
+        } else {
+            connectionFactory = new DriverManagerConnectionFactory(connectURI,
+                    login, password);
+        }
+
+
+        //
+        // Next we'll create the PoolableConnectionFactory, which wraps
+        // the "real" Connections created by the ConnectionFactory with
+        // the classes that implement the pooling functionality.
+        //
+        PoolableConnectionFactory poolableConnectionFactory =
+                new PoolableConnectionFactory(connectionFactory, null);
+
+
+
+        //
+        // Now we'll need a ObjectPool that serves as the
+        // actual pool of connections.
+        //
+        // We'll use a GenericObjectPool instance, although
+        // any ObjectPool implementation will suffice.
+        //
+        ObjectPool<PoolableConnection> connectionPool =
+                new GenericObjectPool<>(poolableConnectionFactory);
+
+        // Set the factory's pool property to the owning pool
+        poolableConnectionFactory.setPool(connectionPool);
+
+
+
+        //
+        // Finally, we create the PoolingDriver itself,
+        // passing in the object pool we created.
+        //
+        PoolingDataSource<PoolableConnection> dataSource =
+                new PoolingDataSource<>(connectionPool);
+
+        return dataSource;
+    }
+
+
     public List<Map<String,String>> getParticipant(String ParticipantType) {
         List<Map<String,String>> participantMapList = null;
         try {
@@ -137,6 +195,37 @@ public class DBEngine {
     }
 
     public String getParticipantIdFromPhoneNumber(String PhoneNumber) {
+        String participantId = null;
+        try {
+
+
+            String queryString = null;
+
+            //fill in the query
+            queryString = "SELECT participant_uuid FROM participants WHERE JSON_VALUE(participant_json, '$.number') = '"+ PhoneNumber + "'";
+
+            try(Connection conn = ds.getConnection()) {
+                try (Statement stmt = conn.createStatement()) {
+
+                    try(ResultSet rs = stmt.executeQuery(queryString)) {
+
+                        if (rs.next())
+                        {
+                            participantId = rs.getString("participant_uuid");
+                        }
+
+                    }
+                }
+            }
+
+        } catch(Exception ex) {
+            ex.printStackTrace();
+        }
+
+        return participantId;
+    }
+
+    public String getParticipantIdFromPhoneNumberOld(String PhoneNumber) {
         String participantId = null;
         try {
 

@@ -57,8 +57,9 @@ public class Launcher {
             //Embedded HTTP initialization
             startServer();
 
+
             //start protocols
-            restrictedWatcher = new RestrictedWatcher();
+            //restrictedWatcher = new RestrictedWatcher();
 
 
         } catch (Exception ex) {

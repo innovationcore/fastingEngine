@@ -12,10 +12,7 @@ import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import java.util.*;
 
 
 @Path("/sms")
@@ -45,8 +42,33 @@ public class API {
 
         String responseString;
         try {
-            logger.info(formParams.toString());
+            logger.info(gson.toJson(formParams.toString()));
 
+
+            String messageId = UUID.randomUUID().toString();
+            String participantId = Launcher.dbEngine.getParticipantIdFromPhoneNumber(formParams.get("From").get(0));
+            Date date = new Date();
+            String messageDirection = "incoming";
+            logger.error(gson.toJson(convertMultiToRegularMap(formParams)));
+
+
+
+            String insertQuery = "INSERT INTO messages " +
+                    "(`message_id`, `participant_uuid`, `TS`, `message_direction`, `message_json`)" +
+                    " VALUES ('" + messageId + "', '" +
+                    participantId + "' ,'" + date + "', ' " +
+                    formParams.get("ToCity").get(0) + "' ,'" + formParams.get("ToZip").get(0) + "', ' " +
+                    formParams.get("From").get(0) + "' ,'" + formParams.get("FromCountry").get(0) + "', ' " +
+                    formParams.get("FromState").get(0) + "' ,'" + formParams.get("FromCity").get(0) + "', ' " +
+                    formParams.get("FromZip").get(0) + "' ,'" + formParams.get("SmsMessageSid").get(0) + "', ' " +
+                    formParams.get("SmsSid").get(0) + "' ,'" + formParams.get("SmsStatus").get(0) + "' ,' " +
+                    formParams.get("MessageSid").get(0) + "' ,'" + formParams.get("AccountSid").get(0) + "', ' " +
+                    formParams.get("Body").get(0) + "' ,'" + formParams.get("NumMedia").get(0) + "', ' " +
+                    formParams.get("NumSegments").get(0) + "' ,'" + formParams.get("ApiVersion").get(0) + "', ' " +
+                    timestamp + "')";
+
+
+            /*
             long timestamp = System.currentTimeMillis() / 1000;
             String insertQuery = "INSERT INTO messages " +
                     "(`To`, `ToCountry`, `ToState`, `ToCity`, `ToZip`, " +
@@ -72,6 +94,7 @@ public class API {
 
             //send to state machine
             Launcher.restrictedWatcher.incomingText(convertMultiToRegularMap(formParams));
+            */
 
             Map<String,String> responce = new HashMap<>();
             responce.put("status","ok");
