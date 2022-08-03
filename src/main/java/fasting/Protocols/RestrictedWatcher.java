@@ -10,18 +10,18 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class RestrictedWatcher {
 
     private Logger logger;
     private Timer checkTimer;
+    private Timer episodeResetTimer;
 
     private AtomicBoolean lockRestricted = new AtomicBoolean();
+    private AtomicBoolean lockEpisodeReset = new AtomicBoolean();
+
     private Map<String,Restricted> restrictedMap;
 
     public RestrictedWatcher() {
@@ -37,15 +37,23 @@ public class RestrictedWatcher {
         //set timer
         checkTimer.scheduleAtFixedRate(new startRestricted(),checkdelay, checktimer);//remote
 
+        Calendar today = Calendar.getInstance();
+        today.set(Calendar.HOUR_OF_DAY, 4);
+        today.set(Calendar.MINUTE, 0);
+        today.set(Calendar.SECOND, 0);
+
+        // every night at 3:59am you run your task
+        episodeResetTimer = new Timer();
+        episodeResetTimer.schedule(new episodeReset(), today.getTime(), TimeUnit.MILLISECONDS.convert(1, TimeUnit.DAYS)); // period: 1 day
 
     }
 
-    public void incomingText(Map<String,String> incomingMap) {
+    public void incomingText(String participantId, Map<String,String> incomingMap) {
 
         try {
 
             //From
-            String participantId = Launcher.dbEngine.getParticipantIdFromPhoneNumber(incomingMap.get("From"));
+            //String participantId = Launcher.dbEngine.getParticipantIdFromPhoneNumber(incomingMap.get("From"));
             logger.info("Incoming number: " + incomingMap.get("From") + " parid: " + participantId);
 
             synchronized (lockRestricted) {
@@ -76,31 +84,37 @@ public class RestrictedWatcher {
         public void run() {
 
             try {
-                List<Map<String, String>> participantMapList = Launcher.dbEngine.getParticipant("other_participation_type");
-                for (Map<String, String> participantMap : participantMapList) {
 
-                    boolean isActive = false;
-                    synchronized (lockRestricted) {
-                        if(!restrictedMap.containsKey(participantMap.get("participant_id"))) {
-                            isActive = true;
-                        }
+               synchronized (lockEpisodeReset) {
 
-                    }
+                   //List<Map<String, String>> participantMapList = Launcher.dbEngine.getParticipant("Baseline");
+                   List<Map<String,String>> participantMapList = Launcher.dbEngine.getParticipantMapByGroup("Baseline");
+                   for (Map<String, String> participantMap : participantMapList) {
 
-                    if(isActive) {
-                        logger.info("Creating state machine for participant_id=" + participantMap.get("participant_id"));
-                        //Create dummy person
-                        Restricted p0 = new Restricted(participantMap);
+                       boolean isActive = false;
+                       synchronized (lockRestricted) {
+                           if(!restrictedMap.containsKey(participantMap.get("participant_uuid"))) {
+                               isActive = true;
+                           }
 
-                        logger.info("Set WaitStart for participant_id=" + participantMap.get("participant_id"));
-                        p0.receivedWaitStart();
+                       }
 
-                        synchronized (lockRestricted) {
-                            restrictedMap.put(participantMap.get("participant_id"), p0);
-                        }
-                    }
+                       if(isActive) {
+                           logger.info("Creating state machine for participant_uuid=" + participantMap.get("participant_uuid"));
+                           //Create dummy person
+                           Restricted p0 = new Restricted(participantMap);
 
-                }
+                           logger.info("Set WaitStart for participant_uuid=" + participantMap.get("participant_uuid"));
+                           p0.receivedWaitStart();
+
+                           synchronized (lockRestricted) {
+                               restrictedMap.put(participantMap.get("participant_uuid"), p0);
+                           }
+                       }
+
+                   }
+
+               }
 
             } catch (Exception ex) {
 
@@ -116,6 +130,38 @@ public class RestrictedWatcher {
 
     }
 
+    class episodeReset extends TimerTask {
+
+        private Logger logger;
+
+        public episodeReset() {
+            logger = LoggerFactory.getLogger(episodeReset.class);
+        }
+
+        public void run() {
+
+            try {
+                logger.error("RESET!!");
+                synchronized (lockEpisodeReset) {
+
+                    synchronized (lockRestricted) {
+                        restrictedMap.clear();
+                    }
+                }
+
+            } catch (Exception ex) {
+
+                StringWriter sw = new StringWriter();
+                ex.printStackTrace(new PrintWriter(sw));
+                String exceptionAsString = sw.toString();
+                ex.printStackTrace();
+                logger.error("episodeReset");
+                logger.error(exceptionAsString);
+            }
+
+        }
+
+    }
 
 
     public void testWorking() {

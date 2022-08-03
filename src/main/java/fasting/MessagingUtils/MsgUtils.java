@@ -2,6 +2,7 @@ package fasting.MessagingUtils;
 
 // Install the Java helper library from twilio.com/docs/java/install
 
+import com.google.gson.Gson;
 import com.twilio.Twilio;
 import com.twilio.rest.api.v2010.account.Message;
 import com.twilio.type.PhoneNumber;
@@ -10,6 +11,10 @@ import fasting.Webapi.API;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.logging.Handler;
+
 public class MsgUtils {
     // Find your Account SID and Auth Token at twilio.com/console
     // and set the environment variables. See http://twil.io/secure
@@ -17,10 +22,12 @@ public class MsgUtils {
     private String auth_token;
     private String textFrom;
     private Logger logger;
+    private Gson gson;
 
     public MsgUtils() {
         logger = LoggerFactory.getLogger(MsgUtils.class);
         textFrom = Launcher.config.getStringParam("twilio_from_number");
+        gson = new Gson();
         //account_sid = Launcher.config.getStringParam("twilio_account_sid");
         //auth_token = Launcher.config.getStringParam("twilio_auth_token");
         Twilio.init(Launcher.config.getStringParam("twilio_account_sid"), Launcher.config.getStringParam("twilio_auth_token"));
@@ -34,10 +41,24 @@ public class MsgUtils {
                         body)
                 .create();
 
-        long timestamp = System.currentTimeMillis() / 1000;
+        String messageId = UUID.randomUUID().toString();
+        String participantId = Launcher.dbEngine.getParticipantIdFromPhoneNumber(textTo);
+        String messageDirection = "outgoing";
+
+        String pattern = "yyyy-MM-dd HH:mm:ss.SSS";
+        SimpleDateFormat simpleDateFormat =new SimpleDateFormat(pattern, new Locale("en", "USA"));
+        String date = simpleDateFormat.format(new Date());
+
+        Map<String,String> messageMap = new HashMap<>();
+        messageMap.put("Body",body);
+        String json_string = gson.toJson(messageMap);
+
         String insertQuery = "INSERT INTO messages " +
-                "(`To`, `From`, `Body`, `received_at`)" +
-                " VALUES ('" + textTo + "', '" +  textFrom + "', " + "'" + body + "', '" + timestamp + "')";
+                "(message_uuid, participant_uuid, TS, message_direction, message_json)" +
+                " VALUES ('" + messageId + "', '" +
+                participantId + "' ,'" + date + "', '" +
+                messageDirection + "', '" + json_string +
+                "')";
 
         logger.info(insertQuery);
 

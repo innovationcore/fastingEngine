@@ -1,5 +1,6 @@
 package fasting.Database;
 
+import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import fasting.Launcher;
 import org.apache.commons.dbcp2.*;
@@ -21,11 +22,12 @@ import java.util.Map;
 
 public class DBEngine {
 
+    private Gson gson;
     private DataSource ds;
     public DBEngine() {
 
         try {
-
+            gson = new Gson();
             //Driver needs to be identified in order to load the namespace in the JVM
             //String dbDriver = "com.mysql.cj.jdbc.Driver";
             String dbDriver = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
@@ -224,6 +226,41 @@ public class DBEngine {
 
         return participantId;
     }
+
+    public List<Map<String,String>> getParticipantMapByGroup(String groupName) {
+        List<Map<String,String>> participantMaps = null;
+        try {
+
+            participantMaps = new ArrayList<>();
+
+            String queryString = null;
+
+            //fill in the query
+            queryString = "SELECT participant_uuid, participant_json FROM participants WHERE JSON_VALUE(participant_json, '$.group') = '"+ groupName + "'";
+
+            try(Connection conn = ds.getConnection()) {
+                try (Statement stmt = conn.createStatement()) {
+
+                    try(ResultSet rs = stmt.executeQuery(queryString)) {
+
+                        while (rs.next()) {
+                            //Map<String,String> participantMap = new HashMap<>();
+                            Map<String,String> participantMap = gson.fromJson(rs.getString("participant_json"), Map.class);
+                            participantMap.put("participant_uuid",rs.getString("participant_uuid"));
+                            participantMaps.add(participantMap);
+                        }
+
+                    }
+                }
+            }
+
+        } catch(Exception ex) {
+            ex.printStackTrace();
+        }
+
+        return participantMaps;
+    }
+
 
     public String getParticipantIdFromPhoneNumberOld(String PhoneNumber) {
         String participantId = null;

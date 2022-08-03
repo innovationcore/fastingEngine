@@ -59,7 +59,7 @@ public class Launcher {
 
 
             //start protocols
-            //restrictedWatcher = new RestrictedWatcher();
+            restrictedWatcher = new RestrictedWatcher();
 
 
         } catch (Exception ex) {

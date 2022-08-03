@@ -12,6 +12,7 @@ import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 
@@ -42,63 +43,46 @@ public class API {
 
         String responseString;
         try {
-            logger.info(gson.toJson(formParams.toString()));
-
 
             String messageId = UUID.randomUUID().toString();
             String participantId = Launcher.dbEngine.getParticipantIdFromPhoneNumber(formParams.get("From").get(0));
-            Date date = new Date();
-            String messageDirection = "incoming";
-            logger.error(gson.toJson(convertMultiToRegularMap(formParams)));
 
+            if (participantId != null) {
 
+                //String participantId = "6C86EC98-921D-43F8-83B9-FA3B49CBC1D8";
+                //Date date = new Date();
+                String messageDirection = "incoming";
+                //logger.error(gson.toJson(convertMultiToRegularMap(formParams)));
+                String pattern = "yyyy-MM-dd HH:mm:ss.SSS";
+                SimpleDateFormat simpleDateFormat =new SimpleDateFormat(pattern, new Locale("en", "USA"));
+                String date = simpleDateFormat.format(new Date());
 
-            String insertQuery = "INSERT INTO messages " +
-                    "(`message_id`, `participant_uuid`, `TS`, `message_direction`, `message_json`)" +
-                    " VALUES ('" + messageId + "', '" +
-                    participantId + "' ,'" + date + "', ' " +
-                    formParams.get("ToCity").get(0) + "' ,'" + formParams.get("ToZip").get(0) + "', ' " +
-                    formParams.get("From").get(0) + "' ,'" + formParams.get("FromCountry").get(0) + "', ' " +
-                    formParams.get("FromState").get(0) + "' ,'" + formParams.get("FromCity").get(0) + "', ' " +
-                    formParams.get("FromZip").get(0) + "' ,'" + formParams.get("SmsMessageSid").get(0) + "', ' " +
-                    formParams.get("SmsSid").get(0) + "' ,'" + formParams.get("SmsStatus").get(0) + "' ,' " +
-                    formParams.get("MessageSid").get(0) + "' ,'" + formParams.get("AccountSid").get(0) + "', ' " +
-                    formParams.get("Body").get(0) + "' ,'" + formParams.get("NumMedia").get(0) + "', ' " +
-                    formParams.get("NumSegments").get(0) + "' ,'" + formParams.get("ApiVersion").get(0) + "', ' " +
-                    timestamp + "')";
+                Map<String, String> formsMap = convertMultiToRegularMap(formParams);
+                String json_string = gson.toJson(formsMap);
 
+                String insertQuery = "INSERT INTO messages " +
+                        "(message_uuid, participant_uuid, TS, message_direction, message_json)" +
+                        " VALUES ('" + messageId + "', '" +
+                        participantId + "' ,'" + date + "', '" +
+                        messageDirection + "', '" + json_string +
+                        "')";
 
-            /*
-            long timestamp = System.currentTimeMillis() / 1000;
-            String insertQuery = "INSERT INTO messages " +
-                    "(`To`, `ToCountry`, `ToState`, `ToCity`, `ToZip`, " +
-                    "`From`, `FromCountry`, `FromState`, `FromCity`, `FromZip`, " +
-                    "`SmsMessageSid`, `SmsSid`, `SmsStatus`, `MessageSid`, `AccountSid`, " +
-                    "`Body`, `NumMedia`, `NumSegments`, `ApiVersion`, `received_at`)" +
-                    " VALUES ('" + formParams.get("To").get(0) + "', '" +
-                    formParams.get("ToCountry").get(0) + "' ,'" + formParams.get("ToState").get(0) + "', ' " +
-                    formParams.get("ToCity").get(0) + "' ,'" + formParams.get("ToZip").get(0) + "', ' " +
-                    formParams.get("From").get(0) + "' ,'" + formParams.get("FromCountry").get(0) + "', ' " +
-                    formParams.get("FromState").get(0) + "' ,'" + formParams.get("FromCity").get(0) + "', ' " +
-                    formParams.get("FromZip").get(0) + "' ,'" + formParams.get("SmsMessageSid").get(0) + "', ' " +
-                    formParams.get("SmsSid").get(0) + "' ,'" + formParams.get("SmsStatus").get(0) + "' ,' " +
-                    formParams.get("MessageSid").get(0) + "' ,'" + formParams.get("AccountSid").get(0) + "', ' " +
-                    formParams.get("Body").get(0) + "' ,'" + formParams.get("NumMedia").get(0) + "', ' " +
-                    formParams.get("NumSegments").get(0) + "' ,'" + formParams.get("ApiVersion").get(0) + "', ' " +
-                    timestamp + "')";
+                //record incoming
+                Launcher.dbEngine.executeUpdate(insertQuery);
 
-            logger.info(insertQuery);
+                //send to state machine
+                Launcher.restrictedWatcher.incomingText(participantId, formsMap);
 
-            //record incoming
-            Launcher.dbEngine.executeUpdate(insertQuery);
+                Map<String,String> responce = new HashMap<>();
+                responce.put("status","ok");
+                responseString = gson.toJson(responce);
 
-            //send to state machine
-            Launcher.restrictedWatcher.incomingText(convertMultiToRegularMap(formParams));
-            */
-
-            Map<String,String> responce = new HashMap<>();
-            responce.put("status","ok");
-            responseString = gson.toJson(responce);
+            } else {
+                Map<String,String> responce = new HashMap<>();
+                responce.put("status","error");
+                responce.put("status_desc","participant not found");
+                responseString = gson.toJson(responce);
+            }
 
         } catch (Exception ex) {
 

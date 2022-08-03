@@ -2,6 +2,7 @@ package fasting.Protocols;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.twilio.rest.api.v2010.account.Message;
 import fasting.Launcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,15 +10,16 @@ import org.slf4j.LoggerFactory;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.Type;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
+
 
 public class Restricted extends RestrictedBase {
     private Type typeOfHashMap = new TypeToken<Map<String, Map<String,Long>>>() { }.getType();
 
-    //id, participant_id, phone_number, participant_type
+    //id, participant_uuid, phone_number, participant_type
     private Map<String, String> participantMap;
-
     private String person_id;
     private Map<String,Long> stateMap;
 
@@ -28,14 +30,14 @@ public class Restricted extends RestrictedBase {
     private Gson gson;
     private static final Logger logger = LoggerFactory.getLogger(Restricted.class.getName());
 
-    public Restricted(String participant_id) {
+    public Restricted(String participant_uuid) {
 
     }
 
     public Restricted(Map<String, String> participantMap) {
+        this.gson = new Gson();
         this.participantMap = participantMap;
         this.stateMap = new HashMap<>();
-        this.gson = new Gson();
 
         new Thread(){
             public void run(){
@@ -85,9 +87,9 @@ public class Restricted extends RestrictedBase {
                     }
                     break;
                 case missedStartCal:
-                    String missedStartCalMessage = participantMap.get("participant_id") + " missedStartCal unexpected message";
+                    String missedStartCalMessage = participantMap.get("participant_uuid") + " missedStartCal unexpected message";
                     logger.warn("\t\t " + missedStartCalMessage);
-                    Launcher.msgUtils.sendMessage(participantMap.get("phone_number"), missedStartCalMessage);
+                    Launcher.msgUtils.sendMessage(participantMap.get("number"), missedStartCalMessage);
                     break;
                 case warnEndCal:
                     if(isEndCal(incomingMap.get("Body"))) {
@@ -100,14 +102,14 @@ public class Restricted extends RestrictedBase {
                     }
                     break;
                 case missedEndCal:
-                    String missedEndCalMessage = participantMap.get("participant_id") + " missedEndCal unexpected message";
+                    String missedEndCalMessage = participantMap.get("participant_uuid") + " missedEndCal unexpected message";
                     logger.warn("\t\t " + missedEndCalMessage);
-                    Launcher.msgUtils.sendMessage(participantMap.get("phone_number"), missedEndCalMessage);
+                    Launcher.msgUtils.sendMessage(participantMap.get("number"), missedEndCalMessage);
                     break;
                 case endOfEpisode:
-                    String endOfEpisodeMessage = participantMap.get("participant_id") + " endOfEpisode unexpected message";
+                    String endOfEpisodeMessage = participantMap.get("participant_uuid") + " endOfEpisode unexpected message";
                     logger.warn("\t\t " + endOfEpisodeMessage);
-                    Launcher.msgUtils.sendMessage(participantMap.get("phone_number"), endOfEpisodeMessage);
+                    Launcher.msgUtils.sendMessage(participantMap.get("number"), endOfEpisodeMessage);
                     break;
                 default:
                     logger.error("stateNotify: Invalid state: " + getState());
@@ -129,10 +131,10 @@ public class Restricted extends RestrictedBase {
         try {
 
             if(messageBody.toLowerCase().contains("startcal")) {
-                //Launcher.msgUtils.sendMessage(participantMap.get("phone_number"), "startcal accepted");
+                //Launcher.msgUtils.sendMessage(participantMap.get("number"), "startcal accepted");
                 isStart = true;
             } else {
-                Launcher.msgUtils.sendMessage(participantMap.get("phone_number"), "startcal not found please resend");
+                Launcher.msgUtils.sendMessage(participantMap.get("number"), "startcal not found please resend");
                 isStart = false;
             }
 
@@ -154,7 +156,7 @@ public class Restricted extends RestrictedBase {
                 isEnd = true;
             } else {
                 isEnd = false;
-                Launcher.msgUtils.sendMessage(participantMap.get("phone_number"), "endcal not found please resend");
+                Launcher.msgUtils.sendMessage(participantMap.get("number"), "endcal not found please resend");
             }
 
         } catch (Exception ex) {
@@ -201,7 +203,9 @@ public class Restricted extends RestrictedBase {
     @Override
     public boolean stateNotify(String state){
 
-        //logger.info("\t\t\t\t person_id: " + person_id + " state change: " + state);
+        //save change to state log
+        logState(state);
+
 
         if(stateMap != null) {
             stateMap.put(state, System.currentTimeMillis() / 1000);
@@ -218,9 +222,9 @@ public class Restricted extends RestrictedBase {
                 //no timers
                 break;
             case waitStart:
-                String waitStartMessage = participantMap.get("participant_id") + " created state machine";
+                String waitStartMessage = participantMap.get("participant_uuid") + " created state machine";
                 logger.warn("\t\t " + waitStartMessage);
-                Launcher.msgUtils.sendMessage(participantMap.get("phone_number"), waitStartMessage);
+                Launcher.msgUtils.sendMessage(participantMap.get("number"), waitStartMessage);
 
                 //setting warn timer
                 int startWarnDiff =  timeToD1T1159am();
@@ -232,40 +236,40 @@ public class Restricted extends RestrictedBase {
                 }
                 break;
             case warnStartCal:
-                String warnStartCalMessage = participantMap.get("participant_id") + " please submit startcal";
+                String warnStartCalMessage = participantMap.get("participant_uuid") + " please submit startcal";
                 logger.warn("\t\t " + warnStartCalMessage);
-                Launcher.msgUtils.sendMessage(participantMap.get("phone_number"), warnStartCalMessage);
+                Launcher.msgUtils.sendMessage(participantMap.get("number"), warnStartCalMessage);
                 //set start fail timer
                 setStartDeadline(timeToD2359am());
                 break;
             case startcal:
-                String startCalMessage = participantMap.get("participant_id") + " thanks for sending startcal";
+                String startCalMessage = participantMap.get("participant_uuid") + " thanks for sending startcal";
                 logger.info("\t\t " + startCalMessage);
-                Launcher.msgUtils.sendMessage(participantMap.get("phone_number"), startCalMessage);
+                Launcher.msgUtils.sendMessage(participantMap.get("number"), startCalMessage);
                 //set warn and end
                 setEndWarnDeadline(timeToD19pm());
                 break;
             case missedStartCal:
-                String missedStartCalMessage = participantMap.get("participant_id") + " no startcal was recorded for today.";
+                String missedStartCalMessage = participantMap.get("participant_uuid") + " no startcal was recorded for today.";
                 logger.warn("\t\t " + missedStartCalMessage);
-                Launcher.msgUtils.sendMessage(participantMap.get("phone_number"), missedStartCalMessage);
+                Launcher.msgUtils.sendMessage(participantMap.get("number"), missedStartCalMessage);
                 break;
             case warnEndCal:
-                String warnEndCalMessage = participantMap.get("participant_id") + " please submit endcal";
+                String warnEndCalMessage = participantMap.get("participant_uuid") + " please submit endcal";
                 logger.warn("\t\t " + warnEndCalMessage);
-                Launcher.msgUtils.sendMessage(participantMap.get("phone_number"), warnEndCalMessage);
+                Launcher.msgUtils.sendMessage(participantMap.get("number"), warnEndCalMessage);
                 //set end for end
                 setEndDeadline(timeToD2359am());
                 break;
             case endcal:
-                String endCalMessage = participantMap.get("participant_id") + " thanks for sending endcal";
+                String endCalMessage = participantMap.get("participant_uuid") + " thanks for sending endcal";
                 logger.info("\t\t " + endCalMessage);
-                Launcher.msgUtils.sendMessage(participantMap.get("phone_number"), endCalMessage);
+                Launcher.msgUtils.sendMessage(participantMap.get("number"), endCalMessage);
                 break;
             case missedEndCal:
-                String missedEndCalMessage = participantMap.get("participant_id") + " no endcal was recorded for today.";
+                String missedEndCalMessage = participantMap.get("participant_uuid") + " no endcal was recorded for today.";
                 logger.warn("\t\t " + missedEndCalMessage);
-                Launcher.msgUtils.sendMessage(participantMap.get("phone_number"), missedEndCalMessage);
+                Launcher.msgUtils.sendMessage(participantMap.get("number"), missedEndCalMessage);
                 break;
             case endOfEpisode:
                 break;
@@ -413,6 +417,30 @@ public class Restricted extends RestrictedBase {
         long d2t359am = d1t400am + 86400 - 60; //add full day of seconds and subtract a minute
 
         return (int) (d2t359am - currentTime);
+
+    }
+
+    public void logState(String state) {
+
+        if(gson != null) {
+
+            String pattern = "yyyy-MM-dd HH:mm:ss.SSS";
+            SimpleDateFormat simpleDateFormat =new SimpleDateFormat(pattern, new Locale("en", "USA"));
+            String date = simpleDateFormat.format(new Date());
+
+            Map<String,String> messageMap = new HashMap<>();
+            messageMap.put("state",state);
+            String json_string = gson.toJson(messageMap);
+            //String json_string = "{\"state\":\"" + state +  "\"}";
+
+            String insertQuery = "INSERT INTO state_log " +
+                    "(participant_uuid, TS, log_json)" +
+                    " VALUES ('" + participantMap.get("participant_uuid") + "', '" +
+                    date + "', '" + json_string +
+                    "')";
+
+            Launcher.dbEngine.executeUpdate(insertQuery);
+        }
 
     }
 
