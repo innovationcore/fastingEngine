@@ -10,7 +10,11 @@ import org.slf4j.LoggerFactory;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.Type;
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -20,7 +24,6 @@ public class Restricted extends RestrictedBase {
 
     //id, participant_uuid, phone_number, participant_type
     private Map<String, String> participantMap;
-    private String person_id;
     private Map<String,Long> stateMap;
 
     private long startTimestamp = 0;
@@ -38,6 +41,9 @@ public class Restricted extends RestrictedBase {
         this.gson = new Gson();
         this.participantMap = participantMap;
         this.stateMap = new HashMap<>();
+
+        //hack for time_zone
+        this.participantMap.put("time_zone","US/Eastern");
 
         new Thread(){
             public void run(){
@@ -222,32 +228,37 @@ public class Restricted extends RestrictedBase {
                 //no timers
                 break;
             case waitStart:
-                String waitStartMessage = participantMap.get("participant_uuid") + " created state machine";
-                logger.warn("\t\t " + waitStartMessage);
-                Launcher.msgUtils.sendMessage(participantMap.get("number"), waitStartMessage);
 
                 //setting warn timer
                 int startWarnDiff =  timeToD1T1159am();
                 if(startWarnDiff <= 0) {
                     startWarnDiff = 300;
-                    setStartWarnDeadline(startWarnDiff);
-                } else {
-                    setStartWarnDeadline(startWarnDiff);
                 }
+                setStartWarnDeadline(startWarnDiff);
+
+                String waitStartMessage = participantMap.get("participant_uuid") + " created state machine: warnStart timeout " + getDateFromEpochTz(getCurrentLocalTime() + startWarnDiff);
+                logger.warn("\t\t " + waitStartMessage);
+                Launcher.msgUtils.sendMessage(participantMap.get("number"), waitStartMessage);
+
                 break;
             case warnStartCal:
-                String warnStartCalMessage = participantMap.get("participant_uuid") + " please submit startcal";
-                logger.warn("\t\t " + warnStartCalMessage);
-                Launcher.msgUtils.sendMessage(participantMap.get("number"), warnStartCalMessage);
                 //set start fail timer
                 setStartDeadline(timeToD2359am());
+
+                String warnStartCalMessage = participantMap.get("participant_uuid") + " please submit startcal: startdeadline timeout " + getDateFromEpochTz(getCurrentLocalTime() + timeToD2359am());
+                logger.warn("\t\t " + warnStartCalMessage);
+                Launcher.msgUtils.sendMessage(participantMap.get("number"), warnStartCalMessage);
+
+
                 break;
             case startcal:
-                String startCalMessage = participantMap.get("participant_uuid") + " thanks for sending startcal";
-                logger.info("\t\t " + startCalMessage);
-                Launcher.msgUtils.sendMessage(participantMap.get("number"), startCalMessage);
                 //set warn and end
                 setEndWarnDeadline(timeToD19pm());
+
+                String startCalMessage = participantMap.get("participant_uuid") + " thanks for sending startcal: endwarndeadline timeout " + getDateFromEpochTz(getCurrentLocalTime() + timeToD19pm());
+                logger.info("\t\t " + startCalMessage);
+                Launcher.msgUtils.sendMessage(participantMap.get("number"), startCalMessage);
+
                 break;
             case missedStartCal:
                 String missedStartCalMessage = participantMap.get("participant_uuid") + " no startcal was recorded for today.";
@@ -255,11 +266,13 @@ public class Restricted extends RestrictedBase {
                 Launcher.msgUtils.sendMessage(participantMap.get("number"), missedStartCalMessage);
                 break;
             case warnEndCal:
-                String warnEndCalMessage = participantMap.get("participant_uuid") + " please submit endcal";
-                logger.warn("\t\t " + warnEndCalMessage);
-                Launcher.msgUtils.sendMessage(participantMap.get("number"), warnEndCalMessage);
                 //set end for end
                 setEndDeadline(timeToD2359am());
+
+                String warnEndCalMessage = participantMap.get("participant_uuid") + " please submit endcal: enddeadline timeout " + getDateFromEpochTz(getCurrentLocalTime() + timeToD2359am());
+                logger.warn("\t\t " + warnEndCalMessage);
+                Launcher.msgUtils.sendMessage(participantMap.get("number"), warnEndCalMessage);
+
                 break;
             case endcal:
                 String endCalMessage = participantMap.get("participant_uuid") + " thanks for sending endcal";
@@ -272,6 +285,10 @@ public class Restricted extends RestrictedBase {
                 Launcher.msgUtils.sendMessage(participantMap.get("number"), missedEndCalMessage);
                 break;
             case endOfEpisode:
+                //set restart one minute after other timeouts
+                setEndOfEpisodeDeadline(timeToD2359am() + 60);
+                String endOfEpisode = participantMap.get("participant_uuid") + " end of episode timeout " + getDateFromEpochTz(getCurrentLocalTime() + timeToD2359am() + 60);
+                logger.info("\t\t " + endOfEpisode);
                 break;
             default:
                 logger.error("stateNotify: Invalid state: " + state);
@@ -373,16 +390,41 @@ public class Restricted extends RestrictedBase {
 
     }
 
+    private long getCurrentLocalTime() {
+        long currentTime = (System.currentTimeMillis()/1000) + getDisplacedTime();
+
+        logger.error("currentTime: " + currentTime + " System time: " + (System.currentTimeMillis()/1000) + " displaced time: " + getDisplacedTime());
+        return currentTime;
+    }
+
+    private long getDisplacedTime() {
+        return getDisplacedTime(Instant.now().getEpochSecond());
+    }
+    private long getDisplacedTime(long currentTime) {
+
+         long personZone = ZoneId.of( participantMap.get("time_zone"))   // Specify a time zone.
+                .getRules()                   // Get the object representing the rules for all the past, present, and future changes in offset used by the people in the region of that zone.
+                .getOffset(Instant.ofEpochSecond(currentTime)).getTotalSeconds();   // Get a `ZoneOffset` object representing the number of hours, minutes, and seconds displaced from UTC. Here we ask for the offset in effect right now.
+
+        long machineZone = ZonedDateTime.now().getZone()   // Specify a time zone.
+                .getRules()                   // Get the object representing the rules for all the past, present, and future changes in offset used by the people in the region of that zone.
+                .getOffset(Instant.ofEpochSecond(currentTime)).getTotalSeconds();
+
+        return machineZone - personZone;
+
+    }
+
     private int timeToD1T1159am() {
         Date date = new Date();   // given date
 
         Calendar calendar = GregorianCalendar.getInstance(); // creates a new calendar instance
         calendar.setTime(date);   // assigns calendar to given date
-        long currentTime = calendar.getTime().getTime()/1000;
+        long currentTime = (calendar.getTime().getTime()/1000) + getDisplacedTime();
 
         calendar.set(Calendar.HOUR_OF_DAY, 11);
         calendar.set(Calendar.MINUTE, 59);
         long d1t1159am = calendar.getTime().getTime()/1000;
+        d1t1159am = d1t1159am + getDisplacedTime(d1t1159am);
         return (int) (d1t1159am - currentTime);
 
     }
@@ -393,11 +435,12 @@ public class Restricted extends RestrictedBase {
 
         Calendar calendar = GregorianCalendar.getInstance(); // creates a new calendar instance
         calendar.setTime(date);   // assigns calendar to given date
-        long currentTime = calendar.getTime().getTime()/1000;
+        long currentTime = (calendar.getTime().getTime()/1000) + getDisplacedTime();
 
         calendar.set(Calendar.HOUR_OF_DAY, 21);
         calendar.set(Calendar.MINUTE, 0);
         long d1t900pm = calendar.getTime().getTime()/1000;
+        d1t900pm = d1t900pm + getDisplacedTime(d1t900pm);
         return (int) (d1t900pm - currentTime);
 
     }
@@ -408,16 +451,32 @@ public class Restricted extends RestrictedBase {
 
         Calendar calendar = GregorianCalendar.getInstance(); // creates a new calendar instance
         calendar.setTime(date);   // assigns calendar to given date
-        long currentTime = calendar.getTime().getTime()/1000;
+        long currentTime = (calendar.getTime().getTime()/1000) + getDisplacedTime();
 
         calendar.set(Calendar.HOUR_OF_DAY, 4);
         calendar.set(Calendar.MINUTE, 0);
         long d1t400am = calendar.getTime().getTime()/1000;
+        d1t400am = d1t400am + getDisplacedTime(d1t400am);
 
-        long d2t359am = d1t400am + 86400 - 60; //add full day of seconds and subtract a minute
+        long d2t359am;
+
+        if(currentTime > d1t400am) {
+            d2t359am = d1t400am + 86400 - 60; //add full day of seconds and subtract a minute
+        } else {
+            d2t359am = d1t400am - 60; //after midnight subtract a minute from 4am
+        }
 
         return (int) (d2t359am - currentTime);
 
+    }
+
+    private String getDateFromEpochTz(long timestamp) {
+        timestamp = timestamp * 1000;
+        Date date = new Date(timestamp);
+        DateFormat format = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+        format.setTimeZone(TimeZone.getTimeZone(participantMap.get("time_zone")));
+        String formatted = format.format(date);
+        return formatted;
     }
 
     public void logState(String state) {

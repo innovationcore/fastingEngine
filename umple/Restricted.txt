@@ -6,6 +6,7 @@ class RestrictedBase
   Integer startWarnDeadline = 0;
   Integer endDeadline = 0;
   Integer endWarnDeadline = 0;
+  Integer endOfEpisodeDeadline = 0;
 
 
   state {
@@ -98,6 +99,7 @@ class RestrictedBase
       entry / {
         stateNotify("endOfEpisode");
       };
+      after(endOfEpisodeDeadline) -> waitStart;
     }
 
   }

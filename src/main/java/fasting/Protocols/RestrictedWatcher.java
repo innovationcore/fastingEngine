@@ -37,14 +37,14 @@ public class RestrictedWatcher {
         //set timer
         checkTimer.scheduleAtFixedRate(new startRestricted(),checkdelay, checktimer);//remote
 
-        Calendar today = Calendar.getInstance();
-        today.set(Calendar.HOUR_OF_DAY, 4);
-        today.set(Calendar.MINUTE, 0);
-        today.set(Calendar.SECOND, 0);
+        //Calendar today = Calendar.getInstance();
+        //today.set(Calendar.HOUR_OF_DAY, 4);
+        //today.set(Calendar.MINUTE, 0);
+        //today.set(Calendar.SECOND, 0);
 
         // every night at 3:59am you run your task
-        episodeResetTimer = new Timer();
-        episodeResetTimer.schedule(new episodeReset(), today.getTime(), TimeUnit.MILLISECONDS.convert(1, TimeUnit.DAYS)); // period: 1 day
+        //episodeResetTimer = new Timer();
+        //episodeResetTimer.schedule(new episodeReset(), today.getTime(), TimeUnit.MILLISECONDS.convert(1, TimeUnit.DAYS)); // period: 1 day
 
     }
 
