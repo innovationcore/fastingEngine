@@ -61,6 +61,7 @@ public class Launcher {
 
             //start protocols
             restrictedWatcher = new RestrictedWatcher();
+            restrictedWatcher.testWorking();
 
 
         } catch (Exception ex) {

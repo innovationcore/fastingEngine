@@ -35,19 +35,26 @@ public class MsgUtils {
 
     public void sendMessage(String textTo, String body) {
 
-        Message message = Message.creator(
-                        new com.twilio.type.PhoneNumber(textTo),
-                        new com.twilio.type.PhoneNumber(textFrom),
-                        body)
-                .create();
+        //Dont send the message right not
+        // Message message = Message.creator(
+        //                 new com.twilio.type.PhoneNumber(textTo),
+        //                 new com.twilio.type.PhoneNumber(textFrom),
+        //                 body)
+        //         .create();
 
         String messageId = UUID.randomUUID().toString();
         String participantId = Launcher.dbEngine.getParticipantIdFromPhoneNumber(textTo);
         String messageDirection = "outgoing";
 
-        String pattern = "yyyy-MM-dd HH:mm:ss.SSS";
-        SimpleDateFormat simpleDateFormat =new SimpleDateFormat(pattern, new Locale("en", "USA"));
-        String date = simpleDateFormat.format(new Date());
+        Date date = new Date();
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+        format.setTimeZone(TimeZone.getTimeZone("UTC"));
+        String timestamp = format.format(date);
+
+        // for some reason this was uploading as EDT
+        // String pattern = "yyyy-MM-dd HH:mm:ss.SSS";
+        // SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern, new Locale("en", "USA"));
+        // String date = simpleDateFormat.format(new Date());
 
         Map<String,String> messageMap = new HashMap<>();
         messageMap.put("Body",body);
@@ -56,7 +63,7 @@ public class MsgUtils {
         String insertQuery = "INSERT INTO messages " +
                 "(message_uuid, participant_uuid, TS, message_direction, message_json)" +
                 " VALUES ('" + messageId + "', '" +
-                participantId + "' ,'" + date + "', '" +
+                participantId + "' ,'" + timestamp + "', '" +
                 messageDirection + "', '" + json_string +
                 "')";
 

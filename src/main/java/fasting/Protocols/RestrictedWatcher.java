@@ -13,8 +13,10 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class RestrictedWatcher {
+// REMOVE THIS
+import com.google.gson.Gson;
 
+public class RestrictedWatcher {
     private Logger logger;
     private Timer checkTimer;
     private Timer episodeResetTimer;
@@ -102,6 +104,7 @@ public class RestrictedWatcher {
                        if(isActive) {
                            logger.info("Creating state machine for participant_uuid=" + participantMap.get("participant_uuid"));
                            //Create dummy person
+                           System.out.println(participantMap);
                            Restricted p0 = new Restricted(participantMap);
 
                            logger.info("Set WaitStart for participant_uuid=" + participantMap.get("participant_uuid"));
@@ -165,14 +168,11 @@ public class RestrictedWatcher {
 
 
     public void testWorking() {
-
+        Gson gson = new Gson();
         try {
-
-
-
             logger.info("Creating P0");
             //Create dummy person
-            Restricted p0 = new Restricted("0");
+            Restricted p0 = new Restricted(gson.fromJson("{'first_name':'Sam', 'last_name':'A', 'number':'+18596844789', 'group':'Baseline', 'time_zone':'America/Louisville', 'participant_uuid':'CA36CB66-BA36-42EB-8D6B-CCB7632D4A53'}", Map.class));
             //set short deadline for cal end
 
             p0.setStartWarnDeadline(2);
@@ -199,9 +199,6 @@ public class RestrictedWatcher {
             }
 
             logger.info("p0 state: " + p0.getState());
-
-
-
 
         } catch (Exception ex) {
             ex.printStackTrace();

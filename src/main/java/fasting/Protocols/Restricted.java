@@ -43,7 +43,7 @@ public class Restricted extends RestrictedBase {
         this.stateMap = new HashMap<>();
 
         //hack for time_zone
-        this.participantMap.put("time_zone","US/Eastern");
+        //this.participantMap.put("time_zone","US/Eastern");
 
         new Thread(){
             public void run(){
@@ -401,8 +401,7 @@ public class Restricted extends RestrictedBase {
         return getDisplacedTime(Instant.now().getEpochSecond());
     }
     private long getDisplacedTime(long currentTime) {
-
-         long personZone = ZoneId.of( participantMap.get("time_zone"))   // Specify a time zone.
+        long personZone = ZoneId.of( participantMap.get("time_zone"))   // Specify a time zone.
                 .getRules()                   // Get the object representing the rules for all the past, present, and future changes in offset used by the people in the region of that zone.
                 .getOffset(Instant.ofEpochSecond(currentTime)).getTotalSeconds();   // Get a `ZoneOffset` object representing the number of hours, minutes, and seconds displaced from UTC. Here we ask for the offset in effect right now.
 
@@ -425,8 +424,12 @@ public class Restricted extends RestrictedBase {
         calendar.set(Calendar.MINUTE, 59);
         long d1t1159am = calendar.getTime().getTime()/1000;
         d1t1159am = d1t1159am + getDisplacedTime(d1t1159am);
+        System.out.println("\n");
+        System.out.println(d1t1159am);
+        System.out.println(currentTime);
+        System.out.println(d1t1159am - currentTime);
+        System.out.println("\n");
         return (int) (d1t1159am - currentTime);
-
     }
 
     private int timeToD19pm() {
@@ -473,7 +476,7 @@ public class Restricted extends RestrictedBase {
     private String getDateFromEpochTz(long timestamp) {
         timestamp = timestamp * 1000;
         Date date = new Date(timestamp);
-        DateFormat format = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+        DateFormat format = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss z");
         format.setTimeZone(TimeZone.getTimeZone(participantMap.get("time_zone")));
         String formatted = format.format(date);
         return formatted;
