@@ -409,7 +409,12 @@ public class Restricted extends RestrictedBase {
                 .getRules()                   // Get the object representing the rules for all the past, present, and future changes in offset used by the people in the region of that zone.
                 .getOffset(Instant.ofEpochSecond(currentTime)).getTotalSeconds();
 
-        return machineZone - personZone;
+        // adding logic to have return a negative number when person is behind machine and positive when person is ahead of machine TZ
+        if (personZone > machineZone) {
+            return machineZone - personZone;
+        } else {
+            return personZone - machineZone;
+        }
 
     }
 
@@ -425,6 +430,7 @@ public class Restricted extends RestrictedBase {
         long d1t1159am = calendar.getTime().getTime()/1000;
         d1t1159am = d1t1159am + getDisplacedTime(d1t1159am);
         System.out.println("\n");
+        System.out.println(getDisplacedTime());
         System.out.println(d1t1159am);
         System.out.println(currentTime);
         System.out.println(d1t1159am - currentTime);
