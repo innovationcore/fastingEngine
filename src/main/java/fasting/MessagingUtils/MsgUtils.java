@@ -34,11 +34,11 @@ public class MsgUtils {
     }
 
     public void sendMessage(String textTo, String body) {
-        Message message = Message.creator(
-                        new com.twilio.type.PhoneNumber(textTo),
-                        new com.twilio.type.PhoneNumber(textFrom),
-                        body)
-                .create();
+        // Message message = Message.creator(
+        //                 new com.twilio.type.PhoneNumber(textTo),
+        //                 new com.twilio.type.PhoneNumber(textFrom),
+        //                 body)
+        //         .create();
 
         String messageId = UUID.randomUUID().toString();
         String participantId = Launcher.dbEngine.getParticipantIdFromPhoneNumber(textTo);

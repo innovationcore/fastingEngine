@@ -13,6 +13,7 @@ public class TimezoneHelper {
     private String userTimezone;
     private String machineTimezone;
     private int timezoneDifference;
+    private Boolean isUserAheadOfMachine;
     private Logger logger;
 
     /**
@@ -22,13 +23,19 @@ public class TimezoneHelper {
         this.userTimezone = userTimezone;
         this.machineTimezone = machineTimezone;
         this.timezoneDifference = calculateTZOffset();
+        System.out.println("Timezone difference: " + this.timezoneDifference);
+        if (this.timezoneDifference > 0) {
+            this.isUserAheadOfMachine = true;
+        } else {
+            this.isUserAheadOfMachine = false;
+        }
         this.logger = LoggerFactory.getLogger(TimezoneHelper.class.getName());
         logger.info("TimezoneHelper initialized with user timezone: " + userTimezone + " and machine timezone: " + machineTimezone + " and timezone difference: " + timezoneDifference);
     }
 
     /**
     * return the timezone difference in seconds
-    * + if ahead, - if behind
+    * - if behind, + if ahead
     */
     public int calculateTZOffset() {
         String timeZone1 = this.userTimezone;
@@ -37,9 +44,8 @@ public class TimezoneHelper {
 		LocalDateTime dt = LocalDateTime.now();
 		ZonedDateTime fromZonedDateTime = dt.atZone(ZoneId.of(timeZone1));
 		ZonedDateTime toZonedDateTime = dt.atZone(ZoneId.of(timeZone2));
-		long diff = Duration.between(fromZonedDateTime, toZonedDateTime).toMillis();
-        diff /= 1000; // converting to seconds
-        return (int) (diff * -1);
+		long diff = Duration.between(fromZonedDateTime, toZonedDateTime).getSeconds();
+        return (int) (diff);
     }
 
     /**
@@ -61,9 +67,18 @@ public class TimezoneHelper {
     public int getSecondsTo1159am() {
         LocalDateTime dt = LocalDateTime.now();
         LocalDateTime dtNoon = dt.withHour(11).withMinute(59).withSecond(30);
-        ZonedDateTime fromZonedDateTime = dt.atZone(ZoneId.of(this.machineTimezone));
-        ZonedDateTime toZonedDateTime = dtNoon.atZone(ZoneId.of(this.userTimezone));
-        long diff = Duration.between(toZonedDateTime, fromZonedDateTime).toSeconds();
+        ZonedDateTime fromZonedDateTime;
+        ZonedDateTime toZonedDateTime;
+        long diff;
+        if (this.isUserAheadOfMachine) {
+            fromZonedDateTime = dt.atZone(ZoneId.of(this.userTimezone));
+            toZonedDateTime = dtNoon.atZone(ZoneId.of(this.machineTimezone));
+            diff = Duration.between(toZonedDateTime, fromZonedDateTime).getSeconds();
+        } else {
+            fromZonedDateTime = dt.atZone(ZoneId.of(this.machineTimezone));
+            toZonedDateTime = dtNoon.atZone(ZoneId.of(this.userTimezone));
+            diff = Duration.between(toZonedDateTime, fromZonedDateTime).getSeconds();
+        }
         return (int) (diff * -1);
     }
 
@@ -73,23 +88,20 @@ public class TimezoneHelper {
     public int getSecondsTo2059pm() {
         LocalDateTime dt = LocalDateTime.now();
         LocalDateTime dt9pm = dt.withHour(20).withMinute(59).withSecond(30);
-        ZonedDateTime fromZonedDateTime = dt.atZone(ZoneId.of(this.machineTimezone));
-        ZonedDateTime toZonedDateTime = dt9pm.atZone(ZoneId.of(this.userTimezone));
-        long diff = Duration.between(toZonedDateTime, fromZonedDateTime).toSeconds();
+        ZonedDateTime fromZonedDateTime;
+        ZonedDateTime toZonedDateTime;
+        long diff;
+        if (this.isUserAheadOfMachine) {
+            fromZonedDateTime = dt.atZone(ZoneId.of(this.userTimezone));
+            toZonedDateTime = dt9pm.atZone(ZoneId.of(this.machineTimezone));
+            diff = Duration.between(toZonedDateTime, fromZonedDateTime).getSeconds();
+        } else {
+            fromZonedDateTime = dt.atZone(ZoneId.of(this.machineTimezone));
+            toZonedDateTime = dt9pm.atZone(ZoneId.of(this.userTimezone));
+            diff = Duration.between(toZonedDateTime, fromZonedDateTime).getSeconds();
+        }
         return (int) (diff * -1);
     }
-
-    // /**
-    // * return the seconds until midnight -1 min for user timezone
-    // */
-    // public int getSecondsTo2359pm() {
-    //     LocalDateTime dt = LocalDateTime.now();
-    //     LocalDateTime dtMidnight = dt.withHour(23).withMinute(59).withSecond(30);
-    //     ZonedDateTime fromZonedDateTime = dt.atZone(ZoneId.of(this.machineTimezone));
-    //     ZonedDateTime toZonedDateTime = dtMidnight.atZone(ZoneId.of(this.userTimezone));
-    //     long diff = Duration.between(toZonedDateTime, fromZonedDateTime).toSeconds();
-    //     return (int) (diff * -1);
-    // }
 
     /**
     * return the seconds until 4am -1 min (next day) for user timezone
@@ -97,9 +109,18 @@ public class TimezoneHelper {
     public int getSecondsTo359am() {
         LocalDateTime dt = LocalDateTime.now();
         LocalDateTime dt4am = dt.withHour(03).withMinute(59).withSecond(30);
-        ZonedDateTime fromZonedDateTime = dt.atZone(ZoneId.of(this.machineTimezone));
-        ZonedDateTime toZonedDateTime = dt4am.atZone(ZoneId.of(this.userTimezone));
-        long diff = Duration.between(toZonedDateTime, fromZonedDateTime).toSeconds();
+        ZonedDateTime fromZonedDateTime;
+        ZonedDateTime toZonedDateTime;
+        long diff;
+        if (this.isUserAheadOfMachine) {
+            fromZonedDateTime = dt.atZone(ZoneId.of(this.userTimezone));
+            toZonedDateTime = dt4am.atZone(ZoneId.of(this.machineTimezone));
+            diff = Duration.between(toZonedDateTime, fromZonedDateTime).getSeconds();
+        } else {
+            fromZonedDateTime = dt.atZone(ZoneId.of(this.machineTimezone));
+            toZonedDateTime = dt4am.atZone(ZoneId.of(this.userTimezone));
+            diff = Duration.between(toZonedDateTime, fromZonedDateTime).getSeconds();
+        }
         // if machine time is after midnight and before 3:59:30, don't add a day
         ArrayList<Integer> machineHMS = getMachineHMS();
         Integer hour = machineHMS.get(0);
