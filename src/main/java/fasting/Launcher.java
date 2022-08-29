@@ -5,6 +5,7 @@ import fasting.Configs.FileConfig;
 import fasting.Database.DBEngine;
 import fasting.MessagingUtils.MsgUtils;
 import fasting.Protocols.RestrictedWatcher;
+import fasting.TimeUtils.TimezoneHelper;
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -58,9 +59,20 @@ public class Launcher {
             //Embedded HTTP initialization
             startServer();
 
+            //test timezone helper
+            // TimezoneHelper timezoneHelper = new TimezoneHelper("America/Louisville", "America/Louisville");
+            // System.out.println("Time until Noon: " + timezoneHelper.getSecondsTo1159am());
+            // System.out.println("Time until 9pm: " + timezoneHelper.getSecondsTo2059pm());
+            // System.out.println("Time until Midnight: " +timezoneHelper.getSecondsTo2359pm());
+            // System.out.println("Time until 4am: " +timezoneHelper.getSecondsTo359am());
+            // System.out.println("User LocalTime: " +timezoneHelper.getUserLocalTime());
+            // System.out.println("Unix time in seconds: " + timezoneHelper.getUserLocalTimeSeconds());
+            // System.out.println("User time til 4am: " + timezoneHelper.getDateFromAddingSeconds(timezoneHelper.getSecondsTo359am()));
+
 
             //start protocols
             restrictedWatcher = new RestrictedWatcher();
+            // restrictedWatcher.testWorking();
 
 
         } catch (Exception ex) {

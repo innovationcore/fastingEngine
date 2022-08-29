@@ -13,8 +13,10 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class RestrictedWatcher {
+// REMOVE THIS
+import com.google.gson.Gson;
 
+public class RestrictedWatcher {
     private Logger logger;
     private Timer checkTimer;
     private Timer episodeResetTimer;
@@ -165,14 +167,11 @@ public class RestrictedWatcher {
 
 
     public void testWorking() {
-
+        Gson gson = new Gson();
         try {
-
-
-
             logger.info("Creating P0");
             //Create dummy person
-            Restricted p0 = new Restricted("0");
+            Restricted p0 = new Restricted(gson.fromJson("{'first_name':'test','last_name':'user','number':'+15555555555','group':'Baseline','time_zone':'America/Louisville', 'participant_uuid':'C7AF814F-EBD1-4468-8546-982F6BDCFBF1'}", Map.class));
             //set short deadline for cal end
 
             p0.setStartWarnDeadline(2);
@@ -199,9 +198,6 @@ public class RestrictedWatcher {
             }
 
             logger.info("p0 state: " + p0.getState());
-
-
-
 
         } catch (Exception ex) {
             ex.printStackTrace();

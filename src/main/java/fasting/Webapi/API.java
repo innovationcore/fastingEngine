@@ -48,14 +48,9 @@ public class API {
             String participantId = Launcher.dbEngine.getParticipantIdFromPhoneNumber(formParams.get("From").get(0));
 
             if (participantId != null) {
-
-                //String participantId = "6C86EC98-921D-43F8-83B9-FA3B49CBC1D8";
-                //Date date = new Date();
                 String messageDirection = "incoming";
                 //logger.error(gson.toJson(convertMultiToRegularMap(formParams)));
-                String pattern = "yyyy-MM-dd HH:mm:ss.SSS";
-                SimpleDateFormat simpleDateFormat =new SimpleDateFormat(pattern, new Locale("en", "USA"));
-                String date = simpleDateFormat.format(new Date());
+                
 
                 Map<String, String> formsMap = convertMultiToRegularMap(formParams);
                 String json_string = gson.toJson(formsMap);
@@ -63,7 +58,7 @@ public class API {
                 String insertQuery = "INSERT INTO messages " +
                         "(message_uuid, participant_uuid, TS, message_direction, message_json)" +
                         " VALUES ('" + messageId + "', '" +
-                        participantId + "' ,'" + date + "', '" +
+                        participantId + "' , GETUTCDATE(), '" +
                         messageDirection + "', '" + json_string +
                         "')";
 
