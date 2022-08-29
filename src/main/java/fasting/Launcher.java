@@ -60,15 +60,19 @@ public class Launcher {
             startServer();
 
             //test timezone helper
-            TimezoneHelper timezoneHelper = new TimezoneHelper("America/Louisville", "America/Louisville");
-            System.out.println(timezoneHelper.getSecondsTo1159am());
-            System.out.println(timezoneHelper.getSecondsTo2059pm());
-            System.out.println(timezoneHelper.getSecondsTo2359pm());
-            System.out.println(timezoneHelper.getUserLocalTime());
+            // TimezoneHelper timezoneHelper = new TimezoneHelper("America/Louisville", "America/Louisville");
+            // System.out.println("Time until Noon: " + timezoneHelper.getSecondsTo1159am());
+            // System.out.println("Time until 9pm: " + timezoneHelper.getSecondsTo2059pm());
+            // System.out.println("Time until Midnight: " +timezoneHelper.getSecondsTo2359pm());
+            // System.out.println("Time until 4am: " +timezoneHelper.getSecondsTo359am());
+            // System.out.println("User LocalTime: " +timezoneHelper.getUserLocalTime());
+            // System.out.println("Unix time in seconds: " + timezoneHelper.getUserLocalTimeSeconds());
+            // System.out.println("User time til 4am: " + timezoneHelper.getDateFromAddingSeconds(timezoneHelper.getSecondsTo359am()));
+
 
             //start protocols
-            //restrictedWatcher = new RestrictedWatcher();
-            //restrictedWatcher.testWorking();
+            restrictedWatcher = new RestrictedWatcher();
+            // restrictedWatcher.testWorking();
 
 
         } catch (Exception ex) {

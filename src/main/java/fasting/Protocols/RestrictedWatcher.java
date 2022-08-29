@@ -104,7 +104,6 @@ public class RestrictedWatcher {
                        if(isActive) {
                            logger.info("Creating state machine for participant_uuid=" + participantMap.get("participant_uuid"));
                            //Create dummy person
-                           System.out.println(participantMap);
                            Restricted p0 = new Restricted(participantMap);
 
                            logger.info("Set WaitStart for participant_uuid=" + participantMap.get("participant_uuid"));
@@ -172,7 +171,7 @@ public class RestrictedWatcher {
         try {
             logger.info("Creating P0");
             //Create dummy person
-            Restricted p0 = new Restricted(gson.fromJson("{'first_name':'Sam', 'last_name':'A', 'number':'+18596844789', 'group':'Baseline', 'time_zone':'America/Louisville', 'participant_uuid':'CA36CB66-BA36-42EB-8D6B-CCB7632D4A53'}", Map.class));
+            Restricted p0 = new Restricted(gson.fromJson("{'first_name':'test','last_name':'user','number':'+15555555555','group':'Baseline','time_zone':'America/Louisville', 'participant_uuid':'C7AF814F-EBD1-4468-8546-982F6BDCFBF1'}", Map.class));
             //set short deadline for cal end
 
             p0.setStartWarnDeadline(2);
