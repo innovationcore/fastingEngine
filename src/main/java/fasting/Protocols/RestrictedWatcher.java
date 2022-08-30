@@ -171,7 +171,7 @@ public class RestrictedWatcher {
         try {
             logger.info("Creating P0");
             //Create dummy person
-            Restricted p0 = new Restricted(gson.fromJson("{'first_name':'test','last_name':'user','number':'+15555555555','group':'Baseline','time_zone':'America/Louisville', 'participant_uuid':'C7AF814F-EBD1-4468-8546-982F6BDCFBF1'}", Map.class));
+            Restricted p0 = new Restricted(gson.fromJson("{'first_name':'Sam','last_name':'A','number':'+18596844789','group':'Baseline','time_zone':'America/Louisville','participant_uuid':'7C52EFDD-8E85-4D86-BCF3-C636242CF2F7'}", Map.class));
             //set short deadline for cal end
 
             p0.setStartWarnDeadline(2);
