@@ -4,15 +4,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.time.*;
 import java.time.format.*;
+import java.time.temporal.*;
 import java.util.*;
 import java.text.*;
 
 public class TimezoneHelper {
     final int SEC_IN_DAY = 86400;
+    final int SEC_IN_4_HOURS = 14400;
 
     private String userTimezone;
     private String machineTimezone;
-    private int timezoneDifference;
+    private Integer timezoneDifference;
     private Boolean isUserAheadOfMachine;
     private Logger logger;
 
@@ -23,7 +25,6 @@ public class TimezoneHelper {
         this.userTimezone = userTimezone;
         this.machineTimezone = machineTimezone;
         this.timezoneDifference = calculateTZOffset();
-        System.out.println("Timezone difference: " + this.timezoneDifference);
         if (this.timezoneDifference > 0) {
             this.isUserAheadOfMachine = true;
         } else {
@@ -37,7 +38,7 @@ public class TimezoneHelper {
     * return the timezone difference in seconds
     * - if behind, + if ahead
     */
-    public int calculateTZOffset() {
+    public Integer calculateTZOffset() {
         String timeZone1 = this.userTimezone;
 		String timeZone2 = this.machineTimezone;
 		
@@ -65,73 +66,42 @@ public class TimezoneHelper {
     * return the seconds until Noon -1 min for user timezone
     */
     public int getSecondsTo1159am() {
-        LocalDateTime dt = LocalDateTime.now();
-        LocalDateTime dtNoon = dt.withHour(11).withMinute(59).withSecond(30);
-        ZonedDateTime fromZonedDateTime;
-        ZonedDateTime toZonedDateTime;
-        long diff;
-        if (this.isUserAheadOfMachine) {
-            fromZonedDateTime = dt.atZone(ZoneId.of(this.userTimezone));
-            toZonedDateTime = dtNoon.atZone(ZoneId.of(this.machineTimezone));
-            diff = Duration.between(toZonedDateTime, fromZonedDateTime).getSeconds();
-        } else {
-            fromZonedDateTime = dt.atZone(ZoneId.of(this.machineTimezone));
-            toZonedDateTime = dtNoon.atZone(ZoneId.of(this.userTimezone));
-            diff = Duration.between(toZonedDateTime, fromZonedDateTime).getSeconds();
-        }
-        return (int) (diff * -1);
+        Instant nowUTC = Instant.now();
+        ZoneId userTZ = ZoneId.of(this.userTimezone);
+        ZonedDateTime nowUserTimezone = ZonedDateTime.ofInstant(nowUTC, userTZ);
+        LocalDateTime nowUserLocalTime = nowUserTimezone.toLocalDateTime();
+        LocalDateTime userLocalTimeNoon = LocalDateTime.of(nowUserLocalTime.getYear(), nowUserLocalTime.getMonth(), nowUserLocalTime.getDayOfMonth(), 11, 59, 30);
+        long secondsUntilNoon = Duration.between(nowUserLocalTime, userLocalTimeNoon).getSeconds();
+        return (int) secondsUntilNoon;
     }
 
     /**
     * return the seconds until 9pm -1 min for user timezone
     */
     public int getSecondsTo2059pm() {
-        LocalDateTime dt = LocalDateTime.now();
-        LocalDateTime dt9pm = dt.withHour(20).withMinute(59).withSecond(30);
-        ZonedDateTime fromZonedDateTime;
-        ZonedDateTime toZonedDateTime;
-        long diff;
-        if (this.isUserAheadOfMachine) {
-            fromZonedDateTime = dt.atZone(ZoneId.of(this.userTimezone));
-            toZonedDateTime = dt9pm.atZone(ZoneId.of(this.machineTimezone));
-            diff = Duration.between(toZonedDateTime, fromZonedDateTime).getSeconds();
-        } else {
-            fromZonedDateTime = dt.atZone(ZoneId.of(this.machineTimezone));
-            toZonedDateTime = dt9pm.atZone(ZoneId.of(this.userTimezone));
-            diff = Duration.between(toZonedDateTime, fromZonedDateTime).getSeconds();
-        }
-        return (int) (diff * -1);
+        Instant nowUTC = Instant.now();
+        ZoneId userTZ = ZoneId.of(this.userTimezone);
+        ZonedDateTime nowUserTimezone = ZonedDateTime.ofInstant(nowUTC, userTZ);
+        LocalDateTime nowUserLocalTime = nowUserTimezone.toLocalDateTime();
+        LocalDateTime userLocalTime9pm = LocalDateTime.of(nowUserLocalTime.getYear(), nowUserLocalTime.getMonth(), nowUserLocalTime.getDayOfMonth(), 20, 59, 30);
+        long secondsUntil9pm = Duration.between(nowUserLocalTime, userLocalTime9pm).getSeconds();
+        return (int) secondsUntil9pm;
     }
 
     /**
     * return the seconds until 4am -1 min (next day) for user timezone
     */
     public int getSecondsTo359am() {
-        LocalDateTime dt = LocalDateTime.now();
-        LocalDateTime dt4am = dt.withHour(03).withMinute(59).withSecond(30);
-        ZonedDateTime fromZonedDateTime;
-        ZonedDateTime toZonedDateTime;
-        long diff;
-        if (this.isUserAheadOfMachine) {
-            fromZonedDateTime = dt.atZone(ZoneId.of(this.userTimezone));
-            toZonedDateTime = dt4am.atZone(ZoneId.of(this.machineTimezone));
-            diff = Duration.between(toZonedDateTime, fromZonedDateTime).getSeconds();
-        } else {
-            fromZonedDateTime = dt.atZone(ZoneId.of(this.machineTimezone));
-            toZonedDateTime = dt4am.atZone(ZoneId.of(this.userTimezone));
-            diff = Duration.between(toZonedDateTime, fromZonedDateTime).getSeconds();
-        }
-        // if machine time is after midnight and before 3:59:30, don't add a day
-        ArrayList<Integer> machineHMS = getMachineHMS();
-        Integer hour = machineHMS.get(0);
-        Integer minute = machineHMS.get(1);
-        Integer second = machineHMS.get(2);
-        if ((hour > 0 && minute < 0 && second < 0) && 
-            (hour < 3 && minute < 59 && second < 30)) {
-            return (-1 * ((int) diff));
-        } else {
-            return (-1 * ((int) diff - SEC_IN_DAY));
-        }
+        Instant nowUTC = Instant.now();
+        ZoneId userTZ = ZoneId.of(this.userTimezone);
+        ZonedDateTime nowUserTimezone = ZonedDateTime.ofInstant(nowUTC, userTZ);
+        LocalDateTime nowUserLocalTime = nowUserTimezone.toLocalDateTime();
+        LocalDateTime userLocalTime4am = LocalDateTime.of(nowUserLocalTime.getYear(), nowUserLocalTime.getMonth(), nowUserLocalTime.getDayOfMonth(), 23, 59, 30);
+        long secondsUntil4am = Duration.between(nowUserLocalTime, userLocalTime4am).getSeconds();
+        secondsUntil4am += SEC_IN_4_HOURS; 
+        // doing it this way avoids months with 30 and 31 days, instead of adding a day to getDayofMonth() (which may fail), 
+        //just add 4 hours of seconds onto a midnight time
+        return ((int) secondsUntil4am);
     }
 
     /**
