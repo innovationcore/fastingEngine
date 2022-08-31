@@ -164,7 +164,7 @@ public class Launcher {
 
             //start protocols
             restrictedWatcher = new RestrictedWatcher();
-            restrictedWatcher.testWorking();
+            // restrictedWatcher.testWorking();
 
 
         } catch (Exception ex) {
