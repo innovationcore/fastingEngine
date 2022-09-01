@@ -31,7 +31,7 @@ public class Restricted extends RestrictedBase {
 
     public String stateJSON;
 
-    private Gson gson; // TODO: this is for testing,remove later
+    private Gson gson;
     private static final Logger logger = LoggerFactory.getLogger(Restricted.class.getName());
 
     public Restricted(String participant_uuid) {
@@ -43,6 +43,7 @@ public class Restricted extends RestrictedBase {
         this.participantMap = participantMap;
         this.stateMap = new HashMap<>();
 
+        // this initializes the user's and machine's timezone
         this.TZHelper = new TimezoneHelper(participantMap.get("time_zone"), TimeZone.getDefault().getID());
 
         new Thread(){
@@ -94,7 +95,7 @@ public class Restricted extends RestrictedBase {
                     break;
                 case missedStartCal:
                     String missedStartCalMessage = participantMap.get("participant_uuid") + " missedStartCal unexpected message";
-                    logger.warn("\t\t " + missedStartCalMessage);
+                    logger.warn(missedStartCalMessage);
                     Launcher.msgUtils.sendMessage(participantMap.get("number"), missedStartCalMessage);
                     break;
                 case warnEndCal:
@@ -109,12 +110,12 @@ public class Restricted extends RestrictedBase {
                     break;
                 case missedEndCal:
                     String missedEndCalMessage = participantMap.get("participant_uuid") + " missedEndCal unexpected message";
-                    logger.warn("\t\t " + missedEndCalMessage);
+                    logger.warn(missedEndCalMessage);
                     Launcher.msgUtils.sendMessage(participantMap.get("number"), missedEndCalMessage);
                     break;
                 case endOfEpisode:
                     String endOfEpisodeMessage = participantMap.get("participant_uuid") + " endOfEpisode unexpected message";
-                    logger.warn("\t\t " + endOfEpisodeMessage);
+                    logger.warn(endOfEpisodeMessage);
                     Launcher.msgUtils.sendMessage(participantMap.get("number"), endOfEpisodeMessage);
                     break;
                 default:
@@ -237,7 +238,7 @@ public class Restricted extends RestrictedBase {
                 setStartWarnDeadline(startWarnDiff);
 
                 String waitStartMessage = participantMap.get("participant_uuid") + " created state machine: warnStart timeout " + TZHelper.getDateFromAddingSeconds(startWarnDiff);
-                logger.warn("\t\t " + waitStartMessage);
+                logger.warn(waitStartMessage);
                 Launcher.msgUtils.sendMessage(participantMap.get("number"), waitStartMessage);
 
                 break;
@@ -246,7 +247,7 @@ public class Restricted extends RestrictedBase {
                 setStartDeadline(TZHelper.getSecondsTo359am()); // timeToD2359am());
 
                 String warnStartCalMessage = participantMap.get("participant_uuid") + " please submit startcal: startdeadline timeout " + TZHelper.getDateFromAddingSeconds(TZHelper.getSecondsTo359am());
-                logger.warn("\t\t " + warnStartCalMessage);
+                logger.warn(warnStartCalMessage);
                 Launcher.msgUtils.sendMessage(participantMap.get("number"), warnStartCalMessage);
 
 
@@ -256,13 +257,13 @@ public class Restricted extends RestrictedBase {
                 setEndWarnDeadline(TZHelper.getSecondsTo2059pm()); //timeToD19pm());
 
                 String startCalMessage = participantMap.get("participant_uuid") + " thanks for sending startcal: endwarndeadline timeout " + TZHelper.getDateFromAddingSeconds(TZHelper.getSecondsTo2059pm());
-                logger.info("\t\t " + startCalMessage);
+                logger.info(startCalMessage);
                 Launcher.msgUtils.sendMessage(participantMap.get("number"), startCalMessage);
 
                 break;
             case missedStartCal:
                 String missedStartCalMessage = participantMap.get("participant_uuid") + " no startcal was recorded for today.";
-                logger.warn("\t\t " + missedStartCalMessage);
+                logger.warn(missedStartCalMessage);
                 Launcher.msgUtils.sendMessage(participantMap.get("number"), missedStartCalMessage);
                 break;
             case warnEndCal:
@@ -270,25 +271,25 @@ public class Restricted extends RestrictedBase {
                 setEndDeadline(TZHelper.getSecondsTo359am()); //timeToD2359am());
 
                 String warnEndCalMessage = participantMap.get("participant_uuid") + " please submit endcal: enddeadline timeout " + TZHelper.getDateFromAddingSeconds(TZHelper.getSecondsTo359am()); // timeToD2359am());
-                logger.warn("\t\t " + warnEndCalMessage);
+                logger.warn(warnEndCalMessage);
                 Launcher.msgUtils.sendMessage(participantMap.get("number"), warnEndCalMessage);
 
                 break;
             case endcal:
                 String endCalMessage = participantMap.get("participant_uuid") + " thanks for sending endcal";
-                logger.info("\t\t " + endCalMessage);
+                logger.info(endCalMessage);
                 Launcher.msgUtils.sendMessage(participantMap.get("number"), endCalMessage);
                 break;
             case missedEndCal:
                 String missedEndCalMessage = participantMap.get("participant_uuid") + " no endcal was recorded for today.";
-                logger.warn("\t\t " + missedEndCalMessage);
+                logger.warn(missedEndCalMessage);
                 Launcher.msgUtils.sendMessage(participantMap.get("number"), missedEndCalMessage);
                 break;
             case endOfEpisode:
                 //set restart one minute after other timeouts
-                setEndOfEpisodeDeadline(TZHelper.getSecondsTo359am() + 60);// timeToD2359am() + 60);
-                String endOfEpisode = participantMap.get("participant_uuid") + " end of episode timeout " + TZHelper.getDateFromAddingSeconds(TZHelper.getSecondsTo359am() + 60);
-                logger.info("\t\t " + endOfEpisode);
+                setEndOfEpisodeDeadline(TZHelper.getSecondsTo4am());// timeToD2359am() + 60);
+                String endOfEpisode = participantMap.get("participant_uuid") + " end of episode timeout " + TZHelper.getDateFromAddingSeconds(TZHelper.getSecondsTo4am());
+                logger.info(endOfEpisode);
                 break;
             default:
                 logger.error("stateNotify: Invalid state: " + state);
@@ -303,9 +304,7 @@ public class Restricted extends RestrictedBase {
     }
 
     public void restoreSaveState(String saveStateJSON) {
-
         try{
-
             //Type typeOfHashMap = new TypeToken<Map<String, Map<String,Long>>>() { }.getType();
             Map<String, Map<String,Long>> saveStateMap = gson.fromJson(saveStateJSON,typeOfHashMap);
 

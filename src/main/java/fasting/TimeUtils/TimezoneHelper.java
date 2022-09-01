@@ -105,6 +105,22 @@ public class TimezoneHelper {
     }
 
     /**
+    * return the seconds until 4am for user timezone (This should only be used in resetting the episode)
+    */
+    public int getSecondsTo4am() {
+        Instant nowUTC = Instant.now();
+        ZoneId userTZ = ZoneId.of(this.userTimezone);
+        ZonedDateTime nowUserTimezone = ZonedDateTime.ofInstant(nowUTC, userTZ);
+        LocalDateTime nowUserLocalTime = nowUserTimezone.toLocalDateTime();
+        LocalDateTime userLocalTime4am = LocalDateTime.of(nowUserLocalTime.getYear(), nowUserLocalTime.getMonth(), nowUserLocalTime.getDayOfMonth(), 04, 00, 00);
+        long secondsUntil4am = Duration.between(nowUserLocalTime, userLocalTime4am).getSeconds();
+        if (secondsUntil4am < 0) {
+            secondsUntil4am = 0; // if already past 4am, reset it now
+        }
+        return ((int) secondsUntil4am);
+    }
+
+    /**
     * returns a user's local time as String
     */
     public String getUserLocalTime() {
