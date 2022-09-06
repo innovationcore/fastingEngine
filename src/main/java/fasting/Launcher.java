@@ -53,7 +53,8 @@ public class Launcher {
             startServer();
 
             //testing
-            // testing.testHappyWorking();
+            //testing.testTiming();
+            //testing.testHappyWorking();
             // System.out.println("\n\n\n");
             // testing.testNoStart();
             // System.out.println("\n\n\n");

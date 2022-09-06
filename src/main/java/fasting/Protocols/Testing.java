@@ -247,7 +247,7 @@ public class Testing {
         hours = total / 3600;
         mins = (total % 3600) / 60;
         seconds = total % 60;
-        System.out.println("Time until 4am: " + String.format("%02d:%02d:%02d", hours, mins, seconds));
+        System.out.println("Time until 3:59:30am: " + String.format("%02d:%02d:%02d", hours, mins, seconds));
 
         total = timezoneHelper1.getSecondsTo4am();
         hours = total / 3600;
@@ -277,7 +277,7 @@ public class Testing {
         hours = total / 3600;
         mins = (total % 3600) / 60;
         seconds = total % 60;
-        System.out.println("Time until 4am: " + String.format("%02d:%02d:%02d", hours, mins, seconds));
+        System.out.println("Time until 3:59:30am: " + String.format("%02d:%02d:%02d", hours, mins, seconds));
 
         total = timezoneHelper2.getSecondsTo4am();
         hours = total / 3600;
@@ -290,7 +290,7 @@ public class Testing {
 
         //USER BEFORE UTC TIMEZONE
         System.out.println("\n USER BEHIND MACHINE (in UTC)");
-        TimezoneHelper timezoneHelper3 = new TimezoneHelper("America/Louisville", "Etc/UTC");
+        TimezoneHelper timezoneHelper3 = new TimezoneHelper("Pacific/Kiritimati", "Etc/UTC");
         total = timezoneHelper3.getSecondsTo1159am();
         System.out.println("Total seconds to 11:59am: " + total);
         hours = total / 3600;
@@ -308,7 +308,7 @@ public class Testing {
         hours = total / 3600;
         mins = (total % 3600) / 60;
         seconds = total % 60;
-        System.out.println("Time until 4am: " + String.format("%02d:%02d:%02d", hours, mins, seconds));
+        System.out.println("Time until 3:59:30am: " + String.format("%02d:%02d:%02d", hours, mins, seconds));
 
         total = timezoneHelper3.getSecondsTo4am();
         hours = total / 3600;

@@ -14,6 +14,9 @@ public class TimezoneHelper {
 
     private String userTimezone;
     private String machineTimezone;
+    private Integer startYear;
+    private Integer startMonth;
+    private Integer startDay;
     private Integer timezoneDifference;
     private Boolean isUserAheadOfMachine;
     private Logger logger;
@@ -24,6 +27,15 @@ public class TimezoneHelper {
     public TimezoneHelper(String userTimezone, String machineTimezone) {
         this.userTimezone = userTimezone;
         this.machineTimezone = machineTimezone;
+
+        Instant nowUTC = Instant.now();
+        ZoneId userTZ = ZoneId.of(userTimezone);
+        ZonedDateTime nowUserTimezone = ZonedDateTime.ofInstant(nowUTC, userTZ);
+        LocalDateTime nowUserLocalTime = nowUserTimezone.toLocalDateTime();
+        this.startYear = nowUserLocalTime.getYear();
+        this.startMonth = nowUserLocalTime.getMonthValue();
+        this.startDay = nowUserLocalTime.getDayOfMonth();
+
         this.timezoneDifference = calculateTZOffset();
         if (this.timezoneDifference > 0) {
             this.isUserAheadOfMachine = true;
@@ -112,12 +124,21 @@ public class TimezoneHelper {
         ZoneId userTZ = ZoneId.of(this.userTimezone);
         ZonedDateTime nowUserTimezone = ZonedDateTime.ofInstant(nowUTC, userTZ);
         LocalDateTime nowUserLocalTime = nowUserTimezone.toLocalDateTime();
-        LocalDateTime userLocalTime4am = LocalDateTime.of(nowUserLocalTime.getYear(), nowUserLocalTime.getMonth(), nowUserLocalTime.getDayOfMonth(), 04, 00, 00);
-        long secondsUntil4am = Duration.between(nowUserLocalTime, userLocalTime4am).getSeconds();
-        if (secondsUntil4am < 0) {
-            secondsUntil4am = 0; // if already past 4am, reset it now
+        int hour = nowUserLocalTime.getHour();
+
+        // if current hour is between midnight and 3:59:59, just get seconds to midnight
+        if (hour >= 00 && hour < 4){
+            LocalDateTime userLocalTime4am = LocalDateTime.of(nowUserLocalTime.getYear(), nowUserLocalTime.getMonth(), nowUserLocalTime.getDayOfMonth(), 04, 00, 00);
+            long secondsUntil4am = Duration.between(nowUserLocalTime, userLocalTime4am).getSeconds();
+            return (int) secondsUntil4am;
+        } else if (hour == 4){ // if the hour is 4am return 0, reset now
+            return 0;
+        } else { // if hour is 5am to 23:59:59, add a day and get seconds to 4am
+            LocalDateTime userLocalTime4am = LocalDateTime.of(nowUserLocalTime.getYear(), nowUserLocalTime.getMonth(), nowUserLocalTime.getDayOfMonth(), 04, 00, 00);
+            userLocalTime4am = userLocalTime4am.plusDays(1);
+            long secondsUntil4am = Duration.between(nowUserLocalTime, userLocalTime4am).getSeconds();
+            return ((int) secondsUntil4am);
         }
-        return ((int) secondsUntil4am);
     }
 
     /**
