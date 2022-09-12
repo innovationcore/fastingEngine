@@ -69,7 +69,7 @@ public class RestrictedWatcher {
         public void run() {
             try {
                synchronized (lockEpisodeReset) {
-                   List<Map<String,String>> participantMapList = Launcher.dbEngine.getParticipantMapByGroup("Baseline");
+                   List<Map<String,String>> participantMapList = Launcher.dbEngine.getParticipantMapByGroup("TRF");
                    for (Map<String, String> participantMap : participantMapList) {
 
                        boolean isActive = false;
@@ -136,64 +136,4 @@ public class RestrictedWatcher {
         }
 
     }
-
-    // this func not called anywhere
-    // private Restricted setRestrictedTimers(Restricted p0) {
-    //     try {
-    //         Date date = new Date();   // given date
-
-    //         Calendar calendar = GregorianCalendar.getInstance(); // creates a new calendar instance
-    //         calendar.setTime(date);   // assigns calendar to given date
-    //         long currentTime = calendar.getTime().getTime()/1000;
-
-    //         calendar.set(Calendar.HOUR_OF_DAY, 4);
-    //         calendar.set(Calendar.MINUTE, 0);
-    //         long d1t400am = calendar.getTime().getTime()/1000;
-
-    //         calendar.set(Calendar.HOUR_OF_DAY, 11);
-    //         calendar.set(Calendar.MINUTE, 59);
-    //         long d1t1159am = calendar.getTime().getTime()/1000;
-
-    //         calendar.set(Calendar.HOUR_OF_DAY, 12);
-    //         calendar.set(Calendar.MINUTE, 0);
-    //         long d1t1200pm = calendar.getTime().getTime()/1000;
-
-    //         calendar.set(Calendar.HOUR_OF_DAY, 21);
-    //         calendar.set(Calendar.MINUTE, 0);
-    //         long d1t900pm = calendar.getTime().getTime()/1000;
-
-    //         long d2t359am = d1t400am + 86400 - 60; //add full day of seconds and subtract a minute
-
-        
-    //         int startWarnDiff =  (int)(d1t1159am-currentTime);
-    //         if(startWarnDiff <= 0) {
-    //             startWarnDiff = (int)currentTime + 300;
-    //             p0.setStartWarnDeadline(startWarnDiff);
-    //         } else {
-    //             p0.setStartWarnDeadline(startWarnDiff);
-    //         }
-    //         p0.receivedWaitStart();
-
-
-    //         //p0.setStartDeadline((int)(d2t359am - currentTime));
-    //         //p0.setEndWarnDeadline((int)(d1t900pm - currentTime));
-    //         //p0.setEndDeadline((int)(d2t359am - currentTime));
-
-    //         //p0.receivedWaitStart();
-
-
-    //         /*
-    //         String routeString = GM + RM + GC + RC + TXp + RXp + TXa + RXa + TXr + RXr + TXpe + RXpe + TXae + RXae + TXre + RXre;
-    //         routePath = Integer.parseInt(routeString, 2);
-    //         //System.out.println("desc:" + rm.getParam("desc") + "\nroutePath:" + routePath + " RouteString:\n" + routeString + "\n" + rm.getParams());
-    //          */
-
-    //     } catch (Exception ex) {
-    //         logger.error("setRestrictedTimers Error");
-    //         logger.error(ex.toString());
-    //     }
-
-    //     return p0;
-    // }
-
-}
+} //class 

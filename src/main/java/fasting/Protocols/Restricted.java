@@ -94,7 +94,9 @@ public class Restricted extends RestrictedBase {
                     }
                     break;
                 case missedStartCal:
-                    String missedStartCalMessage = participantMap.get("participant_uuid") + " missedStartCal unexpected message";
+                    String missedStartCalMessage =  "Your text was not understood. Please send  \"STARTCAL\" when you begin calories for" +
+                                                    " the day; \"ENDCAL\" when you are done with calories for the day.";
+                    //participantMap.get("participant_uuid") + " missedStartCal unexpected message";
                     logger.warn(missedStartCalMessage);
                     Launcher.msgUtils.sendMessage(participantMap.get("number"), missedStartCalMessage);
                     break;
@@ -109,12 +111,16 @@ public class Restricted extends RestrictedBase {
                     }
                     break;
                 case missedEndCal:
-                    String missedEndCalMessage = participantMap.get("participant_uuid") + " missedEndCal unexpected message";
+                    String missedEndCalMessage = "Your text was not understood. Please send  \"STARTCAL\" when you begin calories for" +
+                                                    " the day; \"ENDCAL\" when you are done with calories for the day.";
+                    //participantMap.get("participant_uuid") + " missedEndCal unexpected message";
                     logger.warn(missedEndCalMessage);
                     Launcher.msgUtils.sendMessage(participantMap.get("number"), missedEndCalMessage);
                     break;
                 case endOfEpisode:
-                    String endOfEpisodeMessage = participantMap.get("participant_uuid") + " endOfEpisode unexpected message";
+                    String endOfEpisodeMessage = "Your text was not understood. Please send  \"STARTCAL\" when you begin calories for" +
+                                                    " the day; \"ENDCAL\" when you are done with calories for the day.";
+                    //participantMap.get("participant_uuid") + " endOfEpisode unexpected message";
                     logger.warn(endOfEpisodeMessage);
                     Launcher.msgUtils.sendMessage(participantMap.get("number"), endOfEpisodeMessage);
                     break;
@@ -141,8 +147,10 @@ public class Restricted extends RestrictedBase {
                 //Launcher.msgUtils.sendMessage(participantMap.get("number"), "startcal accepted");
                 isStart = true;
             } else {
-                Launcher.msgUtils.sendMessage(participantMap.get("number"), "startcal not found please resend");
                 isStart = false;
+                String startCalMessage = "Your text was not understood. Please send  \"STARTCAL\" when you begin calories for" +
+                                            " the day; \"ENDCAL\" when you are done with calories for the day.";
+                Launcher.msgUtils.sendMessage(startCalMessage);//participantMap.get("number"), "startcal not found please resend");
             }
 
         } catch (Exception ex) {
@@ -163,7 +171,9 @@ public class Restricted extends RestrictedBase {
                 isEnd = true;
             } else {
                 isEnd = false;
-                Launcher.msgUtils.sendMessage(participantMap.get("number"), "endcal not found please resend");
+                String endCalMessage = "Your text was not understood. Please send  \"STARTCAL\" when you begin calories for" +
+                                        " the day; \"ENDCAL\" when you are done with calories for the day.";
+                Launcher.msgUtils.sendMessage(endCalMessage);//participantMap.get("number"), "endcal not found please resend");
             }
 
         } catch (Exception ex) {
@@ -237,29 +247,33 @@ public class Restricted extends RestrictedBase {
                 setStartWarnDeadline(startWarnDiff);
                 String waitStartMessage = participantMap.get("participant_uuid") + " created state machine: warnStart timeout " + TZHelper.getDateFromAddingSeconds(startWarnDiff);
                 logger.warn(waitStartMessage);
-                Launcher.msgUtils.sendMessage(participantMap.get("number"), waitStartMessage);
+                //Launcher.msgUtils.sendMessage(participantMap.get("number"), waitStartMessage);
                 break;
             case warnStartCal:
                 //set start fail timer
                 setStartDeadline(TZHelper.getSecondsTo359am()); // timeToD2359am());
                 String warnStartCalMessage = participantMap.get("participant_uuid") + " please submit startcal: startdeadline timeout " + TZHelper.getDateFromAddingSeconds(TZHelper.getSecondsTo359am());
                 logger.warn(warnStartCalMessage);
-                Launcher.msgUtils.sendMessage(participantMap.get("number"), warnStartCalMessage);
+                //Launcher.msgUtils.sendMessage(participantMap.get("number"), warnStartCalMessage);
                 break;
             case startcal:
                 //set warn and end
+                // In the CSV with responses they don't have anything for sending startcal
                 setEndWarnDeadline(TZHelper.getSecondsTo2059pm()); //timeToD19pm());
                 String startCalMessage = participantMap.get("participant_uuid") + " thanks for sending startcal: endwarndeadline timeout " + TZHelper.getDateFromAddingSeconds(TZHelper.getSecondsTo2059pm());
                 logger.info(startCalMessage);
-                Launcher.msgUtils.sendMessage(participantMap.get("number"), startCalMessage);
+                //Launcher.msgUtils.sendMessage(participantMap.get("number"), startCalMessage);
                 break;
             case missedStartCal:
-                String missedStartCalMessage = participantMap.get("participant_uuid") + " no startcal was recorded for today.";
+                String missedStartCalMessage = "We haven't heard from you in a while. Remember to text STARTCAL when your calories start " +
+                                                "in the morning and ENDCAL when your calories finish at night! Let us know if you need help.";
+                                                //participantMap.get("participant_uuid") + " no startcal was recorded for today.";
                 logger.warn(missedStartCalMessage);
                 Launcher.msgUtils.sendMessage(participantMap.get("number"), missedStartCalMessage);
                 break;
             case warnEndCal:
                 //set end for end
+                // maybe this should be sent 9 hours after startcal
                 setEndDeadline(TZHelper.getSecondsTo359am()); //timeToD2359am());
                 String warnEndCalMessage = participantMap.get("participant_uuid") + " please submit endcal: enddeadline timeout " + TZHelper.getDateFromAddingSeconds(TZHelper.getSecondsTo359am()); // timeToD2359am());
                 logger.warn(warnEndCalMessage);
@@ -271,6 +285,7 @@ public class Restricted extends RestrictedBase {
                 Launcher.msgUtils.sendMessage(participantMap.get("number"), endCalMessage);
                 break;
             case missedEndCal:
+            // TRE ended too late messages should be sent after 11pm, maybe reminder
                 String missedEndCalMessage = participantMap.get("participant_uuid") + " no endcal was recorded for today.";
                 logger.warn(missedEndCalMessage);
                 Launcher.msgUtils.sendMessage(participantMap.get("number"), missedEndCalMessage);
@@ -278,9 +293,9 @@ public class Restricted extends RestrictedBase {
             case endOfEpisode:
                 //set restart one minute after other timeouts
                 setEndOfEpisodeDeadline(TZHelper.getSecondsTo4am());// timeToD2359am() + 60);
-                String endOfEpisode = participantMap.get("participant_uuid") + " end of episode timeout " + TZHelper.getDateFromAddingSeconds(TZHelper.getSecondsTo4am());
+                //String endOfEpisode = participantMap.get("participant_uuid") + " end of episode timeout " + TZHelper.getDateFromAddingSeconds(TZHelper.getSecondsTo4am());
                 logger.info(endOfEpisode);
-                Launcher.msgUtils.sendMessage(participantMap.get("number"), endOfEpisode);
+                //Launcher.msgUtils.sendMessage(participantMap.get("number"), endOfEpisode);
                 break;
             default:
                 logger.error("stateNotify: Invalid state: " + state);
