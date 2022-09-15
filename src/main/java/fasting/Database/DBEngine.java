@@ -160,102 +160,93 @@ public class DBEngine {
 
 
     public List<Map<String,String>> getParticipant(String ParticipantType) {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
         List<Map<String,String>> participantMapList = null;
         try {
-
             participantMapList = new ArrayList<>();
+            String queryString = "SELECT id, participant_id, phone_number, participant_type FROM fasting.participants " +
+                    "WHERE participant_type = ?";
 
-            String queryString = null;
+            conn = ds.getConnection();
+            stmt = conn.prepareStatement(queryString);
+            stmt.setString(1, ParticipantType);
+            rs = stmt.executeQuery();
 
-            //fill in the query
-            queryString = "SELECT id, participant_id, phone_number, participant_type FROM fasting.participants " +
-                    "WHERE participant_type='" + ParticipantType + "'";
-
-            try(Connection conn = ds.getConnection()) {
-                try (Statement stmt = conn.createStatement()) {
-
-                    try(ResultSet rs = stmt.executeQuery(queryString)) {
-
-                        while (rs.next()) {
-                            Map<String, String> accessMap = new HashMap<>();
-                            accessMap.put("id", rs.getString("id"));
-                            accessMap.put("participant_id", rs.getString("participant_id"));
-                            accessMap.put("phone_number", rs.getString("phone_number"));
-                            accessMap.put("participant_type", rs.getString("participant_type"));
-                            participantMapList.add(accessMap);
-                        }
-
-                    }
-                }
+            while (rs.next()) {
+                Map<String, String> accessMap = new HashMap<>();
+                accessMap.put("id", rs.getString("id"));
+                accessMap.put("participant_id", rs.getString("participant_id"));
+                accessMap.put("phone_number", rs.getString("phone_number"));
+                accessMap.put("participant_type", rs.getString("participant_type"));
+                participantMapList.add(accessMap);
             }
-
         } catch(Exception ex) {
             ex.printStackTrace();
+        } finally {
+            try { rs.close(); }   catch (Exception e) { /* Null Ignored */ }
+            try { stmt.close(); } catch (Exception e) { /* Null Ignored */ }
+            try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
         }
-
         return participantMapList;
     }
 
     public String getParticipantIdFromPhoneNumber(String PhoneNumber) {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
         String participantId = null;
         try {
+            String queryString = "SELECT participant_uuid FROM participants WHERE JSON_VALUE(participant_json, '$.number') = ?";
 
+            conn = ds.getConnection();
+            stmt = conn.prepareStatement(queryString);
+            stmt.setString(1, PhoneNumber);
+            rs = stmt.executeQuery();
 
-            String queryString = null;
-
-            //fill in the query
-            queryString = "SELECT participant_uuid FROM participants WHERE JSON_VALUE(participant_json, '$.number') = '"+ PhoneNumber + "'";
-
-            try(Connection conn = ds.getConnection()) {
-                try (Statement stmt = conn.createStatement()) {
-
-                    try(ResultSet rs = stmt.executeQuery(queryString)) {
-
-                        if (rs.next())
-                        {
-                            participantId = rs.getString("participant_uuid");
-                        }
-
-                    }
-                }
+            if (rs.next()) {
+                participantId = rs.getString("participant_uuid");
             }
 
         } catch(Exception ex) {
             ex.printStackTrace();
+        } finally {
+            try { rs.close(); }   catch (Exception e) { /* Null Ignored */ }
+            try { stmt.close(); } catch (Exception e) { /* Null Ignored */ }
+            try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
         }
-
         return participantId;
     }
 
     public List<Map<String,String>> getParticipantMapByGroup(String groupName) {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
         List<Map<String,String>> participantMaps = null;
         try {
-
             participantMaps = new ArrayList<>();
 
-            String queryString = null;
+            String queryString = "SELECT participant_uuid, participant_json FROM participants WHERE JSON_VALUE(participant_json, '$.group') = ?";
 
-            //fill in the query
-            queryString = "SELECT participant_uuid, participant_json FROM participants WHERE JSON_VALUE(participant_json, '$.group') = '"+ groupName + "'";
+            conn = ds.getConnection();
+            stmt = conn.prepareStatement(queryString);
+            stmt.setString(1, groupName);
+            rs = stmt.executeQuery();
 
-            try(Connection conn = ds.getConnection()) {
-                try (Statement stmt = conn.createStatement()) {
-
-                    try(ResultSet rs = stmt.executeQuery(queryString)) {
-
-                        while (rs.next()) {
-                            //Map<String,String> participantMap = new HashMap<>();
-                            Map<String,String> participantMap = gson.fromJson(rs.getString("participant_json"), Map.class);
-                            participantMap.put("participant_uuid",rs.getString("participant_uuid"));
-                            participantMaps.add(participantMap);
-                        }
-
-                    }
-                }
+            while (rs.next()) {
+                //Map<String,String> participantMap = new HashMap<>();
+                Map<String,String> participantMap = gson.fromJson(rs.getString("participant_json"), Map.class);
+                participantMap.put("participant_uuid",rs.getString("participant_uuid"));
+                participantMaps.add(participantMap);
             }
 
         } catch(Exception ex) {
             ex.printStackTrace();
+        } finally {
+            try { rs.close(); }   catch (Exception e) { /* Null Ignored */ }
+            try { stmt.close(); } catch (Exception e) { /* Null Ignored */ }
+            try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
         }
 
         return participantMaps;
@@ -263,114 +254,49 @@ public class DBEngine {
 
 
     public String getParticipantIdFromPhoneNumberOld(String PhoneNumber) {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
         String participantId = null;
         try {
+            String queryString = "SELECT id, participant_id, phone_number, participant_type FROM fasting.participants " +
+                    "WHERE phone_number = ?";
 
-
-            String queryString = null;
-
-            //fill in the query
-            queryString = "SELECT id, participant_id, phone_number, participant_type FROM fasting.participants " +
-                    "WHERE phone_number='" + PhoneNumber + "'";
-
-            try(Connection conn = ds.getConnection()) {
-                try (Statement stmt = conn.createStatement()) {
-
-                    try(ResultSet rs = stmt.executeQuery(queryString)) {
-
-                        if (rs.next())
-                        {
-                            participantId = rs.getString("participant_id");
-                        }
-
-                    }
-                }
+            conn = ds.getConnection();
+            stmt = conn.prepareStatement(queryString);
+            stmt.setString(1, PhoneNumber);
+            rs = stmt.executeQuery();
+            if (rs.next()) {
+                participantId = rs.getString("participant_id");
             }
 
         } catch(Exception ex) {
             ex.printStackTrace();
+        } finally {
+            try { rs.close(); }   catch (Exception e) { /* Null Ignored */ }
+            try { stmt.close(); } catch (Exception e) { /* Null Ignored */ }
+            try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
         }
-
         return participantId;
     }
 
 
     public int executeUpdate(String stmtString) {
+        Connection conn = null;
+        Statement stmt = null;
         int result = -1;
         try {
-            Connection conn = ds.getConnection();
-            try {
-                Statement stmt = conn.createStatement();
-                result = stmt.executeUpdate(stmtString);
-                stmt.close();
-            } catch (Exception e) {
-
-                e.printStackTrace();
-            } finally {
-                conn.close();
-            }
+            conn = ds.getConnection();
+            stmt = conn.createStatement();
+            result = stmt.executeUpdate(stmtString);
 
         } catch(Exception ex) {
             ex.printStackTrace();
+        } finally {
+            try { stmt.close(); } catch (Exception e) { /* Null Ignored */ }
+            try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
         }
         return  result;
-    }
-
-
-    //Not used
-    public void initDB() {
-
-        String createRNode = "CREATE TABLE accesslog" +
-                "(" +
-                "   remote_ip varchar(255)," +
-                "   access_ts bigint" +
-                ")";
-
-        try {
-            try(Connection conn = ds.getConnection()) {
-                try (Statement stmt = conn.createStatement()) {
-                    stmt.executeUpdate(createRNode);
-                }
-            }
-        } catch(Exception ex) {
-            ex.printStackTrace();
-        }
-    }
-
-    void delete(File f) throws IOException {
-        if (f.isDirectory()) {
-            for (File c : f.listFiles())
-                delete(c);
-        }
-        if (!f.delete())
-            throw new FileNotFoundException("Failed to delete file: " + f);
-    }
-
-    public int dropTable(String tableName) {
-        int result = -1;
-        try {
-            Connection conn = ds.getConnection();
-            try {
-                String stmtString = null;
-
-                stmtString = "DROP TABLE " + tableName;
-
-                Statement stmt = conn.createStatement();
-
-                result = stmt.executeUpdate(stmtString);
-
-                stmt.close();
-            } catch (Exception e) {
-
-                e.printStackTrace();
-            } finally {
-                conn.close();
-            }
-
-        } catch(Exception ex) {
-            ex.printStackTrace();
-        }
-        return result;
     }
 
     public boolean databaseExist(String databaseName)  {
@@ -390,7 +316,7 @@ public class DBEngine {
     public boolean tableExist(String tableName)  {
         boolean exist = false;
 
-        ResultSet result;
+        ResultSet result = null;
         DatabaseMetaData metadata = null;
 
         try {
@@ -406,6 +332,8 @@ public class DBEngine {
 
         catch(Exception ex) {
             ex.printStackTrace();
+        } finally {
+            try { result.close(); } catch (Exception e) { /* Null Ignored */ }
         }
         return exist;
     }
@@ -414,39 +342,94 @@ public class DBEngine {
 
 
     public List<Map<String,String>> getAccessLogs() {
+        Connection conn = null;
+        Statement stmt = null;
+        ResultSet rs = null;
         List<Map<String,String>> accessMapList = null;
         try {
-
             accessMapList = new ArrayList<>();
-
             Type type = new TypeToken<Map<String, String>>(){}.getType();
+            String queryString = "SELECT * FROM accesslog";
 
-            String queryString = null;
+            conn = ds.getConnection();
+            stmt = conn.createStatement();
+            rs = stmt.executeQuery(queryString);
 
-            //fill in the query
-            queryString = "SELECT * FROM accesslog";
-
-            try(Connection conn = ds.getConnection()) {
-                try (Statement stmt = conn.createStatement()) {
-
-                    try(ResultSet rs = stmt.executeQuery(queryString)) {
-
-                        while (rs.next()) {
-                            Map<String, String> accessMap = new HashMap<>();
-                            accessMap.put("remote_ip", rs.getString("remote_ip"));
-                            accessMap.put("access_ts", rs.getString("access_ts"));
-                            accessMapList.add(accessMap);
-                        }
-
-                    }
-                }
+            while (rs.next()) {
+                Map<String, String> accessMap = new HashMap<>();
+                accessMap.put("remote_ip", rs.getString("remote_ip"));
+                accessMap.put("access_ts", rs.getString("access_ts"));
+                accessMapList.add(accessMap);
             }
-
         } catch(Exception ex) {
             ex.printStackTrace();
+        } finally {
+            try { rs.close(); }   catch (Exception e) { /* Null Ignored */ }
+            try { stmt.close(); } catch (Exception e) { /* Null Ignored */ }
+            try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
         }
-
         return accessMapList;
+    }
+
+    public int getDaysWithoutEndCal(String participant_id){
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        int result = 0;
+        try {
+            String query = "SELECT JSON_VALUE(participant_json, '$.days_without_endcal') FROM particpants WHERE participant_uuid = ?";
+            conn = ds.getConnection();
+            stmt = conn.prepareStatement(query);
+            stmt.setString(1, participant_id);
+            rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                result = rs.getInt(1);
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        } finally {
+            try { rs.close(); }   catch (Exception e) { /* Null Ignored */ }
+            try { stmt.close(); } catch (Exception e) { /* Null Ignored */ }
+            try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
+        }
+        return result;
+    }
+
+    public void resetDaysWithoutEndCal(String participant_id){
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        try {
+            String query = "UPDATE participants set participant_json=JSON_MODIFY(participant_json, '$.days_without_endcal', 0) WHERE participant_uuid = ?";
+            conn = ds.getConnection();
+            stmt = conn.prepareStatement(query);
+            stmt.setString(1, participant_id);
+            stmt.executeUpdate();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        } finally {
+            try { stmt.close(); } catch (Exception e) { /* Null Ignored */ }
+            try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
+        }
+    }
+
+    public void updateDaysWithoutEndCal(String participant_id){
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        try {
+            int currentDaysWithoutEndCal = getDaysWithoutEndCal(participant_id);
+
+            String query = "UPDATE participants set participant_json=JSON_MODIFY(participant_json, '$.days_without_endcal', "+(currentDaysWithoutEndCal+1)+") WHERE participant_uuid = ?";
+            conn = ds.getConnection();
+            stmt = conn.prepareStatement(query);
+            stmt.setString(1, participant_id);
+            stmt.executeUpdate();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        } finally {
+            try { stmt.close(); } catch (Exception e) { /* Null Ignored */ }
+            try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
+        }
     }
 
 }

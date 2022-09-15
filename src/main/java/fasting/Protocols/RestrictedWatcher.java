@@ -69,7 +69,7 @@ public class RestrictedWatcher {
         public void run() {
             try {
                synchronized (lockEpisodeReset) {
-                   List<Map<String,String>> participantMapList = Launcher.dbEngine.getParticipantMapByGroup("TRF");
+                   List<Map<String,String>> participantMapList = Launcher.dbEngine.getParticipantMapByGroup("TRE");
                    for (Map<String, String> participantMap : participantMapList) {
 
                        boolean isActive = false;
