@@ -46,12 +46,12 @@ public class Testing {
                 Thread.sleep(1000);
                 //p0.receivedStartCal();
                 logger.info("Sending received EndCal: simulate message in");
-                if (TZHelper.isBetween3AMand3PM()){
+                //if (TZHelper.isBetween3AMand3PM()){
                     //stay in current state if between 3am and 3pm
-                    logger.info("Participant is between 3am and 3pm, not advancing to endcal state only sending appropriate message");
-                } else {
+                    //logger.info("Participant is between 3am and 3pm, not advancing to endcal state only sending appropriate message");
+                //} else {
                     p0.receivedEndCal();
-                }
+                //}
 
             }
             logger.info("p0 state: " + p0.getState());

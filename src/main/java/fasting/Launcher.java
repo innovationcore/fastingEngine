@@ -54,14 +54,14 @@ public class Launcher {
 
             //testing
             //testing.testTiming();
-            testing.testHappyWorking();
+            //testing.testHappyWorking();
             // System.out.println("\n\n\n");
             // testing.testNoStart();
             // System.out.println("\n\n\n");
             // testing.testNoEnd();
 
             //start protocols
-            //restrictedWatcher = new RestrictedWatcher();
+            restrictedWatcher = new RestrictedWatcher();
 
         } catch (Exception ex) {
             ex.printStackTrace();

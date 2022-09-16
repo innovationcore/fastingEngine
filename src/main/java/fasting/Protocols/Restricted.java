@@ -81,20 +81,36 @@ public class Restricted extends RestrictedBase {
                 case waitStart:
                     if (isHelp(incomingMap.get("Body"))) {
                         Launcher.msgUtils.sendMessage(participantMap.get("number"), "Thanks for telling us you need more help.  One of our staff members will call you ASAP to help you get back on track.");
+                    } else if (isDayoff(incomingMap.get("Body"))) {
+                        Launcher.msgUtils.sendMessage(participantMap.get("number"), "Got it, no TRE today! Thank you for telling us. Please still let us know your STARTCAL and ENDCAL today.");
+                    } else if (isEndCal(incomingMap.get("Body"))) {
+                        Launcher.msgUtils.sendMessage(participantMap.get("number"), "No STARTCAL received yet today. Please send us your STARTCAL first, followed by your ENDCAL.");
                     } else if(isStartCal(incomingMap.get("Body"))) {
                         receivedStartCal();
+                    } else {
+                        Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Please send  \"STARTCAL\" when you begin calories for" +
+                                                    " the day; \"ENDCAL\" when you are done with calories for the day.");
                     }
                     break;
                 case warnStartCal:
                     if (isHelp(incomingMap.get("Body"))) {
                         Launcher.msgUtils.sendMessage(participantMap.get("number"), "Thanks for telling us you need more help.  One of our staff members will call you ASAP to help you get back on track.");
+                    } else if (isDayoff(incomingMap.get("Body"))) {
+                        Launcher.msgUtils.sendMessage(participantMap.get("number"), "Got it, no TRE today! Thank you for telling us. Please still let us know your STARTCAL and ENDCAL today.");
+                    } else if (isEndCal(incomingMap.get("Body"))) {
+                        Launcher.msgUtils.sendMessage(participantMap.get("number"), "No STARTCAL received yet today. Please send us your STARTCAL first, followed by your ENDCAL.");
                     } else if(isStartCal(incomingMap.get("Body"))) {
                         receivedStartCal();
+                    } else {
+                        Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Please send  \"STARTCAL\" when you begin calories for" +
+                                                    " the day; \"ENDCAL\" when you are done with calories for the day.");
                     }
                     break;
                 case startcal:
                     if (isHelp(incomingMap.get("Body"))) {
                         Launcher.msgUtils.sendMessage(participantMap.get("number"), "Thanks for telling us you need more help.  One of our staff members will call you ASAP to help you get back on track.");
+                    } else if (isDayoff(incomingMap.get("Body"))) {
+                        Launcher.msgUtils.sendMessage(participantMap.get("number"), "Got it, no TRE today! Thank you for telling us. Please still let us know your ENDCAL today. ");
                     } else if(isStartCal(incomingMap.get("Body"))){
                         Launcher.msgUtils.sendMessage(participantMap.get("number"), "You've already started consuming calories for the day. Text ENDCAL when you finish your TRE today.");
                     } else if(isEndCal(incomingMap.get("Body"))) {
@@ -103,6 +119,9 @@ public class Restricted extends RestrictedBase {
                         } else {
                             receivedEndCal();
                         }
+                    } else {
+                        Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Please send  \"STARTCAL\" when you begin calories for" +
+                                                    " the day; \"ENDCAL\" when you are done with calories for the day.");
                     }
                     break;
                 case missedStartCal:
@@ -121,6 +140,9 @@ public class Restricted extends RestrictedBase {
                         } else {
                             receivedEndCal();
                         }
+                    } else {
+                        Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Please send  \"STARTCAL\" when you begin calories for" +
+                                                    " the day; \"ENDCAL\" when you are done with calories for the day.");
                     }
                     break;
                 case endcal:
@@ -132,6 +154,9 @@ public class Restricted extends RestrictedBase {
                         } else {
                             receivedEndCal();
                         }
+                    } else {
+                        Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Please send  \"STARTCAL\" when you begin calories for" +
+                                                    " the day; \"ENDCAL\" when you are done with calories for the day.");
                     }
                     break;
                 case missedEndCal:
