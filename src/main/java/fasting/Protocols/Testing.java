@@ -22,7 +22,8 @@ public class Testing {
         try {
             logger.info("Creating P0");
             //Create dummy person
-            Restricted p0 = new Restricted(gson.fromJson("{'first_name':'Sam','last_name':'A','number':'+18596844789','group':'Baseline','time_zone':'America/Louisville','participant_uuid':'7C52EFDD-8E85-4D86-BCF3-C636242CF2F7'}", Map.class));
+            Restricted p0 = new Restricted(gson.fromJson("{'first_name':'Sam','last_name':'A','number':'+18596844789','group':'TRE','time_zone':'America/Louisville','participant_uuid':'7C52EFDD-8E85-4D86-BCF3-C636242CF2F7'}", Map.class));
+            TimezoneHelper TZHelper = new TimezoneHelper("America/Louisville", "America/New_York");
             //set short deadline for cal end
 
             // these first 4 are in state initial
@@ -45,7 +46,12 @@ public class Testing {
                 Thread.sleep(1000);
                 //p0.receivedStartCal();
                 logger.info("Sending received EndCal: simulate message in");
-                p0.receivedEndCal();
+                //if (TZHelper.isBetween3AMand3PM()){
+                    //stay in current state if between 3am and 3pm
+                    //logger.info("Participant is between 3am and 3pm, not advancing to endcal state only sending appropriate message");
+                //} else {
+                    p0.receivedEndCal();
+                //}
 
             }
             logger.info("p0 state: " + p0.getState());
@@ -225,6 +231,7 @@ public class Testing {
 
         System.out.println("User LocalTime: " + timezoneHelper.getUserLocalTime());
         System.out.println("User time til 3:59:30am: " + timezoneHelper.getDateFromAddingSeconds(timezoneHelper.getSecondsTo359am()));
+        System.out.println("Is user time between 3AM and 3PM?: " + timezoneHelper.isBetween3AMand3PM());
         
 
         //USER BEFORE TIMEZONE
@@ -256,6 +263,7 @@ public class Testing {
         System.out.println("Time until 4am: " + String.format("%02d:%02d:%02d", hours, mins, seconds));
         System.out.println("User LocalTime: " + timezoneHelper1.getUserLocalTime());
         System.out.println("User time til 4am: " + timezoneHelper1.getDateFromAddingSeconds(timezoneHelper1.getSecondsTo359am()));
+        System.out.println("Is user time between 3AM and 3PM?: " + timezoneHelper1.isBetween3AMand3PM());
 
         //USER AFTER TIMEZONE
         System.out.println("\n USER AHEAD MACHINE");
@@ -286,11 +294,12 @@ public class Testing {
         System.out.println("Time until 4am: " + String.format("%02d:%02d:%02d", hours, mins, seconds));
         System.out.println("User LocalTime: " + timezoneHelper2.getUserLocalTime());
         System.out.println("User time til 4am: " + timezoneHelper2.getDateFromAddingSeconds(timezoneHelper2.getSecondsTo359am()));
+        System.out.println("Is user time between 3AM and 3PM?: " + timezoneHelper2.isBetween3AMand3PM());
 
 
         //USER BEFORE UTC TIMEZONE
         System.out.println("\n USER BEHIND MACHINE (in UTC)");
-        TimezoneHelper timezoneHelper3 = new TimezoneHelper("Pacific/Kiritimati", "Etc/UTC");
+        TimezoneHelper timezoneHelper3 = new TimezoneHelper("Pacific/Fiji", "Etc/UTC");
         total = timezoneHelper3.getSecondsTo1159am();
         System.out.println("Total seconds to 11:59am: " + total);
         hours = total / 3600;
@@ -317,6 +326,7 @@ public class Testing {
         System.out.println("Time until 4am: " + String.format("%02d:%02d:%02d", hours, mins, seconds));
         System.out.println("User LocalTime: " + timezoneHelper3.getUserLocalTime());
         System.out.println("User time til 4am: " + timezoneHelper3.getDateFromAddingSeconds(timezoneHelper3.getSecondsTo359am()));
+        System.out.println("Is user time between 3AM and 3PM?: " + timezoneHelper3.isBetween3AMand3PM());
     }
 
 }
