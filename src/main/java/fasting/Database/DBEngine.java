@@ -377,7 +377,7 @@ public class DBEngine {
         ResultSet rs = null;
         int result = 0;
         try {
-            String query = "SELECT JSON_VALUE(participant_json, '$.days_without_endcal') FROM particpants WHERE participant_uuid = ?";
+            String query = "SELECT JSON_VALUE(participant_json, '$.days_without_endcal') FROM participants WHERE participant_uuid = ?";
             conn = ds.getConnection();
             stmt = conn.prepareStatement(query);
             stmt.setString(1, participant_id);
