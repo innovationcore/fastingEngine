@@ -71,7 +71,6 @@ public class Restricted extends RestrictedBase {
     }
 
     public void incomingText(Map<String,String> incomingMap) {
-
         try {
             State state = getState();
             switch (state) {
@@ -226,9 +225,6 @@ public class Restricted extends RestrictedBase {
                 isStart = true;
             } else {
                 isStart = false;
-                String startCalMessage = "Your text was not understood. Please send  \"STARTCAL\" when you begin calories for" +
-                                            " the day; \"ENDCAL\" when you are done with calories for the day.";
-                Launcher.msgUtils.sendMessage(participantMap.get("number"), startCalMessage);//participantMap.get("number"), "startcal not found please resend");
             }
 
         } catch (Exception ex) {
@@ -249,9 +245,6 @@ public class Restricted extends RestrictedBase {
                 isEnd = true;
             } else {
                 isEnd = false;
-                String endCalMessage = "Your text was not understood. Please send  \"STARTCAL\" when you begin calories for" +
-                                        " the day; \"ENDCAL\" when you are done with calories for the day.";
-                Launcher.msgUtils.sendMessage(participantMap.get("number"), endCalMessage);//participantMap.get("number"), "endcal not found please resend");
             }
 
         } catch (Exception ex) {

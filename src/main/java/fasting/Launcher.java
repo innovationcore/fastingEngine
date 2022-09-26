@@ -53,8 +53,8 @@ public class Launcher {
             startServer();
 
             //testing
-            //testing.testTiming();
-            //testing.testHappyWorking();
+            // testing.testTiming();
+            // testing.testHappyWorking();
             // System.out.println("\n\n\n");
             // testing.testNoStart();
             // System.out.println("\n\n\n");
@@ -110,7 +110,4 @@ public class Launcher {
         }
         return configParams;
     }
-
-
-
-}
+} //main class
