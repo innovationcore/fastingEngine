@@ -1,5 +1,6 @@
 package fasting.Protocols;
 import fasting.TimeUtils.TimezoneHelper;
+import fasting.MessagingUtils.MsgUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,10 +11,12 @@ public class Testing {
 
     private Logger logger;
     private Gson gson;
+    private MsgUtils msgUtils;
 
     public Testing() {
         logger = LoggerFactory.getLogger(Testing.class);
         gson = new Gson();
+        msgUtils = new MsgUtils();
     }
 
     // Simulating a happy user interaction
@@ -26,38 +29,43 @@ public class Testing {
             TimezoneHelper TZHelper = new TimezoneHelper("America/Louisville", "America/New_York");
             //set short deadline for cal end
 
-            // these first 4 are in state initial
-            p0.setStartWarnDeadline(2); //in seconds
-            p0.setStartDeadline(5);
-            p0.setEndWarnDeadline(10);
-            p0.setEndDeadline(15);
-            logger.info("p0 state: " + p0.getState());
-            logger.info("Set WaitStart P0");
-            p0.receivedWaitStart();
-            logger.info("p0 state: " + p0.getState());
-            //send start cal
-            logger.info("Sending received StartCal: simulate message in");
-            p0.receivedStartCal();
-            logger.info("p0 state: " + p0.getState());
+            msgUtils.fakeIncomingMessage(gson.fromJson("{'ApiVersion':'2010-04-01','SmsSid':'SM28039b2e831e75364a8f105f6cf30a02','SmsStatus':'received','SmsMessageSid':'SM28039b2e831e75364a8f105f6cf30a02','NumSegments':'1','ToState':'KY','From':'+18596844789','MessageSid':'SM28039b2e831e75364a8f105f6cf30a02','AccountSid':'AC2f6cd6f1badf2f8389b0649856b813d8','ToCity':'','FromCountry':'US','ToZip':'','FromCity':'LOUISVILLE','ReferralNumMedia':'0','To':'+18597106728','FromZip':'40205','ToCountry':'US','Body':'STARTCAL','NumMedia':'0','FromState':'KY'}"), "+18596844789");
+            msgUtils.fakeIncomingMessage(gson.fromJson("{'ApiVersion':'2010-04-01','SmsSid':'SM28039b2e831e75364a8f105f6cf30a02','SmsStatus':'received','SmsMessageSid':'SM28039b2e831e75364a8f105f6cf30a02','NumSegments':'1','ToState':'KY','From':'+18596844789','MessageSid':'SM28039b2e831e75364a8f105f6cf30a02','AccountSid':'AC2f6cd6f1badf2f8389b0649856b813d8','ToCity':'','FromCountry':'US','ToZip':'','FromCity':'LOUISVILLE','ReferralNumMedia':'0','To':'+18597106728','FromZip':'40205','ToCountry':'US','Body':'STARTCAL','NumMedia':'0','FromState':'KY'}"), "+18596844789");
 
-            //loop until end
-            while(!(p0.getState() == RestrictedBase.State.endOfEpisode)) {
-                logger.info("p0 state: " + p0.getState());
-                Thread.sleep(1000);
-                //p0.receivedStartCal();
-                logger.info("Sending received EndCal: simulate message in");
-                //if (TZHelper.isBetween3AMand3PM()){
-                    //stay in current state if between 3am and 3pm
-                    //logger.info("Participant is between 3am and 3pm, not advancing to endcal state only sending appropriate message");
-                //} else {
-                    p0.receivedEndCal();
-                //}
 
-            }
-            logger.info("p0 state: " + p0.getState());
+        //     // these first 4 are in state initial
+        //     p0.setStartWarnDeadline(2); //in seconds
+        //     p0.setStartDeadline(5);
+        //     p0.setEndWarnDeadline(10);
+        //     p0.setEndDeadline(15);
+        //     logger.info("p0 state: " + p0.getState());
+        //     logger.info("Set WaitStart P0");
+        //     p0.receivedWaitStart();
+        //     logger.info("p0 state: " + p0.getState());
+        //     //send start cal
+        //     logger.info("Sending received StartCal: simulate message in");
+        //     p0.receivedStartCal();
+        //     logger.info("p0 state: " + p0.getState());
+
+        //     //loop until end
+        //     while(!(p0.getState() == RestrictedBase.State.endOfEpisode)) {
+        //         logger.info("p0 state: " + p0.getState());
+        //         Thread.sleep(1000);
+        //         //p0.receivedStartCal();
+        //         logger.info("Sending received EndCal: simulate message in");
+        //         //if (TZHelper.isBetween3AMand3PM()){
+        //             //stay in current state if between 3am and 3pm
+        //             //logger.info("Participant is between 3am and 3pm, not advancing to endcal state only sending appropriate message");
+        //         //} else {
+        //             p0.receivedEndCal();
+        //         //}
+        //   }
+            
 
         } catch (Exception ex) {
             ex.printStackTrace();
+        } finally {
+            logger.info("p0 state: " + p0.getState());
         }
 
     }

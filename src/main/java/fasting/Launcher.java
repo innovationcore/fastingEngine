@@ -63,6 +63,8 @@ public class Launcher {
             //start protocols
             restrictedWatcher = new RestrictedWatcher();
 
+            testing.testHappyWorking();
+
         } catch (Exception ex) {
             ex.printStackTrace();
         }
