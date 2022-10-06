@@ -97,7 +97,11 @@ public class TimezoneHelper {
         LocalDateTime nowUserLocalTime = nowUserTimezone.toLocalDateTime();
         LocalDateTime userLocalTime9pm = LocalDateTime.of(nowUserLocalTime.getYear(), nowUserLocalTime.getMonth(), nowUserLocalTime.getDayOfMonth(), 20, 59, 30);
         long secondsUntil9pm = Duration.between(nowUserLocalTime, userLocalTime9pm).getSeconds();
-        return (int) secondsUntil9pm;
+        int secondsUntil9pmInt = (int) secondsUntil9pm;
+        if (secondsUntil9pmInt < 0) {
+            secondsUntil9pmInt = 0;
+        }
+        return secondsUntil9pmInt;
     }
 
     /**

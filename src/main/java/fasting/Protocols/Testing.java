@@ -29,8 +29,8 @@ public class Testing {
             TimezoneHelper TZHelper = new TimezoneHelper("America/Louisville", "America/New_York");
             //set short deadline for cal end
 
-            msgUtils.fakeIncomingMessage(gson.fromJson("{'ApiVersion':'2010-04-01','SmsSid':'SM28039b2e831e75364a8f105f6cf30a02','SmsStatus':'received','SmsMessageSid':'SM28039b2e831e75364a8f105f6cf30a02','NumSegments':'1','ToState':'KY','From':'+18596844789','MessageSid':'SM28039b2e831e75364a8f105f6cf30a02','AccountSid':'AC2f6cd6f1badf2f8389b0649856b813d8','ToCity':'','FromCountry':'US','ToZip':'','FromCity':'LOUISVILLE','ReferralNumMedia':'0','To':'+18597106728','FromZip':'40205','ToCountry':'US','Body':'STARTCAL','NumMedia':'0','FromState':'KY'}"), "+18596844789");
-            msgUtils.fakeIncomingMessage(gson.fromJson("{'ApiVersion':'2010-04-01','SmsSid':'SM28039b2e831e75364a8f105f6cf30a02','SmsStatus':'received','SmsMessageSid':'SM28039b2e831e75364a8f105f6cf30a02','NumSegments':'1','ToState':'KY','From':'+18596844789','MessageSid':'SM28039b2e831e75364a8f105f6cf30a02','AccountSid':'AC2f6cd6f1badf2f8389b0649856b813d8','ToCity':'','FromCountry':'US','ToZip':'','FromCity':'LOUISVILLE','ReferralNumMedia':'0','To':'+18597106728','FromZip':'40205','ToCountry':'US','Body':'STARTCAL','NumMedia':'0','FromState':'KY'}"), "+18596844789");
+            // msgUtils.fakeIncomingMessage(gson.fromJson("{'ApiVersion':'2010-04-01','SmsSid':'SM28039b2e831e75364a8f105f6cf30a02','SmsStatus':'received','SmsMessageSid':'SM28039b2e831e75364a8f105f6cf30a02','NumSegments':'1','ToState':'KY','From':'+18596844789','MessageSid':'SM28039b2e831e75364a8f105f6cf30a02','AccountSid':'AC2f6cd6f1badf2f8389b0649856b813d8','ToCity':'','FromCountry':'US','ToZip':'','FromCity':'LOUISVILLE','ReferralNumMedia':'0','To':'+18597106728','FromZip':'40205','ToCountry':'US','Body':'STARTCAL','NumMedia':'0','FromState':'KY'}"), "+18596844789");
+            // msgUtils.fakeIncomingMessage(gson.fromJson("{'ApiVersion':'2010-04-01','SmsSid':'SM28039b2e831e75364a8f105f6cf30a02','SmsStatus':'received','SmsMessageSid':'SM28039b2e831e75364a8f105f6cf30a02','NumSegments':'1','ToState':'KY','From':'+18596844789','MessageSid':'SM28039b2e831e75364a8f105f6cf30a02','AccountSid':'AC2f6cd6f1badf2f8389b0649856b813d8','ToCity':'','FromCountry':'US','ToZip':'','FromCity':'LOUISVILLE','ReferralNumMedia':'0','To':'+18597106728','FromZip':'40205','ToCountry':'US','Body':'STARTCAL','NumMedia':'0','FromState':'KY'}"), "+18596844789");
 
 
         //     // these first 4 are in state initial
@@ -65,7 +65,7 @@ public class Testing {
         } catch (Exception ex) {
             ex.printStackTrace();
         } finally {
-            logger.info("p0 state: " + p0.getState());
+            //logger.info("p0 state: " + p0.getState());
         }
 
     }
