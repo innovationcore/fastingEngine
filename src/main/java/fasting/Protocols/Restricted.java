@@ -78,12 +78,14 @@ public class Restricted extends RestrictedBase {
                     //no timers
                     break;
                 case waitStart:
-                    if (isHelp(incomingMap.get("Body"))) {
-                        Launcher.msgUtils.sendMessage(participantMap.get("number"), "Thanks for telling us you need more help.  One of our staff members will call you ASAP to help you get back on track.");
-                    } else if (isDayoff(incomingMap.get("Body"))) {
+                    // if (isHelp(incomingMap.get("Body"))) {
+                    //     Launcher.msgUtils.sendMessage(participantMap.get("number"), "Thanks for telling us you need more help.  One of our staff members will call you ASAP to help you get back on track.");
+                    // } else if
+                    if (isDayoff(incomingMap.get("Body"))) {
                         Launcher.msgUtils.sendMessage(participantMap.get("number"), "Got it, no TRE today! Thank you for telling us. Please still let us know your \"STARTCAL\" and \"ENDCAL\" today.");
                     } else if (isEndCal(incomingMap.get("Body"))) {
-                        Launcher.msgUtils.sendMessage(participantMap.get("number"), "No \"STARTCAL\" received yet today. Please send us your \"STARTCAL\" first, followed by your \"ENDCAL\".");
+                        Launcher.msgUtils.sendMessage(participantMap.get("number"), TZHelper.yesterdaysDate()+ ": " + pickRandomEndCalMessage());
+                        //Launcher.msgUtils.sendMessage(participantMap.get("number"), "No \"STARTCAL\" received yet today. Please send us your \"STARTCAL\" first, followed by your \"ENDCAL\".");
                     } else if(isStartCal(incomingMap.get("Body"))) {
                         receivedStartCal();
                     } else {
@@ -92,12 +94,14 @@ public class Restricted extends RestrictedBase {
                     }
                     break;
                 case warnStartCal:
-                    if (isHelp(incomingMap.get("Body"))) {
-                        Launcher.msgUtils.sendMessage(participantMap.get("number"), "Thanks for telling us you need more help.  One of our staff members will call you ASAP to help you get back on track.");
-                    } else if (isDayoff(incomingMap.get("Body"))) {
+                    // if (isHelp(incomingMap.get("Body"))) {
+                    //     Launcher.msgUtils.sendMessage(participantMap.get("number"), "Thanks for telling us you need more help.  One of our staff members will call you ASAP to help you get back on track.");
+                    // } else if
+                    if (isDayoff(incomingMap.get("Body"))) {
                         Launcher.msgUtils.sendMessage(participantMap.get("number"), "Got it, no TRE today! Thank you for telling us. Please still let us know your \"STARTCAL\" and \"ENDCAL\" today.");
                     } else if (isEndCal(incomingMap.get("Body"))) {
-                        Launcher.msgUtils.sendMessage(participantMap.get("number"), "No \"STARTCAL\" received yet today. Please send us your \"STARTCAL\" first, followed by your \"ENDCAL\".");
+                        Launcher.msgUtils.sendMessage(participantMap.get("number"), TZHelper.yesterdaysDate()+ ": " + pickRandomEndCalMessage());
+                        //Launcher.msgUtils.sendMessage(participantMap.get("number"), "No \"STARTCAL\" received yet today. Please send us your \"STARTCAL\" first, followed by your \"ENDCAL\".");
                     } else if(isStartCal(incomingMap.get("Body"))) {
                         receivedStartCal();
                     } else {
@@ -106,15 +110,16 @@ public class Restricted extends RestrictedBase {
                     }
                     break;
                 case startcal:
-                    if (isHelp(incomingMap.get("Body"))) {
-                        Launcher.msgUtils.sendMessage(participantMap.get("number"), "Thanks for telling us you need more help.  One of our staff members will call you ASAP to help you get back on track.");
-                    } else if (isDayoff(incomingMap.get("Body"))) {
+                    // if (isHelp(incomingMap.get("Body"))) {
+                    //     Launcher.msgUtils.sendMessage(participantMap.get("number"), "Thanks for telling us you need more help.  One of our staff members will call you ASAP to help you get back on track.");
+                    // } else if 
+                    if (isDayoff(incomingMap.get("Body"))) {
                         Launcher.msgUtils.sendMessage(participantMap.get("number"), "Got it, no TRE today! Thank you for telling us. Please still let us know your \"ENDCAL\" today. ");
                     } else if(isStartCal(incomingMap.get("Body"))){
                         Launcher.msgUtils.sendMessage(participantMap.get("number"), "You've already started consuming calories for the day. Text \"ENDCAL\" when you finish your TRE today.");
                     } else if(isEndCal(incomingMap.get("Body"))) {
                         if (TZHelper.isBetween3AMand3PM()){
-                            Launcher.msgUtils.sendMessage(participantMap.get("number"), "We don't recommend that you end calories this early in the day. Try again in the evening. Text \"HELP\" if you want to receive a call about how to manage TRE safely.");
+                            Launcher.msgUtils.sendMessage(participantMap.get("number"), "We don't recommend that you end calories this early in the day. Try again in the evening. Text 270-402-2214 if you want to receive a call about how to manage TRE safely.");
                         } else {
                             receivedEndCal();
                         }
@@ -128,11 +133,12 @@ public class Restricted extends RestrictedBase {
                     logger.warn(missedStartCalMessage);
                     break;
                 case warnEndCal:
-                    if (isHelp(incomingMap.get("Body"))) {
-                        Launcher.msgUtils.sendMessage(participantMap.get("number"), "Thanks for telling us you need more help. One of our staff members will call you ASAP to help you get back on track.");
-                    } else if(isEndCal(incomingMap.get("Body"))) {
+                    // if (isHelp(incomingMap.get("Body"))) {
+                    //     Launcher.msgUtils.sendMessage(participantMap.get("number"), "Thanks for telling us you need more help. One of our staff members will call you ASAP to help you get back on track.");
+                    // } else if
+                    if(isEndCal(incomingMap.get("Body"))) {
                         if (TZHelper.isBetween3AMand3PM()){
-                            Launcher.msgUtils.sendMessage(participantMap.get("number"), "We don't recommend that you end calories this early in the day. Try again in the evening. Text HELP if you want to receive a call about how to manage TRE safely.");
+                            Launcher.msgUtils.sendMessage(participantMap.get("number"), "We don't recommend that you end calories this early in the day. Try again in the evening. Text 270-402-2214 if you want to receive a call about how to manage TRE safely.");
                         } else {
                             receivedEndCal();
                         }
@@ -142,11 +148,12 @@ public class Restricted extends RestrictedBase {
                     }
                     break;
                 case endcal:
-                    if (isHelp(incomingMap.get("Body"))) {
-                        Launcher.msgUtils.sendMessage(participantMap.get("number"), "Thanks for telling us you need more help.  One of our staff members will call you ASAP to help you get back on track.");
-                    } else if(isEndCal(incomingMap.get("Body"))) {
+                    // if (isHelp(incomingMap.get("Body"))) {
+                    //     Launcher.msgUtils.sendMessage(participantMap.get("number"), "Thanks for telling us you need more help.  One of our staff members will call you ASAP to help you get back on track.");
+                    // } else if
+                    if(isEndCal(incomingMap.get("Body"))) {
                         if (TZHelper.isBetween3AMand3PM()){
-                            Launcher.msgUtils.sendMessage(participantMap.get("number"), "We don't recommend that you end calories this early in the day. Try again in the evening. Text HELP if you want to receive a call about how to manage TRE safely.");
+                            Launcher.msgUtils.sendMessage(participantMap.get("number"), "We don't recommend that you end calories this early in the day. Try again in the evening. Text 270-402-2214 if you want to receive a call about how to manage TRE safely.");
                         } else {
                             receivedEndCal();
                         }
@@ -178,24 +185,25 @@ public class Restricted extends RestrictedBase {
         }
     }
 
-    private boolean isHelp(String messageBody) {
-        boolean isHelp = false;
-        try {
-            if(messageBody.toLowerCase().contains("help")) {
-                isHelp = true;
-            } else {
-                isHelp = false;
-            }
+// won't need this
+    // private boolean isHelp(String messageBody) {
+    //     boolean isHelp = false;
+    //     try {
+    //         if(messageBody.toLowerCase().contains("help")) {
+    //             isHelp = true;
+    //         } else {
+    //             isHelp = false;
+    //         }
 
-        } catch (Exception ex) {
-            logger.error("isHelp(): " + ex.getMessage());
-            StringWriter sw = new StringWriter();
-            PrintWriter pw = new PrintWriter(sw);
-            ex.printStackTrace(pw);
-            logger.error(pw.toString());
-        }
-        return isHelp;
-    }
+    //     } catch (Exception ex) {
+    //         logger.error("isHelp(): " + ex.getMessage());
+    //         StringWriter sw = new StringWriter();
+    //         PrintWriter pw = new PrintWriter(sw);
+    //         ex.printStackTrace(pw);
+    //         logger.error(pw.toString());
+    //     }
+    //     return isHelp;
+    // }
 
     private boolean isDayoff(String messageBody) {
         boolean isDayoff = false;
@@ -328,7 +336,12 @@ public class Restricted extends RestrictedBase {
             case startcal:
                 //set warn and end
                 // In the CSV with responses they don't have anything for sending startcal
-                setEndWarnDeadline(TZHelper.getSecondsTo2059pm()); //timeToD19pm());
+                int secondsTo2059pm = TZHelper.getSecondsTo2059pm();
+                // if after 9pm, don't immediately send warnEndCal message. Wait some time so user has time to respond
+                if (secondsTo2059pm <= 0) {
+                    secondsTo2059pm += 300; // add 5 minutes
+                }
+                setEndWarnDeadline(secondsTo2059pm); //timeToD19pm());
                 String startCalMessage = participantMap.get("participant_uuid") + " thanks for sending startcal: endwarndeadline timeout " + TZHelper.getDateFromAddingSeconds(TZHelper.getSecondsTo2059pm());
                 logger.info(startCalMessage);
                 break;
@@ -359,7 +372,7 @@ public class Restricted extends RestrictedBase {
                 logger.warn(missedEndCalMessage);
                 logNoEndCal();
                 if (getDaysWithoutEndCal() >= 2){
-                    String missed2EndCals = "We haven't heard from you in a while. Text \"HELP\" if you're struggling to stick with the time-restricted eating.";
+                    String missed2EndCals = "We haven't heard from you in a while. Text our study team at 270-402-2214 if you're struggling to stick with the time-restricted eating.";
                     Launcher.msgUtils.sendMessage(participantMap.get("number"), missed2EndCals);
                 }
                 break;

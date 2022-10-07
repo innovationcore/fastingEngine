@@ -6,6 +6,7 @@ import fasting.Database.DBEngine;
 import fasting.MessagingUtils.MsgUtils;
 import fasting.Protocols.Testing;
 import fasting.Protocols.RestrictedWatcher;
+import fasting.TimeUtils.TimezoneHelper;
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -59,6 +60,8 @@ public class Launcher {
             // testing.testNoStart();
             // System.out.println("\n\n\n");
             // testing.testNoEnd();
+            // TimezoneHelper TZHelper = new TimezoneHelper("America/Louisville","America/Louisville");
+            // System.out.println(TZHelper.yesterdaysDate());
 
             //start protocols
             restrictedWatcher = new RestrictedWatcher();

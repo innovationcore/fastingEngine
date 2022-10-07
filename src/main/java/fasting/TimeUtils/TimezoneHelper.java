@@ -97,11 +97,7 @@ public class TimezoneHelper {
         LocalDateTime nowUserLocalTime = nowUserTimezone.toLocalDateTime();
         LocalDateTime userLocalTime9pm = LocalDateTime.of(nowUserLocalTime.getYear(), nowUserLocalTime.getMonth(), nowUserLocalTime.getDayOfMonth(), 20, 59, 30);
         long secondsUntil9pm = Duration.between(nowUserLocalTime, userLocalTime9pm).getSeconds();
-        int secondsUntil9pmInt = (int) secondsUntil9pm;
-        if (secondsUntil9pmInt < 0) {
-            secondsUntil9pmInt = 0;
-        }
-        return secondsUntil9pmInt;
+        return (int) secondsUntil9pm;
     }
 
     /**
@@ -184,6 +180,17 @@ public class TimezoneHelper {
         } else {
             return false;
         }
+    }
+
+    public String yesterdaysDate() {
+        Instant nowUTC = Instant.now();
+        ZoneId userTZ = ZoneId.of(this.userTimezone);
+        ZonedDateTime nowUserTimezone = ZonedDateTime.ofInstant(nowUTC, userTZ);
+        LocalDateTime nowUserLocalTime = nowUserTimezone.toLocalDateTime();
+        LocalDateTime yesterday = LocalDateTime.of(nowUserLocalTime.getYear(), nowUserLocalTime.getMonth(), nowUserLocalTime.getDayOfMonth(), 00, 00, 00);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
+        yesterday = yesterday.minusDays(1);
+        return yesterday.format(formatter);
     }
 
     /**
