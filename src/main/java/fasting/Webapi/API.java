@@ -1,7 +1,11 @@
 package fasting.Webapi;
 
+import com.fasterxml.jackson.databind.util.JSONPObject;
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import fasting.Launcher;
+import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,6 +19,14 @@ import java.io.StringWriter;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.HttpRequest;
+import java.net.URI;
+import org.apache.http.HttpEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.HttpClientBuilder;
 
 @Path("/sms")
 public class API {
@@ -64,6 +76,22 @@ public class API {
 
                 //record incoming
                 Launcher.dbEngine.executeUpdate(insertQuery);
+
+                //send and receive from rasa
+                String body = formParams.get("Body").get(0);
+                HttpClient httpClient = HttpClientBuilder.create().build();
+                HttpPost request = new HttpPost("http://localhost:5005/webhooks/rest/webhook");
+                StringEntity params = new StringEntity("{\"sender\":\""+participantId+"\", \"message\":\""+body+"\"}");
+                request.addHeader("content-type", "application/raw");
+                request.setEntity(params);
+                HttpResponse response = httpClient.execute(request);
+                int code = response.getStatusLine().getStatusCode();
+                if (code==200) { // text comes back in the form [{recipient-id:XXX, text:hello world}]
+                    String text = gson.fromJson(EntityUtils.toString(response.getEntity()), JsonArray.class).get(0).getAsJsonObject().get("text").getAsString();
+                    System.out.println(text);
+                } else {
+                    System.out.println("HTTP Error Code "+code);
+                }
 
                 //send to state machine
                 Launcher.restrictedWatcher.incomingText(participantId, formsMap);
