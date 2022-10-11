@@ -14,6 +14,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.ws.rs.core.RequestBody;
 
 
 @Path("/sms")
@@ -92,7 +93,6 @@ public class API {
         }
         //return accesslog data
         return Response.ok(responseString).header("Access-Control-Allow-Origin", "*").build();
-
     }
 
     @GET
@@ -127,6 +127,47 @@ public class API {
         //return accesslog data
         return Response.ok(responseString).header("Access-Control-Allow-Origin", "*").build();
     }
+
+
+    // @POST
+    // @Path("/next-state")
+    // @Consumes({MediaType.APPLICATION_JSON})
+    // @Produces(MediaType.APPLICATION_JSON)
+    // public Response moveToNextState(RequestBody requestBody) {
+    //     String responseString;
+    //     try {
+    //         String messageId = UUID.randomUUID().toString();
+    //         String participantId = requestBody.participantUUID;
+
+    //         if (participantId != null) {
+    //             //send to state machine
+    //             Launcher.restrictedWatcher.moveToNextState(participantId);
+
+    //             Map<String,String> responce = new HashMap<>();
+    //             responce.put("status","ok");
+    //             responseString = gson.toJson(responce);
+
+    //         } else {
+    //             Map<String,String> responce = new HashMap<>();
+    //             responce.put("status","error");
+    //             responce.put("status_desc","participant not found");
+    //             responseString = gson.toJson(responce);
+    //         }
+
+    //     } catch (Exception ex) {
+
+    //         StringWriter sw = new StringWriter();
+    //         ex.printStackTrace(new PrintWriter(sw));
+    //         String exceptionAsString = sw.toString();
+    //         ex.printStackTrace();
+    //         logger.error("incomingText");
+    //         logger.error(exceptionAsString);
+
+    //         return Response.status(500).entity(exceptionAsString).build();
+    //     }
+    //     //return accesslog data
+    //     return Response.ok(responseString).header("Access-Control-Allow-Origin", "*").build();
+    // }
 
     private Map<String, String> convertMultiToRegularMap(MultivaluedMap<String, String> m) {
         Map<String, String> map = new HashMap<String, String>();
