@@ -53,11 +53,12 @@ public class Restricted extends RestrictedBase {
 
                         if(startTimestamp > 0) {
                             stateJSON = saveStateJSON();
-                            dbEngine.uploadSaveState(stateJSON, participantMap.get("participant_uuid"));
+                            
+                            Launcher.dbEngine.uploadSaveState(stateJSON, participantMap.get("participant_uuid"));
                             //logger.info(stateJSON);
                         }
 
-                        Thread.sleep(1000);
+                        Thread.sleep(1000); // 900000 = 15 mins
                     }
                 } catch (Exception ex) {
                     logger.error("protocols.Restricted Thread: " + ex.toString());
