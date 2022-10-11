@@ -86,7 +86,7 @@ public class API {
                 request.setEntity(params);
                 HttpResponse response = httpClient.execute(request);
                 int code = response.getStatusLine().getStatusCode();
-                if (code==200) { // text comes back in the form [{recipient-id:XXX, text:hello world}]
+                if (code==200) { // response comes back in the form [{recipient-id:XXX, text:hello world}] as a bytestream
                     String text = gson.fromJson(EntityUtils.toString(response.getEntity()), JsonArray.class).get(0).getAsJsonObject().get("text").getAsString();
                     System.out.println(text);
                 } else {
