@@ -432,4 +432,22 @@ public class DBEngine {
         }
     }
 
+    public static void uploadSaveState(stateJSON, participantMap.get("participant_uuid")){
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        try {
+            String query = "UPDATE participants set participant_json=JSON_MODIFY(participant_json, '$.save_state', ?) WHERE participant_uuid = ?";
+            conn = ds.getConnection();
+            stmt = conn.prepareStatement(query);
+            stmt.setString(1, stateJSON);
+            stmt.setString(2, participantMap.get("participant_uuid"));
+            stmt.executeUpdate();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        } finally {
+            try { stmt.close(); } catch (Exception e) { /* Null Ignored */ }
+            try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
+        }
+    }
+
 }

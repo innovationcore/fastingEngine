@@ -81,7 +81,7 @@ public class RestrictedWatcher {
 
                        if(isActive) {
                            logger.info("Creating state machine for participant_uuid=" + participantMap.get("participant_uuid"));
-                           //Create dummy person
+                           //Create person
                            Restricted p0 = new Restricted(participantMap);
 
                            logger.info("Set WaitStart for participant_uuid=" + participantMap.get("participant_uuid"));
