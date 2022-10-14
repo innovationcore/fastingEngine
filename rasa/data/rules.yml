@@ -1,0 +1,15 @@
+rules:
+
+- rule: startcal
+  steps:
+  - intent: start
+  - action: action_timeset
+  - action: action_completefast
+  - action: action_listen
+
+- rule: endcal
+  steps:
+  - intent: end
+  - action: action_timeset
+  - action: utter_acknowledge
+  - action: action_listen
