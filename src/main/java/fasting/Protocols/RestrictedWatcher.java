@@ -60,6 +60,173 @@ public class RestrictedWatcher {
         }
     }
 
+    public String getValidNextStates(String partUUID){
+        String validNextStates = "";
+        
+        try {
+            String currentState = Launcher.dbEngine.getParticipantCurrentState(partUUID);
+
+            switch (currentState){
+                case "initial":
+                    validNextStates = "waitStart,warnStartCal,startcal,warnEndCal";
+                    break;
+                case "waitStart":
+                    validNextStates = "warnStartCal,startcal";
+                    break;
+                case "warnStartCal":
+                    validNextStates = "startcal,missedStartCal";
+                    break;
+                case "startcal":
+                    validNextStates = "startcal,endcal,warnEndCal";
+                    break;
+                case "missedStartCal":
+                    validNextStates = "endOfEpisode";
+                    break;
+                case "warnEndCal":
+                    validNextStates = "endcal,missedEndCal";
+                    break;
+                case "endcal":
+                    validNextStates = "endOfEpisode";
+                    break;
+                case "missedEndCal":
+                    validNextStates = "endOfEpisode";
+                    break;
+                case "endOfEpisode":
+                    validNextStates = "waitStart";
+                    break;
+                default:
+                    // not in any state?
+                    break;
+            }
+        } catch (Exception ex){
+            StringWriter sw = new StringWriter();
+            ex.printStackTrace(new PrintWriter(sw));
+            String exceptionAsString = sw.toString();
+            ex.printStackTrace();
+            logger.error("getValidNextStates");
+            logger.error(exceptionAsString);
+        }
+
+        return validNextStates;
+    }
+
+    public String moveToState(String participantId, String moveToState) {
+        String newState = "";
+        try {
+            Restricted participant = restrictedMap.get(participantId);
+            switch (participant.getState()){
+                case initial:
+                    if (moveToState == "waitStart"){
+                        participant.receivedWaitStart();
+                        newState = "waitStart";
+                    } else if (moveToState == "warnStartCal") {
+                        participant.receivedWarnStartCal();
+                        newState = "warnStartCal";
+                    } else if (moveToState == "startcal") {
+                        participant.receivedStartCal();
+                        newState = "startcal";
+                    } else if (moveToState == "warnEndCal") {
+                        participant.recievedWarnEndCal();
+                        newState = "warnEndCal";
+                    } else
+                        // invalid state
+                        break;
+                    
+                    break;
+                case waitStart:
+                    if (moveToState == "warnStartCal"){
+                        participant.timeoutwaitStartTowarnStartCal();
+                        newState = "warnStartCal";
+                    } else if (moveToState == "startcal") {
+                        participant.receivedStartCal();
+                        newState = "startcal";
+                    } else 
+                        // invalid state
+                        break;
+                    break;
+                case warnStartCal:
+                    if (moveToState == "startcal") {
+                        participant.receivedStartCal();
+                        newState = "startcal";
+                    } else if (moveToState == "missedStartCal") {
+                        participant.timeoutwarnStartCalTomissedStartCal();
+                        newState = "missedStartCal";
+                    } else
+                        // invalid state
+                        break;
+                    break;
+                case startcal:
+                    if (moveToState == "startcal"){ 
+                        participant.receivedStartCal();
+                        newState = "startcal";
+                    } else if (moveToState == "endcal") {
+                        participant.receivedEndCal();
+                        newState = "endcal";
+                    } else if (moveToState == "warnEndCal"){
+                        participant.timeoutstartcalTowarnEndCal();
+                        newState = "warnEndCal";
+                    } else
+                        // invalid state
+                        break;
+                    break;
+                case missedStartCal:
+                    if (moveToState == "endOfEpisode"){ 
+                        // nothing needs to happen here because it will move to next state immediately
+                        newState = "endOfEpisode";
+                    } else
+                        // invalid state
+                        break;
+                    break;
+                case warnEndCal:
+                    if (moveToState == "endcal") {
+                        participant.receivedEndCal();
+                        newState = "endcal";
+                    } else if (moveToState == "missedEndCal"){ 
+                        participant.timeoutwarnEndCalTomissedEndCal();
+                        newState = "missedEndCal";
+                    } else
+                        // invalid state
+                        break;
+                    break;
+                case endcal:
+                    if (moveToState == "endOfEpisode") {
+                        // nothing needs to happen here because it will move to next state immediately
+                        newState = "endOfEpisode";
+                    } else
+                        // invalid state
+                        break;
+                    break;
+                case missedEndCal:
+                    if (moveToState == "endOfEpisode"){ 
+                        // nothing needs to happen here because it will move to next state immediately
+                        newState = "endOfEpisode";
+                    } else
+                        // invalid state
+                        break;
+                    break;
+                case endOfEpisode:
+                    if (moveToState == "waitStart"){
+                        participant.timeoutendOfEpisodeTowaitStart();
+                        newState = "waitStart";
+                    } else
+                        // invalid state
+                        break;
+                    break;
+                default:
+                    // invalid currentState
+                    break;
+            }
+        } catch (Exception ex) {
+            StringWriter sw = new StringWriter();
+            ex.printStackTrace(new PrintWriter(sw));
+            String exceptionAsString = sw.toString();
+            ex.printStackTrace();
+            logger.error("moveToState");
+            logger.error(exceptionAsString);
+        }
+        return newState;
+    }
+
     class startRestricted extends TimerTask {
         private Logger logger;
         public startRestricted() {
@@ -136,4 +303,5 @@ public class RestrictedWatcher {
         }
 
     }
+
 } //class 

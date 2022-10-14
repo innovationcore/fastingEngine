@@ -496,4 +496,29 @@ public class DBEngine {
         }
     }
 
+    public String getParticipantCurrentState(String partUUID) {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        String result = "";
+        try {
+            String query = "SELECT TOP 1 JSON_VALUE(log_json, '$.state') FROM state_log WHERE participant_uuid = ? ORDER BY TS DESC";
+            conn = ds.getConnection();
+            stmt = conn.prepareStatement(query);
+            stmt.setString(1, partUUID);
+            rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                result = rs.getString(1);
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        } finally {
+            try { stmt.close(); } catch (Exception e) { /* Null Ignored */ }
+            try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
+            try { rs.close();   } catch (Exception e) { /* Null Ignored */ }
+        }
+        return result;
+    }
+
 }
