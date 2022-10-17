@@ -116,104 +116,122 @@ public class RestrictedWatcher {
             Restricted participant = restrictedMap.get(participantId);
             switch (participant.getState()){
                 case initial:
-                    if (moveToState == "waitStart"){
+                    if (moveToState.equals("waitStart")){
                         participant.receivedWaitStart();
                         newState = "waitStart";
-                    } else if (moveToState == "warnStartCal") {
+                    } else if (moveToState.equals("warnStartCal")) {
                         participant.receivedWarnStartCal();
                         newState = "warnStartCal";
-                    } else if (moveToState == "startcal") {
+                    } else if (moveToState.equals("startcal")) {
                         participant.receivedStartCal();
                         newState = "startcal";
-                    } else if (moveToState == "warnEndCal") {
+                    } else if (moveToState.equals("warnEndCal")) {
                         participant.recievedWarnEndCal();
                         newState = "warnEndCal";
-                    } else
+                    } else {
                         // invalid state
+                        newState = "initial invalid";
                         break;
-                    
+                    }
                     break;
                 case waitStart:
-                    if (moveToState == "warnStartCal"){
+                    if (moveToState.equals("warnStartCal")){
                         participant.timeoutwaitStartTowarnStartCal();
                         newState = "warnStartCal";
-                    } else if (moveToState == "startcal") {
+                    } else if (moveToState.equals("startcal")) {
                         participant.receivedStartCal();
                         newState = "startcal";
-                    } else 
+                    } else {
                         // invalid state
+                        newState = "waitstart invalid";
                         break;
+                    }
                     break;
                 case warnStartCal:
-                    if (moveToState == "startcal") {
+                    if (moveToState.equals("startcal")) {
                         participant.receivedStartCal();
                         newState = "startcal";
-                    } else if (moveToState == "missedStartCal") {
+                    } else if (moveToState.equals("missedStartCal")) {
                         participant.timeoutwarnStartCalTomissedStartCal();
                         newState = "missedStartCal";
-                    } else
+                    } else {
+                        newState = "warnstart invalid";
                         // invalid state
                         break;
+                    }
                     break;
                 case startcal:
-                    if (moveToState == "startcal"){ 
+                    if (moveToState.equals("startcal")){ 
                         participant.receivedStartCal();
                         newState = "startcal";
-                    } else if (moveToState == "endcal") {
+                    } else if (moveToState.equals("endcal")) {
                         participant.receivedEndCal();
                         newState = "endcal";
-                    } else if (moveToState == "warnEndCal"){
+                    } else if (moveToState.equals("warnEndCal")){
                         participant.timeoutstartcalTowarnEndCal();
                         newState = "warnEndCal";
-                    } else
+                    } else {
+                        newState = "startcal invalid";
                         // invalid state
                         break;
+                    }
                     break;
                 case missedStartCal:
-                    if (moveToState == "endOfEpisode"){ 
+                    if (moveToState.equals("endOfEpisode")){ 
                         // nothing needs to happen here because it will move to next state immediately
                         newState = "endOfEpisode";
-                    } else
+                    } else {
                         // invalid state
+                        newState = "missedstartcal invalid";
                         break;
+                    }
                     break;
                 case warnEndCal:
-                    if (moveToState == "endcal") {
+                    if (moveToState.equals("endcal")) {
                         participant.receivedEndCal();
                         newState = "endcal";
-                    } else if (moveToState == "missedEndCal"){ 
+                    } else if (moveToState.equals("missedEndCal")){ 
                         participant.timeoutwarnEndCalTomissedEndCal();
                         newState = "missedEndCal";
-                    } else
+                    } else {
                         // invalid state
+                        newState = "warnEndCal invalid";
                         break;
+                    }
                     break;
                 case endcal:
-                    if (moveToState == "endOfEpisode") {
+                    if (moveToState.equals("endOfEpisode")) {
                         // nothing needs to happen here because it will move to next state immediately
                         newState = "endOfEpisode";
-                    } else
+                    } else {
                         // invalid state
+                        newState = "endcal invalid";
                         break;
+                    }
                     break;
                 case missedEndCal:
-                    if (moveToState == "endOfEpisode"){ 
+                    if (moveToState.equals("endOfEpisode")){ 
                         // nothing needs to happen here because it will move to next state immediately
                         newState = "endOfEpisode";
-                    } else
+                    } else {
                         // invalid state
+                            newState = "missedEndCal invalid";
                         break;
+                    }
                     break;
                 case endOfEpisode:
-                    if (moveToState == "waitStart"){
+                    if (moveToState.equals("waitStart")){
                         participant.timeoutendOfEpisodeTowaitStart();
                         newState = "waitStart";
-                    } else
+                    } else {
                         // invalid state
+                        newState = "endOfEpisode invalid";
                         break;
+                    }
                     break;
                 default:
                     // invalid currentState
+                    newState = "default invalid";
                     break;
             }
         } catch (Exception ex) {

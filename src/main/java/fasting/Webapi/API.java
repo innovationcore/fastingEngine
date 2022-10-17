@@ -138,7 +138,7 @@ public class API {
 
                 Map<String,String> response = new HashMap<>();
                 response.put("status","ok");
-                response.put("valid states", validNextStates);
+                response.put("valid_states", validNextStates);
                 responseString = gson.toJson(response);
 
             } else {
@@ -175,7 +175,7 @@ public class API {
 
                 Map<String,String> response = new HashMap<>();
                 response.put("status","ok");
-                response.put("moved to state", newState);
+                response.put("moved_to_state", newState);
                 responseString = gson.toJson(response);
 
             } else {
