@@ -7,9 +7,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
+import javax.ws.rs.core.*;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.text.SimpleDateFormat;
@@ -92,7 +90,6 @@ public class API {
         }
         //return accesslog data
         return Response.ok(responseString).header("Access-Control-Allow-Origin", "*").build();
-
     }
 
     @GET
@@ -125,6 +122,79 @@ public class API {
             return Response.status(500).entity(exceptionAsString).build();
         }
         //return accesslog data
+        return Response.ok(responseString).header("Access-Control-Allow-Origin", "*").build();
+    }
+
+    @GET
+    @Path("/get-valid-next-states/{participant_uuid}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getNextStates(@PathParam("participant_uuid") String participantId) {
+        String responseString;
+        try {
+
+            if (participantId != null) {
+                // this returns a comma delimited list as a string
+                String validNextStates = Launcher.restrictedWatcher.getValidNextStates(participantId);
+
+                Map<String,String> response = new HashMap<>();
+                response.put("status","ok");
+                response.put("valid_states", validNextStates);
+                responseString = gson.toJson(response);
+
+            } else {
+                Map<String,String> response = new HashMap<>();
+                response.put("status","error");
+                response.put("status_desc","participant not found");
+                responseString = gson.toJson(response);
+            }
+
+        } catch (Exception ex) {
+            StringWriter sw = new StringWriter();
+            ex.printStackTrace(new PrintWriter(sw));
+            String exceptionAsString = sw.toString();
+            ex.printStackTrace();
+            logger.error("getNextStates");
+            logger.error(exceptionAsString);
+            return Response.status(500).entity(exceptionAsString).build();
+        }
+        //return state moved to
+        return Response.ok(responseString).header("Access-Control-Allow-Origin", "*").build();
+    }
+
+    @GET
+    @Path("/next-state")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response moveToNextState(@QueryParam("participantUUID") String participantId,
+                                    @QueryParam("toState") String nextState) {
+        String responseString = "";
+        try {
+
+            if (participantId != null) {
+                //send to state machine
+                String newState = Launcher.restrictedWatcher.moveToState(participantId, nextState);
+
+                Map<String,String> response = new HashMap<>();
+                response.put("status","ok");
+                response.put("moved_to_state", newState);
+                responseString = gson.toJson(response);
+
+            } else {
+                Map<String,String> response = new HashMap<>();
+                response.put("status","error");
+                response.put("status_desc","participant not found");
+                responseString = gson.toJson(response);
+            }
+
+        } catch (Exception ex) {
+            StringWriter sw = new StringWriter();
+            String exceptionAsString = sw.toString();
+            ex.printStackTrace();
+            logger.error("moveToNextState");
+            logger.error(exceptionAsString);
+
+            return Response.status(500).entity(exceptionAsString).build();
+        }
+        //return state moved to
         return Response.ok(responseString).header("Access-Control-Allow-Origin", "*").build();
     }
 

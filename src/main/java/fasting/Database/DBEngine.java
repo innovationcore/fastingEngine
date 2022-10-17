@@ -432,4 +432,93 @@ public class DBEngine {
         }
     }
 
+    String getEnrollmentUUID(String uuid){
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        String result = null;
+        try {
+            String query = "SELECT enrollment_uuid FROM enrollments WHERE participant_uuid = ?";
+            conn = ds.getConnection();
+            stmt = conn.prepareStatement(query);
+            stmt.setString(1, uuid);
+            rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                result = rs.getString(1);
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        } finally {
+            try { stmt.close(); } catch (Exception e) { /* Null Ignored */ }
+            try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
+            try { rs.close();   } catch (Exception e) { /* Null Ignored */ }
+        }
+        return result;
+    }
+
+    // remove all but latest 50 rows from save state
+    void pruneSaveStateEntries(String enrollment_uuid) {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        try {
+            String query = "DELETE FROM save_state WHERE TS NOT IN (SELECT TOP 50 TS FROM save_state WHERE enrollment_uuid = ? ORDER BY TS DESC) AND enrollment_uuid = ?";
+            conn = ds.getConnection();
+            stmt = conn.prepareStatement(query);
+            stmt.setString(1, enrollment_uuid);
+            stmt.setString(2, enrollment_uuid);
+            stmt.executeUpdate();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        } finally {
+            try { stmt.close(); } catch (Exception e) { /* Null Ignored */ }
+            try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
+        }
+    }
+
+    public void uploadSaveState(String stateJSON, String participant_uuid){
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        try {
+            String enrollment_uuid = getEnrollmentUUID(participant_uuid);
+            pruneSaveStateEntries(enrollment_uuid);
+            String query = "INSERT INTO save_state (enrollment_uuid, TS, state_json) VALUES (?, GETDATE(), ?)";
+            conn = ds.getConnection();
+            stmt = conn.prepareStatement(query);
+            stmt.setString(1, enrollment_uuid);
+            stmt.setString(2, stateJSON);
+            stmt.executeUpdate();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        } finally {
+            try { stmt.close(); } catch (Exception e) { /* Null Ignored */ }
+            try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
+        }
+    }
+
+    public String getParticipantCurrentState(String partUUID) {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        String result = "";
+        try {
+            String query = "SELECT TOP 1 JSON_VALUE(log_json, '$.state') FROM state_log WHERE participant_uuid = ? ORDER BY TS DESC";
+            conn = ds.getConnection();
+            stmt = conn.prepareStatement(query);
+            stmt.setString(1, partUUID);
+            rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                result = rs.getString(1);
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        } finally {
+            try { stmt.close(); } catch (Exception e) { /* Null Ignored */ }
+            try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
+            try { rs.close();   } catch (Exception e) { /* Null Ignored */ }
+        }
+        return result;
+    }
+
 }
