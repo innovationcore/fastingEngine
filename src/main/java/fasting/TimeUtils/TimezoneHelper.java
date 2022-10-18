@@ -193,6 +193,36 @@ public class TimezoneHelper {
         return yesterday.format(formatter);
     }
 
+    // is same day <4am
+    public boolean isSameDay(long lastKnownTime){
+        // check if lastKnownTime is on the same day as now and before the next day at 4am
+
+        // TODO: Instant isn't getting the correct date from epoch
+        Instant lastKnownUTC = Instant.ofEpochMilli(lastKnownTime);
+        ZoneId lastKnownTZ = ZoneId.of(this.userTimezone);
+        ZonedDateTime lastKnownTimezone = ZonedDateTime.ofInstant(lastKnownUTC, lastKnownTZ);
+        LocalDateTime lastKnownLocalTime = lastKnownTimezone.toLocalDateTime();
+
+        Instant nowUTC = Instant.now();
+        ZoneId userTZ = ZoneId.of(this.userTimezone);
+        ZonedDateTime nowUserTimezone = ZonedDateTime.ofInstant(nowUTC, userTZ);
+        LocalDateTime nowUserLocalTime = nowUserTimezone.toLocalDateTime();
+
+        LocalDateTime currentTime4am = LocalDateTime.of(nowUserLocalTime.getYear(), nowUserLocalTime.getMonth(), nowUserLocalTime.getDayOfMonth(), 04, 00, 00);
+        long secondsUntil4am = Duration.between(currentTime4am, lastKnownLocalTime).getSeconds();
+        System.out.println('\n');
+        System.out.println("lastKnownLocalTime: " + lastKnownLocalTime);
+        System.out.println("currentTime4am: " + currentTime4am); 
+        System.out.println("secondsUntil4am: " + secondsUntil4am);
+        System.out.println('\n');
+
+        if (secondsUntil4am > 86400){
+            return false;
+        } else {
+            return true;
+        }
+    }
+
     /**
     * gets the user's timezone
     */

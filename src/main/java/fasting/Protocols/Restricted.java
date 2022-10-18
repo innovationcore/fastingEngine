@@ -45,6 +45,7 @@ public class Restricted extends RestrictedBase {
 
         // this initializes the user's and machine's timezone
         this.TZHelper = new TimezoneHelper(participantMap.get("time_zone"), TimeZone.getDefault().getID());
+        restoreSaveState();
 
         new Thread(){
             public void run(){
@@ -60,11 +61,8 @@ public class Restricted extends RestrictedBase {
                         Thread.sleep(900000); // 900000 = 15 mins
                     }
                 } catch (Exception ex) {
-                    logger.error("protocols.Restricted Thread: " + ex.toString());
-                    StringWriter sw = new StringWriter();
-                    PrintWriter pw = new PrintWriter(sw);
-                    ex.printStackTrace(pw);
-                    logger.error(pw.toString());
+                    logger.error("protocols.Restricted Thread");
+                    logger.error(ex.getMessage());
                 }
             }
         }.start();
@@ -162,12 +160,8 @@ public class Restricted extends RestrictedBase {
 
 
         } catch (Exception ex) {
-            StringWriter sw = new StringWriter();
-            ex.printStackTrace(new PrintWriter(sw));
-            String exceptionAsString = sw.toString();
-            ex.printStackTrace();
             logger.error("incomingMessage");
-            logger.error(exceptionAsString);
+            logger.error(ex.getMessage());
         }
     }
 
@@ -181,11 +175,8 @@ public class Restricted extends RestrictedBase {
             }
 
         } catch (Exception ex) {
-            logger.error("isDayoff(): " + ex.getMessage());
-            StringWriter sw = new StringWriter();
-            PrintWriter pw = new PrintWriter(sw);
-            ex.printStackTrace(pw);
-            logger.error(pw.toString());
+            logger.error("isDayoff()");
+            logger.error(ex.getMessage());
         }
         return isDayoff;
     }
@@ -202,11 +193,8 @@ public class Restricted extends RestrictedBase {
             }
 
         } catch (Exception ex) {
-            logger.error("isStartCal(): " + ex.getMessage());
-            StringWriter sw = new StringWriter();
-            PrintWriter pw = new PrintWriter(sw);
-            ex.printStackTrace(pw);
-            logger.error(pw.toString());
+            logger.error("isStartCal()");
+            logger.error(ex.getMessage());
         }
         return isStart;
     }
@@ -222,11 +210,8 @@ public class Restricted extends RestrictedBase {
             }
 
         } catch (Exception ex) {
-            logger.error("isStartCal(): " + ex.getMessage());
-            StringWriter sw = new StringWriter();
-            PrintWriter pw = new PrintWriter(sw);
-            ex.printStackTrace(pw);
-            logger.error(pw.toString());
+            logger.error("isStartCal()");
+            logger.error(ex.getMessage());
         }
         return isEnd;
     }
@@ -251,11 +236,8 @@ public class Restricted extends RestrictedBase {
             stateJSON = gson.toJson(stateSaveMap);
 
         } catch (Exception ex) {
-            logger.error("saveStateJSON: " + ex.getMessage());
-            StringWriter sw = new StringWriter();
-            PrintWriter pw = new PrintWriter(sw);
-            ex.printStackTrace(pw);
-            logger.error(pw.toString());
+            logger.error("saveStateJSON");
+            logger.error(ex.getMessage());
 
         }
         return stateJSON;
@@ -383,90 +365,132 @@ public class Restricted extends RestrictedBase {
         return saveStateMap;
     }
 
-    public void restoreSaveState(String saveStateJSON) {
+    // returns true if state was found, false if not
+    public boolean restoreSaveState() {
+        boolean didFindState = false;
         try{
-            //Type typeOfHashMap = new TypeToken<Map<String, Map<String,Long>>>() { }.getType();
-            Map<String, Map<String,Long>> saveStateMap = gson.fromJson(saveStateJSON,typeOfHashMap);
+            String saveStateJSON = Launcher.dbEngine.getSaveState(participantMap.get("participant_uuid"));
 
-            Map<String,Long> historyMap = saveStateMap.get("history");
-            Map<String,Long> timerMap = saveStateMap.get("timers");
+            if (!saveStateJSON.equals("")){
+                Map<String, Map<String,Long>> saveStateMap = gson.fromJson(saveStateJSON,typeOfHashMap);
 
-            List<String> sortedHistoryList = saveStateMap.get("history").entrySet().stream()
-                    .sorted(Comparator.comparing(Map.Entry::getValue, Comparator.reverseOrder()))
-                    .map(Map.Entry::getKey)
-                    .collect(Collectors.toList());
+                Map<String,Long> historyMap = saveStateMap.get("history");
+                Map<String,Long> timerMap = saveStateMap.get("timers");
 
-            String lastState = sortedHistoryList.get(0);
+                int stateIndex = (int) timerMap.get("stateIndex").longValue();
 
-            long lastStateStartTime = historyMap.get(lastState);
-            long saveStartTime = timerMap.get("startTime");
-            long saveCurrentTime = timerMap.get("currentTime");
-            long diffStateTimer = saveCurrentTime - lastStateStartTime;
+                String stateName = State.values()[stateIndex].toString();
 
-            long saveStartWarnDeadline = timerMap.get("startWarnDeadline");
-            long saveStartDeadline = timerMap.get("startDeadline");
-            long saveEndWarnDeadline = timerMap.get("endWarnDeadline");
-            long saveEndDeadline = timerMap.get("endDeadline");
+                // List<String> sortedHistoryList = saveStateMap.get("history").entrySet().stream()
+                //         .sorted(Comparator.comparing(Map.Entry::getValue, Comparator.reverseOrder()))
+                //         .map(Map.Entry::getKey)
+                //         .collect(Collectors.toList());
 
-            //set all timers
-            setStartWarnDeadline((int)saveStartWarnDeadline);
-            setStartDeadline((int)saveStartDeadline);
-            setEndWarnDeadline((int)saveEndWarnDeadline);
-            setEndDeadline((int)saveEndDeadline);
+                // String lastState = sortedHistoryList.get(0);
 
-            switch (State.valueOf(lastState)) {
-                case initial:
-                    //no timers
-                    break;
-                case waitStart:
-                    //change startWarnDeadline
-                    //startTimeoutwaitStartTowarnStartCalHandler();
-                    long newStartWarnDeadline = saveStartWarnDeadline - diffStateTimer;
-                    setStartWarnDeadline((int)newStartWarnDeadline);
-                    receivedWaitStart();
-                    break;
-                case warnStartCal:
-                    //change startDeadline
-                    //startTimeoutwarnStartCalTomissedStartCalHandler();
-                    long newsStartDeadline = saveStartDeadline - diffStateTimer;
-                    setStartDeadline((int)newsStartDeadline);
-                    receivedWarnStartCal();
-                    break;
-                case startcal:
-                    //change endWarnDeadline
-                    //startTimeoutstartcalTowarnEndCalHandler();
-                    long newEndWarnDeadline = saveEndWarnDeadline - diffStateTimer;
-                    setEndWarnDeadline((int)newEndWarnDeadline);
-                    receivedStartCal();
-                    break;
-                case missedStartCal:
-                    //no timers
-                    break;
-                case warnEndCal:
-                    //change endDeadline
-                    //startTimeoutwarnEndCalTomissedEndCalHandler();
-                    long newEndDeadline = saveEndDeadline - diffStateTimer;
-                    setEndDeadline((int)newEndDeadline);
-                    recievedWarnEndCal();
-                    break;
-                case missedEndCal:
-                    break;
-                case endOfEpisode:
-                    break;
-                default:
-                    logger.error("restoreSaveState: Invalid state: " + lastState);
+                //long lastStateStartTime = historyMap.get(stateName);
+                // long saveStartTime = timerMap.get("startTime");
+                long saveCurrentTime = timerMap.get("currentTime");
+                // long diffStateTimer = saveCurrentTime - lastStateStartTime;
+
+                // long saveStartWarnDeadline = timerMap.get("startWarnDeadline");
+                // long saveStartDeadline = timerMap.get("startDeadline");
+                // long saveEndWarnDeadline = timerMap.get("endWarnDeadline");
+                // long saveEndDeadline = timerMap.get("endDeadline");
+
+                // //set all timers
+                // setStartWarnDeadline((int)saveStartWarnDeadline);
+                // setStartDeadline((int)saveStartDeadline);
+                // setEndWarnDeadline((int)saveEndWarnDeadline);
+                // setEndDeadline((int)saveEndDeadline);
+
+                // if same day (<4am) below is correct
+                // if next day (>=4am) need to reset to waitStart
+
+                boolean isSameDay = TZHelper.isSameDay(saveCurrentTime);
+                System.out.println("\nisSameDay: " + isSameDay);
+
+                switch (State.valueOf(stateName)) {
+                    case initial:
+                        //no timers
+                        break;
+                    case waitStart:
+                        //resetting warn timer
+                        int startWarnDiff =  TZHelper.getSecondsTo1159am();  //timeToD1T1159am();
+                        if(startWarnDiff <= 0) {
+                            startWarnDiff = 300;
+                        }
+                        setStartWarnDeadline(startWarnDiff);
+                        receivedWaitStart(); // initial to waitStart
+                        String waitStartMessage = participantMap.get("participant_uuid") + " created state machine: warnStart timeout " + TZHelper.getDateFromAddingSeconds(startWarnDiff);
+                        logger.warn(waitStartMessage);
+                        break;
+                    case warnStartCal:
+                        //reset startDeadline
+                        int secondsTo359am0 = TZHelper.getSecondsTo359am();
+                        if (secondsTo359am0 < 0) {
+                            secondsTo359am0 = 0;
+                        }
+                        setStartDeadline(secondsTo359am0); // timeToD2359am());
+                        receivedWarnStartCal(); // initial to warnStartCal
+                        String warnStartCalMessage = participantMap.get("participant_uuid") + " please submit startcal: startdeadline timeout " + TZHelper.getDateFromAddingSeconds(secondsTo359am0);
+                        logger.warn(warnStartCalMessage);
+                        break;
+                    case startcal:
+                        //reset endWarnDeadline
+                        int secondsTo2059pm = TZHelper.getSecondsTo2059pm();
+                        if (secondsTo2059pm < 0) {
+                            secondsTo2059pm = 0;
+                        }
+                        setEndWarnDeadline(secondsTo2059pm); //timeToD19pm());
+                        String startCalMessage = participantMap.get("participant_uuid") + " thanks for sending startcal: endwarndeadline timeout " + TZHelper.getDateFromAddingSeconds(secondsTo2059pm);
+                        logger.info(startCalMessage);
+                        receivedStartCal();
+                        break;
+                    case missedStartCal:
+                        //no timers
+                        break;
+                    case warnEndCal:
+                        //reset endDeadline
+                        int secondsTo359am1 = TZHelper.getSecondsTo359am();
+                        if (secondsTo359am1 < 0) {
+                            secondsTo359am1 = 0;
+                        }
+                        setEndDeadline(secondsTo359am1);
+                        String warnEndCalMessage = participantMap.get("first_name") +  ", we haven't heard from you. Remember to text \"ENDCAL\" when you go calorie free.";
+                        Launcher.msgUtils.sendMessage(participantMap.get("number"), warnEndCalMessage);
+                        logger.warn(warnEndCalMessage);
+                        recievedWarnEndCal();
+                        break;
+                    case missedEndCal:
+                        break;
+                    case endOfEpisode:
+                        // reset endOfEpisodeDeadline
+                        int secondsTo4am = TZHelper.getSecondsTo4am();
+                        if (secondsTo4am < 0) {
+                            secondsTo4am = 0;
+                        }
+                        setEndOfEpisodeDeadline(secondsTo4am);
+                        // quickest path to endOfEpisode, move it but don't save it
+                        receivedStartCal();
+                        receivedEndCal();
+                        String endOfEpisode = participantMap.get("participant_uuid") + " end of episode timeout " + TZHelper.getDateFromAddingSeconds(secondsTo4am);
+                        logger.info(endOfEpisode);
+                        break;
+                    default:
+                        logger.error("restoreSaveState: Invalid state: " + stateName);
+                }
+                didFindState = true;
             }
-
-            //logger.error("save json: " + saveStateMap.toString());
+            else {
+            }
+        // else no save state found
 
         } catch (Exception ex) {
             logger.error("restoreSaveState");
-            StringWriter sw = new StringWriter();
-            PrintWriter pw = new PrintWriter(sw);
-            ex.printStackTrace(pw);
-            logger.error(pw.toString());
+            logger.error(ex.getMessage());
         }
-
+        return didFindState;
     }
 
     private void logNoEndCal(){

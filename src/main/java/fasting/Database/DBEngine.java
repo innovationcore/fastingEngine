@@ -521,4 +521,30 @@ public class DBEngine {
         return result;
     }
 
+    public String getSaveState(String participantUUID) {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        String json = "";
+        try {
+            String query = "SELECT TOP 1 state_json FROM save_state WHERE enrollment_uuid = ? ORDER BY TS DESC";
+            conn = ds.getConnection();
+            stmt = conn.prepareStatement(query);
+            stmt.setString(1, getEnrollmentUUID(participantUUID));
+            rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                json = rs.getString(1);
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        } finally {
+            try { stmt.close(); } catch (Exception e) { /* Null Ignored */ }
+            try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
+            try { rs.close();   } catch (Exception e) { /* Null Ignored */ }
+        }
+        
+        return json;
+    }
+
 }
