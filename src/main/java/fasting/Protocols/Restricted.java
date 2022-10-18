@@ -28,6 +28,7 @@ public class Restricted extends RestrictedBase {
     private Map<String,Long> stateMap;
     private long startTimestamp = 0;
     private TimezoneHelper TZHelper;
+    private boolean pauseMessages;
 
     public String stateJSON;
 
@@ -42,10 +43,11 @@ public class Restricted extends RestrictedBase {
         this.gson = new Gson();
         this.participantMap = participantMap;
         this.stateMap = new HashMap<>();
+        this.pauseMessages = false;
 
         // this initializes the user's and machine's timezone
         this.TZHelper = new TimezoneHelper(participantMap.get("time_zone"), TimeZone.getDefault().getID());
-        restoreSaveState();
+        // restoreSaveState();
 
         new Thread(){
             public void run(){
@@ -306,7 +308,9 @@ public class Restricted extends RestrictedBase {
                                                 "in the morning and \"ENDCAL\" when your calories finish at night! Let us know if you need help.";
                                                 //participantMap.get("participant_uuid") + " no startcal was recorded for today.";
                 logger.warn(missedStartCalMessage);
-                Launcher.msgUtils.sendMessage(participantMap.get("number"), missedStartCalMessage);
+                if (!pauseMessages) {
+                    Launcher.msgUtils.sendMessage(participantMap.get("number"), missedStartCalMessage);
+                }
                 //save state info
                 stateJSON = saveStateJSON();
                 Launcher.dbEngine.uploadSaveState(stateJSON, participantMap.get("participant_uuid"));
@@ -316,7 +320,9 @@ public class Restricted extends RestrictedBase {
                 // maybe this should be sent 9 hours after startcal
                 setEndDeadline(TZHelper.getSecondsTo359am());
                 String warnEndCalMessage = participantMap.get("first_name") +  ", we haven't heard from you. Remember to text \"ENDCAL\" when you go calorie free.";//participantMap.get("participant_uuid") + " please submit endcal: enddeadline timeout " + TZHelper.getDateFromAddingSeconds(TZHelper.getSecondsTo359am()); // timeToD2359am());
-                Launcher.msgUtils.sendMessage(participantMap.get("number"), warnEndCalMessage);
+                if (!pauseMessages){
+                    Launcher.msgUtils.sendMessage(participantMap.get("number"), warnEndCalMessage);
+                }
                 logger.warn(warnEndCalMessage);
                 //save state info
                 stateJSON = saveStateJSON();
@@ -325,20 +331,24 @@ public class Restricted extends RestrictedBase {
             case endcal:
                 String endCalMessage = pickRandomEndCalMessage();
                 logger.info(endCalMessage);
-                Launcher.msgUtils.sendMessage(participantMap.get("number"), endCalMessage);
+                if (!pauseMessages){
+                    Launcher.msgUtils.sendMessage(participantMap.get("number"), endCalMessage);
+                }
                 resetNoEndCal();
                 //save state info
                 stateJSON = saveStateJSON();
                 Launcher.dbEngine.uploadSaveState(stateJSON, participantMap.get("participant_uuid"));
                 break;
             case missedEndCal:
-            // TRF ended too late messages should be sent after 11pm, maybe reminder
+                // TRF ended too late messages should be sent after 11pm, maybe reminder
                 String missedEndCalMessage = participantMap.get("participant_uuid") + " no endcal was recorded for today.";
                 logger.warn(missedEndCalMessage);
                 logNoEndCal();
                 if (getDaysWithoutEndCal() >= 2){
                     String missed2EndCals = "We haven't heard from you in a while. Text our study team at 270-402-2214 if you're struggling to stick with the time-restricted eating.";
-                    Launcher.msgUtils.sendMessage(participantMap.get("number"), missed2EndCals);
+                    if (!pauseMessages){
+                        Launcher.msgUtils.sendMessage(participantMap.get("number"), missed2EndCals);
+                    }
                 }
                 //save state info
                 stateJSON = saveStateJSON();
@@ -365,9 +375,7 @@ public class Restricted extends RestrictedBase {
         return saveStateMap;
     }
 
-    // returns true if state was found, false if not
-    public boolean restoreSaveState() {
-        boolean didFindState = false;
+    public void restoreSaveState() {
         try{
             String saveStateJSON = Launcher.dbEngine.getSaveState(participantMap.get("participant_uuid"));
 
@@ -378,37 +386,18 @@ public class Restricted extends RestrictedBase {
                 Map<String,Long> timerMap = saveStateMap.get("timers");
 
                 int stateIndex = (int) timerMap.get("stateIndex").longValue();
-
                 String stateName = State.values()[stateIndex].toString();
 
-                // List<String> sortedHistoryList = saveStateMap.get("history").entrySet().stream()
-                //         .sorted(Comparator.comparing(Map.Entry::getValue, Comparator.reverseOrder()))
-                //         .map(Map.Entry::getKey)
-                //         .collect(Collectors.toList());
-
-                // String lastState = sortedHistoryList.get(0);
-
-                //long lastStateStartTime = historyMap.get(stateName);
-                // long saveStartTime = timerMap.get("startTime");
                 long saveCurrentTime = timerMap.get("currentTime");
-                // long diffStateTimer = saveCurrentTime - lastStateStartTime;
-
-                // long saveStartWarnDeadline = timerMap.get("startWarnDeadline");
-                // long saveStartDeadline = timerMap.get("startDeadline");
-                // long saveEndWarnDeadline = timerMap.get("endWarnDeadline");
-                // long saveEndDeadline = timerMap.get("endDeadline");
-
-                // //set all timers
-                // setStartWarnDeadline((int)saveStartWarnDeadline);
-                // setStartDeadline((int)saveStartDeadline);
-                // setEndWarnDeadline((int)saveEndWarnDeadline);
-                // setEndDeadline((int)saveEndDeadline);
 
                 // if same day (<4am) below is correct
                 // if next day (>=4am) need to reset to waitStart
 
+                // if past 4am, reset everything to beginning
                 boolean isSameDay = TZHelper.isSameDay(saveCurrentTime);
-                System.out.println("\nisSameDay: " + isSameDay);
+                if (!isSameDay) {
+                    stateName = "waitStart";
+                }
 
                 switch (State.valueOf(stateName)) {
                     case initial:
@@ -420,10 +409,10 @@ public class Restricted extends RestrictedBase {
                         if(startWarnDiff <= 0) {
                             startWarnDiff = 300;
                         }
+                        this.pauseMessages = true;
                         setStartWarnDeadline(startWarnDiff);
                         receivedWaitStart(); // initial to waitStart
-                        String waitStartMessage = participantMap.get("participant_uuid") + " created state machine: warnStart timeout " + TZHelper.getDateFromAddingSeconds(startWarnDiff);
-                        logger.warn(waitStartMessage);
+                        this.pauseMessages = false;
                         break;
                     case warnStartCal:
                         //reset startDeadline
@@ -431,10 +420,10 @@ public class Restricted extends RestrictedBase {
                         if (secondsTo359am0 < 0) {
                             secondsTo359am0 = 0;
                         }
+                        this.pauseMessages = true;
                         setStartDeadline(secondsTo359am0); // timeToD2359am());
                         receivedWarnStartCal(); // initial to warnStartCal
-                        String warnStartCalMessage = participantMap.get("participant_uuid") + " please submit startcal: startdeadline timeout " + TZHelper.getDateFromAddingSeconds(secondsTo359am0);
-                        logger.warn(warnStartCalMessage);
+                        this.pauseMessages = false;
                         break;
                     case startcal:
                         //reset endWarnDeadline
@@ -442,10 +431,10 @@ public class Restricted extends RestrictedBase {
                         if (secondsTo2059pm < 0) {
                             secondsTo2059pm = 0;
                         }
+                        this.pauseMessages = true;
                         setEndWarnDeadline(secondsTo2059pm); //timeToD19pm());
-                        String startCalMessage = participantMap.get("participant_uuid") + " thanks for sending startcal: endwarndeadline timeout " + TZHelper.getDateFromAddingSeconds(secondsTo2059pm);
-                        logger.info(startCalMessage);
                         receivedStartCal();
+                        this.pauseMessages = false;
                         break;
                     case missedStartCal:
                         //no timers
@@ -456,11 +445,10 @@ public class Restricted extends RestrictedBase {
                         if (secondsTo359am1 < 0) {
                             secondsTo359am1 = 0;
                         }
+                        this.pauseMessages = true;
                         setEndDeadline(secondsTo359am1);
-                        String warnEndCalMessage = participantMap.get("first_name") +  ", we haven't heard from you. Remember to text \"ENDCAL\" when you go calorie free.";
-                        Launcher.msgUtils.sendMessage(participantMap.get("number"), warnEndCalMessage);
-                        logger.warn(warnEndCalMessage);
                         recievedWarnEndCal();
+                        this.pauseMessages = false;
                         break;
                     case missedEndCal:
                         break;
@@ -470,27 +458,33 @@ public class Restricted extends RestrictedBase {
                         if (secondsTo4am < 0) {
                             secondsTo4am = 0;
                         }
+                        this.pauseMessages = true;
                         setEndOfEpisodeDeadline(secondsTo4am);
                         // quickest path to endOfEpisode, move it but don't save it
                         receivedStartCal();
                         receivedEndCal();
-                        String endOfEpisode = participantMap.get("participant_uuid") + " end of episode timeout " + TZHelper.getDateFromAddingSeconds(secondsTo4am);
-                        logger.info(endOfEpisode);
+                        this.pauseMessages = false;
                         break;
                     default:
                         logger.error("restoreSaveState: Invalid state: " + stateName);
                 }
-                didFindState = true;
             }
             else {
+                logger.info("restoreSaveState: no save state found for " + participantMap.get("participant_uuid"));
+                int startWarnDiff =  TZHelper.getSecondsTo1159am();  //timeToD1T1159am();
+                if(startWarnDiff <= 0) {
+                    startWarnDiff = 300;
+                }
+                this.pauseMessages = true;
+                setStartWarnDeadline(startWarnDiff);
+                receivedWaitStart(); // initial to waitStart
+                this.pauseMessages = false;
             }
-        // else no save state found
 
         } catch (Exception ex) {
             logger.error("restoreSaveState");
             logger.error(ex.getMessage());
         }
-        return didFindState;
     }
 
     private void logNoEndCal(){
