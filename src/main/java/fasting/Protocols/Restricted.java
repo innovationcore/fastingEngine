@@ -83,25 +83,23 @@ public class Restricted extends RestrictedBase {
                         Launcher.msgUtils.sendMessage(participantMap.get("number"), "Got it, no TRE today! Thank you for telling us. Please still let us know your \"STARTCAL\" and \"ENDCAL\" today.");
                     } else if (isEndCal(incomingMap.get("Body"))) {
                         Launcher.msgUtils.sendMessage(participantMap.get("number"), TZHelper.yesterdaysDate()+ ": " + pickRandomEndCalMessage());
-                        //Launcher.msgUtils.sendMessage(participantMap.get("number"), "No \"STARTCAL\" received yet today. Please send us your \"STARTCAL\" first, followed by your \"ENDCAL\".");
                     } else if(isStartCal(incomingMap.get("Body"))) {
                         receivedStartCal();
                     } else {
-                        Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Please send \"STARTCAL\" when you begin calories for" +
-                                                    " the day; \"ENDCAL\" when you are done with calories for the day.");
+                        Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Please send \"STARTCAL\" when you begin calories for " +
+                                                                                    "the day; \"ENDCAL\" when you are done with calories for the day.");
                     }
                     break;
                 case warnStartCal:
                     if (isDayoff(incomingMap.get("Body"))) {
                         Launcher.msgUtils.sendMessage(participantMap.get("number"), "Got it, no TRE today! Thank you for telling us. Please still let us know your \"STARTCAL\" and \"ENDCAL\" today.");
                     } else if (isEndCal(incomingMap.get("Body"))) {
-                        Launcher.msgUtils.sendMessage(participantMap.get("number"), TZHelper.yesterdaysDate()+ ": " + pickRandomEndCalMessage());
-                        //Launcher.msgUtils.sendMessage(participantMap.get("number"), "No \"STARTCAL\" received yet today. Please send us your \"STARTCAL\" first, followed by your \"ENDCAL\".");
+                        Launcher.msgUtils.sendMessage(participantMap.get("number"), TZHelper.yesterdaysDate() + ": " + pickRandomEndCalMessage());
                     } else if(isStartCal(incomingMap.get("Body"))) {
                         receivedStartCal();
                     } else {
-                        Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Please send \"STARTCAL\" when you begin calories for" +
-                                                    " the day; \"ENDCAL\" when you are done with calories for the day.");
+                        Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Please send \"STARTCAL\" when you begin calories for " +
+                                                                                    "the day; \"ENDCAL\" when you are done with calories for the day.");
                     }
                     break;
                 case startcal:
@@ -111,13 +109,15 @@ public class Restricted extends RestrictedBase {
                         Launcher.msgUtils.sendMessage(participantMap.get("number"), "You've already started consuming calories for the day. Text \"ENDCAL\" when you finish your TRE today.");
                     } else if(isEndCal(incomingMap.get("Body"))) {
                         if (TZHelper.isBetween3AMand3PM()){
-                            Launcher.msgUtils.sendMessage(participantMap.get("number"), "We don't recommend that you end calories this early in the day. Try again in the evening. Text 270-402-2214 if you want to receive a call about how to manage TRE safely.");
+                            Launcher.msgUtils.sendMessage(participantMap.get("number"), "We don't recommend that you end calories this early in the day. " +
+                                                                                        "Try again in the evening. Text 270-402-2214 if you want to receive " +
+                                                                                        "a call about how to manage TRE safely.");
                         } else {
                             receivedEndCal();
                         }
                     } else {
-                        Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Please send \"STARTCAL\" when you begin calories for" +
-                                                    " the day; \"ENDCAL\" when you are done with calories for the day.");
+                        Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Please send \"STARTCAL\" when you begin calories for " +
+                                                                                    "the day; \"ENDCAL\" when you are done with calories for the day.");
                     }
                     break;
                 case missedStartCal:
@@ -127,25 +127,29 @@ public class Restricted extends RestrictedBase {
                 case warnEndCal:
                     if(isEndCal(incomingMap.get("Body"))) {
                         if (TZHelper.isBetween3AMand3PM()){
-                            Launcher.msgUtils.sendMessage(participantMap.get("number"), "We don't recommend that you end calories this early in the day. Try again in the evening. Text 270-402-2214 if you want to receive a call about how to manage TRE safely.");
+                            Launcher.msgUtils.sendMessage(participantMap.get("number"), "We don't recommend that you end calories this early in the day. " +
+                                                                                        "Try again in the evening. Text 270-402-2214 if you want to receive " +
+                                                                                        "a call about how to manage TRE safely.");
                         } else {
                             receivedEndCal();
                         }
                     } else {
-                        Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Please send \"STARTCAL\" when you begin calories for" +
-                                                    " the day; \"ENDCAL\" when you are done with calories for the day.");
+                        Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Please send \"STARTCAL\" when you begin calories for " +
+                                                                                    "the day; \"ENDCAL\" when you are done with calories for the day. ");
                     }
                     break;
                 case endcal:
                     if(isEndCal(incomingMap.get("Body"))) {
                         if (TZHelper.isBetween3AMand3PM()){
-                            Launcher.msgUtils.sendMessage(participantMap.get("number"), "We don't recommend that you end calories this early in the day. Try again in the evening. Text 270-402-2214 if you want to receive a call about how to manage TRE safely.");
+                            Launcher.msgUtils.sendMessage(participantMap.get("number"), "We don't recommend that you end calories this early in the day. " +
+                                                                                        "Try again in the evening. Text 270-402-2214 if you want to receive " +
+                                                                                        "a call about how to manage TRE safely.");
                         } else {
                             receivedEndCal();
                         }
                     } else {
-                        Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Please send \"STARTCAL\" when you begin calories for" +
-                                                    " the day; \"ENDCAL\" when you are done with calories for the day.");
+                        Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Please send \"STARTCAL\" when you begin calories for " +
+                                                                                    "the day; \"ENDCAL\" when you are done with calories for the day.");
                     }
                     break;
                 case missedEndCal:
@@ -162,7 +166,7 @@ public class Restricted extends RestrictedBase {
 
 
         } catch (Exception ex) {
-            logger.error("incomingMessage");
+            logger.error("incomingText");
             logger.error(ex.getMessage());
         }
     }
@@ -293,11 +297,11 @@ public class Restricted extends RestrictedBase {
                 // In the CSV with responses they don't have anything for sending startcal
                 int secondsTo2059pm = TZHelper.getSecondsTo2059pm();
                 // if after 9pm, don't immediately send warnEndCal message. Wait some time so user has time to respond
-                if (secondsTo2059pm <= 0) {
+                if (secondsTo2059pm < 0) {
                     secondsTo2059pm += 300; // add 5 minutes
                 }
                 setEndWarnDeadline(secondsTo2059pm); //timeToD19pm());
-                String startCalMessage = participantMap.get("participant_uuid") + " thanks for sending startcal: endwarndeadline timeout " + TZHelper.getDateFromAddingSeconds(TZHelper.getSecondsTo2059pm());
+                String startCalMessage = participantMap.get("participant_uuid") + " thanks for sending startcal: endwarndeadline timeout " + TZHelper.getDateFromAddingSeconds(secondsTo2059pm);
                 logger.info(startCalMessage);
                 //save state info
                 stateJSON = saveStateJSON();
@@ -306,11 +310,15 @@ public class Restricted extends RestrictedBase {
             case missedStartCal:
                 String missedStartCalMessage = "We haven't heard from you in a while. Remember to text \"STARTCAL\" when your calories start " +
                                                 "in the morning and \"ENDCAL\" when your calories finish at night! Let us know if you need help.";
-                                                //participantMap.get("participant_uuid") + " no startcal was recorded for today.";
-                logger.warn(missedStartCalMessage);
+                logNoEndCal();
+                if (getDaysWithoutEndCal() >= 2){ // if it has been 2 days without startcal, text this
+                    missedStartCalMessage = "We haven't heard from you in a while. Text our study team at 270-402-2214 if you're struggling to stick with the time-restricted eating.";
+                    resetNoEndCal();
+                }
                 if (!pauseMessages) {
                     Launcher.msgUtils.sendMessage(participantMap.get("number"), missedStartCalMessage);
                 }
+                logger.warn(missedStartCalMessage);
                 //save state info
                 stateJSON = saveStateJSON();
                 Launcher.dbEngine.uploadSaveState(stateJSON, participantMap.get("participant_uuid"));
@@ -319,7 +327,7 @@ public class Restricted extends RestrictedBase {
                 //set end for end
                 // maybe this should be sent 9 hours after startcal
                 setEndDeadline(TZHelper.getSecondsTo359am());
-                String warnEndCalMessage = participantMap.get("first_name") +  ", we haven't heard from you. Remember to text \"ENDCAL\" when you go calorie free.";//participantMap.get("participant_uuid") + " please submit endcal: enddeadline timeout " + TZHelper.getDateFromAddingSeconds(TZHelper.getSecondsTo359am()); // timeToD2359am());
+                String warnEndCalMessage = participantMap.get("first_name") +  ", we haven't heard from you. Remember to text \"ENDCAL\" when you go calorie free.";
                 if (!pauseMessages){
                     Launcher.msgUtils.sendMessage(participantMap.get("number"), warnEndCalMessage);
                 }
@@ -349,6 +357,7 @@ public class Restricted extends RestrictedBase {
                     if (!pauseMessages){
                         Launcher.msgUtils.sendMessage(participantMap.get("number"), missed2EndCals);
                     }
+                    resetNoEndCal();
                 }
                 //save state info
                 stateJSON = saveStateJSON();
