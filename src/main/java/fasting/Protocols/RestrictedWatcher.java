@@ -269,8 +269,8 @@ public class RestrictedWatcher {
                            //Create person
                            Restricted p0 = new Restricted(participantMap);
 
-                           logger.info("Set WaitStart for participant_uuid=" + participantMap.get("participant_uuid"));
-                           p0.receivedWaitStart();
+                           logger.info("Restoring State for participant_uuid=" + participantMap.get("participant_uuid"));
+                           p0.restoreSaveState();
 
                            synchronized (lockRestricted) {
                                restrictedMap.put(participantMap.get("participant_uuid"), p0);

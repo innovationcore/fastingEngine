@@ -28,6 +28,7 @@ public class Restricted extends RestrictedBase {
     private Map<String,Long> stateMap;
     private long startTimestamp = 0;
     private TimezoneHelper TZHelper;
+    private boolean pauseMessages;
 
     public String stateJSON;
 
@@ -42,9 +43,11 @@ public class Restricted extends RestrictedBase {
         this.gson = new Gson();
         this.participantMap = participantMap;
         this.stateMap = new HashMap<>();
+        this.pauseMessages = false;
 
         // this initializes the user's and machine's timezone
         this.TZHelper = new TimezoneHelper(participantMap.get("time_zone"), TimeZone.getDefault().getID());
+        // restoreSaveState();
 
         new Thread(){
             public void run(){
@@ -60,11 +63,8 @@ public class Restricted extends RestrictedBase {
                         Thread.sleep(900000); // 900000 = 15 mins
                     }
                 } catch (Exception ex) {
-                    logger.error("protocols.Restricted Thread: " + ex.toString());
-                    StringWriter sw = new StringWriter();
-                    PrintWriter pw = new PrintWriter(sw);
-                    ex.printStackTrace(pw);
-                    logger.error(pw.toString());
+                    logger.error("protocols.Restricted Thread");
+                    logger.error(ex.getMessage());
                 }
             }
         }.start();
@@ -162,12 +162,8 @@ public class Restricted extends RestrictedBase {
 
 
         } catch (Exception ex) {
-            StringWriter sw = new StringWriter();
-            ex.printStackTrace(new PrintWriter(sw));
-            String exceptionAsString = sw.toString();
-            ex.printStackTrace();
             logger.error("incomingMessage");
-            logger.error(exceptionAsString);
+            logger.error(ex.getMessage());
         }
     }
 
@@ -181,11 +177,8 @@ public class Restricted extends RestrictedBase {
             }
 
         } catch (Exception ex) {
-            logger.error("isDayoff(): " + ex.getMessage());
-            StringWriter sw = new StringWriter();
-            PrintWriter pw = new PrintWriter(sw);
-            ex.printStackTrace(pw);
-            logger.error(pw.toString());
+            logger.error("isDayoff()");
+            logger.error(ex.getMessage());
         }
         return isDayoff;
     }
@@ -202,11 +195,8 @@ public class Restricted extends RestrictedBase {
             }
 
         } catch (Exception ex) {
-            logger.error("isStartCal(): " + ex.getMessage());
-            StringWriter sw = new StringWriter();
-            PrintWriter pw = new PrintWriter(sw);
-            ex.printStackTrace(pw);
-            logger.error(pw.toString());
+            logger.error("isStartCal()");
+            logger.error(ex.getMessage());
         }
         return isStart;
     }
@@ -222,11 +212,8 @@ public class Restricted extends RestrictedBase {
             }
 
         } catch (Exception ex) {
-            logger.error("isStartCal(): " + ex.getMessage());
-            StringWriter sw = new StringWriter();
-            PrintWriter pw = new PrintWriter(sw);
-            ex.printStackTrace(pw);
-            logger.error(pw.toString());
+            logger.error("isStartCal()");
+            logger.error(ex.getMessage());
         }
         return isEnd;
     }
@@ -251,11 +238,8 @@ public class Restricted extends RestrictedBase {
             stateJSON = gson.toJson(stateSaveMap);
 
         } catch (Exception ex) {
-            logger.error("saveStateJSON: " + ex.getMessage());
-            StringWriter sw = new StringWriter();
-            PrintWriter pw = new PrintWriter(sw);
-            ex.printStackTrace(pw);
-            logger.error(pw.toString());
+            logger.error("saveStateJSON");
+            logger.error(ex.getMessage());
 
         }
         return stateJSON;
@@ -324,7 +308,9 @@ public class Restricted extends RestrictedBase {
                                                 "in the morning and \"ENDCAL\" when your calories finish at night! Let us know if you need help.";
                                                 //participantMap.get("participant_uuid") + " no startcal was recorded for today.";
                 logger.warn(missedStartCalMessage);
-                Launcher.msgUtils.sendMessage(participantMap.get("number"), missedStartCalMessage);
+                if (!pauseMessages) {
+                    Launcher.msgUtils.sendMessage(participantMap.get("number"), missedStartCalMessage);
+                }
                 //save state info
                 stateJSON = saveStateJSON();
                 Launcher.dbEngine.uploadSaveState(stateJSON, participantMap.get("participant_uuid"));
@@ -334,7 +320,9 @@ public class Restricted extends RestrictedBase {
                 // maybe this should be sent 9 hours after startcal
                 setEndDeadline(TZHelper.getSecondsTo359am());
                 String warnEndCalMessage = participantMap.get("first_name") +  ", we haven't heard from you. Remember to text \"ENDCAL\" when you go calorie free.";//participantMap.get("participant_uuid") + " please submit endcal: enddeadline timeout " + TZHelper.getDateFromAddingSeconds(TZHelper.getSecondsTo359am()); // timeToD2359am());
-                Launcher.msgUtils.sendMessage(participantMap.get("number"), warnEndCalMessage);
+                if (!pauseMessages){
+                    Launcher.msgUtils.sendMessage(participantMap.get("number"), warnEndCalMessage);
+                }
                 logger.warn(warnEndCalMessage);
                 //save state info
                 stateJSON = saveStateJSON();
@@ -343,20 +331,24 @@ public class Restricted extends RestrictedBase {
             case endcal:
                 String endCalMessage = pickRandomEndCalMessage();
                 logger.info(endCalMessage);
-                Launcher.msgUtils.sendMessage(participantMap.get("number"), endCalMessage);
+                if (!pauseMessages){
+                    Launcher.msgUtils.sendMessage(participantMap.get("number"), endCalMessage);
+                }
                 resetNoEndCal();
                 //save state info
                 stateJSON = saveStateJSON();
                 Launcher.dbEngine.uploadSaveState(stateJSON, participantMap.get("participant_uuid"));
                 break;
             case missedEndCal:
-            // TRF ended too late messages should be sent after 11pm, maybe reminder
+                // TRF ended too late messages should be sent after 11pm, maybe reminder
                 String missedEndCalMessage = participantMap.get("participant_uuid") + " no endcal was recorded for today.";
                 logger.warn(missedEndCalMessage);
                 logNoEndCal();
                 if (getDaysWithoutEndCal() >= 2){
                     String missed2EndCals = "We haven't heard from you in a while. Text our study team at 270-402-2214 if you're struggling to stick with the time-restricted eating.";
-                    Launcher.msgUtils.sendMessage(participantMap.get("number"), missed2EndCals);
+                    if (!pauseMessages){
+                        Launcher.msgUtils.sendMessage(participantMap.get("number"), missed2EndCals);
+                    }
                 }
                 //save state info
                 stateJSON = saveStateJSON();
@@ -383,90 +375,116 @@ public class Restricted extends RestrictedBase {
         return saveStateMap;
     }
 
-    public void restoreSaveState(String saveStateJSON) {
+    public void restoreSaveState() {
         try{
-            //Type typeOfHashMap = new TypeToken<Map<String, Map<String,Long>>>() { }.getType();
-            Map<String, Map<String,Long>> saveStateMap = gson.fromJson(saveStateJSON,typeOfHashMap);
+            String saveStateJSON = Launcher.dbEngine.getSaveState(participantMap.get("participant_uuid"));
 
-            Map<String,Long> historyMap = saveStateMap.get("history");
-            Map<String,Long> timerMap = saveStateMap.get("timers");
+            if (!saveStateJSON.equals("")){
+                Map<String, Map<String,Long>> saveStateMap = gson.fromJson(saveStateJSON,typeOfHashMap);
 
-            List<String> sortedHistoryList = saveStateMap.get("history").entrySet().stream()
-                    .sorted(Comparator.comparing(Map.Entry::getValue, Comparator.reverseOrder()))
-                    .map(Map.Entry::getKey)
-                    .collect(Collectors.toList());
+                Map<String,Long> historyMap = saveStateMap.get("history");
+                Map<String,Long> timerMap = saveStateMap.get("timers");
 
-            String lastState = sortedHistoryList.get(0);
+                int stateIndex = (int) timerMap.get("stateIndex").longValue();
+                String stateName = State.values()[stateIndex].toString();
 
-            long lastStateStartTime = historyMap.get(lastState);
-            long saveStartTime = timerMap.get("startTime");
-            long saveCurrentTime = timerMap.get("currentTime");
-            long diffStateTimer = saveCurrentTime - lastStateStartTime;
+                long saveCurrentTime = timerMap.get("currentTime");
 
-            long saveStartWarnDeadline = timerMap.get("startWarnDeadline");
-            long saveStartDeadline = timerMap.get("startDeadline");
-            long saveEndWarnDeadline = timerMap.get("endWarnDeadline");
-            long saveEndDeadline = timerMap.get("endDeadline");
+                // if same day (<4am) below is correct
+                // if next day (>=4am) need to reset to waitStart
 
-            //set all timers
-            setStartWarnDeadline((int)saveStartWarnDeadline);
-            setStartDeadline((int)saveStartDeadline);
-            setEndWarnDeadline((int)saveEndWarnDeadline);
-            setEndDeadline((int)saveEndDeadline);
+                // if past 4am, reset everything to beginning
+                boolean isSameDay = TZHelper.isSameDay(saveCurrentTime);
+                if (!isSameDay) {
+                    stateName = "waitStart";
+                }
 
-            switch (State.valueOf(lastState)) {
-                case initial:
-                    //no timers
-                    break;
-                case waitStart:
-                    //change startWarnDeadline
-                    //startTimeoutwaitStartTowarnStartCalHandler();
-                    long newStartWarnDeadline = saveStartWarnDeadline - diffStateTimer;
-                    setStartWarnDeadline((int)newStartWarnDeadline);
-                    receivedWaitStart();
-                    break;
-                case warnStartCal:
-                    //change startDeadline
-                    //startTimeoutwarnStartCalTomissedStartCalHandler();
-                    long newsStartDeadline = saveStartDeadline - diffStateTimer;
-                    setStartDeadline((int)newsStartDeadline);
-                    receivedWarnStartCal();
-                    break;
-                case startcal:
-                    //change endWarnDeadline
-                    //startTimeoutstartcalTowarnEndCalHandler();
-                    long newEndWarnDeadline = saveEndWarnDeadline - diffStateTimer;
-                    setEndWarnDeadline((int)newEndWarnDeadline);
-                    receivedStartCal();
-                    break;
-                case missedStartCal:
-                    //no timers
-                    break;
-                case warnEndCal:
-                    //change endDeadline
-                    //startTimeoutwarnEndCalTomissedEndCalHandler();
-                    long newEndDeadline = saveEndDeadline - diffStateTimer;
-                    setEndDeadline((int)newEndDeadline);
-                    recievedWarnEndCal();
-                    break;
-                case missedEndCal:
-                    break;
-                case endOfEpisode:
-                    break;
-                default:
-                    logger.error("restoreSaveState: Invalid state: " + lastState);
+                switch (State.valueOf(stateName)) {
+                    case initial:
+                        //no timers
+                        break;
+                    case waitStart:
+                        //resetting warn timer
+                        int startWarnDiff =  TZHelper.getSecondsTo1159am();  //timeToD1T1159am();
+                        if(startWarnDiff <= 0) {
+                            startWarnDiff = 300;
+                        }
+                        this.pauseMessages = true;
+                        setStartWarnDeadline(startWarnDiff);
+                        receivedWaitStart(); // initial to waitStart
+                        this.pauseMessages = false;
+                        break;
+                    case warnStartCal:
+                        //reset startDeadline
+                        int secondsTo359am0 = TZHelper.getSecondsTo359am();
+                        if (secondsTo359am0 < 0) {
+                            secondsTo359am0 = 0;
+                        }
+                        this.pauseMessages = true;
+                        setStartDeadline(secondsTo359am0); // timeToD2359am());
+                        receivedWarnStartCal(); // initial to warnStartCal
+                        this.pauseMessages = false;
+                        break;
+                    case startcal:
+                        //reset endWarnDeadline
+                        int secondsTo2059pm = TZHelper.getSecondsTo2059pm();
+                        if (secondsTo2059pm < 0) {
+                            secondsTo2059pm = 0;
+                        }
+                        this.pauseMessages = true;
+                        setEndWarnDeadline(secondsTo2059pm); //timeToD19pm());
+                        receivedStartCal();
+                        this.pauseMessages = false;
+                        break;
+                    case missedStartCal:
+                        //no timers
+                        break;
+                    case warnEndCal:
+                        //reset endDeadline
+                        int secondsTo359am1 = TZHelper.getSecondsTo359am();
+                        if (secondsTo359am1 < 0) {
+                            secondsTo359am1 = 0;
+                        }
+                        this.pauseMessages = true;
+                        setEndDeadline(secondsTo359am1);
+                        recievedWarnEndCal();
+                        this.pauseMessages = false;
+                        break;
+                    case missedEndCal:
+                        break;
+                    case endOfEpisode:
+                        // reset endOfEpisodeDeadline
+                        int secondsTo4am = TZHelper.getSecondsTo4am();
+                        if (secondsTo4am < 0) {
+                            secondsTo4am = 0;
+                        }
+                        this.pauseMessages = true;
+                        setEndOfEpisodeDeadline(secondsTo4am);
+                        // quickest path to endOfEpisode, move it but don't save it
+                        receivedStartCal();
+                        receivedEndCal();
+                        this.pauseMessages = false;
+                        break;
+                    default:
+                        logger.error("restoreSaveState: Invalid state: " + stateName);
+                }
             }
-
-            //logger.error("save json: " + saveStateMap.toString());
+            else {
+                logger.info("restoreSaveState: no save state found for " + participantMap.get("participant_uuid"));
+                int startWarnDiff =  TZHelper.getSecondsTo1159am();  //timeToD1T1159am();
+                if(startWarnDiff <= 0) {
+                    startWarnDiff = 300;
+                }
+                this.pauseMessages = true;
+                setStartWarnDeadline(startWarnDiff);
+                receivedWaitStart(); // initial to waitStart
+                this.pauseMessages = false;
+            }
 
         } catch (Exception ex) {
             logger.error("restoreSaveState");
-            StringWriter sw = new StringWriter();
-            PrintWriter pw = new PrintWriter(sw);
-            ex.printStackTrace(pw);
-            logger.error(pw.toString());
+            logger.error(ex.getMessage());
         }
-
     }
 
     private void logNoEndCal(){

@@ -136,72 +136,72 @@ public class Testing {
     }
 
 
-    public void saveStateDemo() {
+    // public void saveStateDemo() {
 
-        try {
-            logger.info("Creating P0");
-            //Create dummy person
-            Restricted p0 = new Restricted("0");
-            //set short deadline for cal end
+    //     try {
+    //         logger.info("Creating P0");
+    //         //Create dummy person
+    //         Restricted p0 = new Restricted("0");
+    //         //set short deadline for cal end
 
-            p0.setStartWarnDeadline(2);
-            p0.setStartDeadline(5);
-            p0.setEndWarnDeadline(10);
-            p0.setEndDeadline(15);
-            logger.info("Sending WaitStart P0, simulate message in");
-            p0.receivedWaitStart();
-            logger.info(" ");
-            //send start cal
-            //p0.receivedStartCal();
+    //         p0.setStartWarnDeadline(2);
+    //         p0.setStartDeadline(5);
+    //         p0.setEndWarnDeadline(10);
+    //         p0.setEndDeadline(15);
+    //         logger.info("Sending WaitStart P0, simulate message in");
+    //         p0.receivedWaitStart();
+    //         logger.info(" ");
+    //         //send start cal
+    //         //p0.receivedStartCal();
 
-            //loop until end
-            /*
-            while(!(p0.getState() == protocols.RestrictedBase.State.endOfEpisode)) {
-                logger.info(p0.getState().toString());
-                Thread.sleep(1000);
-                //p0.receivedStartCal();
-                p0.receivedEndCal();
-            }
-             */
-            logger.info("Dump of P0");
-            logger.info(p0.saveStateJSON());
-            logger.info(" ");
-            Thread.sleep(1000);
-            Thread.sleep(1000);
-            Thread.sleep(1000);
-            Thread.sleep(1000);
-            logger.info("Dump of P0 after 4 seconds");
-            logger.info(p0.saveStateJSON());
-            logger.info(" ");
+    //         //loop until end
+    //         /*
+    //         while(!(p0.getState() == protocols.RestrictedBase.State.endOfEpisode)) {
+    //             logger.info(p0.getState().toString());
+    //             Thread.sleep(1000);
+    //             //p0.receivedStartCal();
+    //             p0.receivedEndCal();
+    //         }
+    //          */
+    //         logger.info("Dump of P0");
+    //         logger.info(p0.saveStateJSON());
+    //         logger.info(" ");
+    //         Thread.sleep(1000);
+    //         Thread.sleep(1000);
+    //         Thread.sleep(1000);
+    //         Thread.sleep(1000);
+    //         logger.info("Dump of P0 after 4 seconds");
+    //         logger.info(p0.saveStateJSON());
+    //         logger.info(" ");
 
-            logger.info("Creating P1");
-            Restricted p1 = new Restricted("1");
-            logger.info("Restoring P0 to P1");
-            logger.info(" ");
-            p1.restoreSaveState(p0.stateJSON);
-            logger.info("p0 state: " + p0.getState());
-            logger.info("p1 state: " + p1.getState());
-            logger.info(" ");
-            logger.info("Dump of P1");
-            logger.info(p1.saveStateJSON());
-            logger.info(" ");
-            Thread.sleep(1000);
-            Thread.sleep(1000);
-            Thread.sleep(1000);
-            Thread.sleep(1000);
-            logger.info("p0 after 4: " + p0.saveStateJSON());
-            logger.info(" ");
-            logger.info("p1 after 4: " + p1.saveStateJSON());
-            logger.info(" ");
-            //logger.info(p0.getState().toString());
-            //p0.restoreSaveState(p0.stateJSON);
+    //         logger.info("Creating P1");
+    //         Restricted p1 = new Restricted("1");
+    //         logger.info("Restoring P0 to P1");
+    //         logger.info(" ");
+    //         p1.restoreSaveState(p0.stateJSON);
+    //         logger.info("p0 state: " + p0.getState());
+    //         logger.info("p1 state: " + p1.getState());
+    //         logger.info(" ");
+    //         logger.info("Dump of P1");
+    //         logger.info(p1.saveStateJSON());
+    //         logger.info(" ");
+    //         Thread.sleep(1000);
+    //         Thread.sleep(1000);
+    //         Thread.sleep(1000);
+    //         Thread.sleep(1000);
+    //         logger.info("p0 after 4: " + p0.saveStateJSON());
+    //         logger.info(" ");
+    //         logger.info("p1 after 4: " + p1.saveStateJSON());
+    //         logger.info(" ");
+    //         //logger.info(p0.getState().toString());
+    //         //p0.restoreSaveState(p0.stateJSON);
 
 
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
+    //     } catch (Exception ex) {
+    //         ex.printStackTrace();
+    //     }
 
-    }
+    // }
 
     public void testTiming() {
         Integer total;

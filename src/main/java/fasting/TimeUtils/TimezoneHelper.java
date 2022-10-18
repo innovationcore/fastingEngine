@@ -193,6 +193,31 @@ public class TimezoneHelper {
         return yesterday.format(formatter);
     }
 
+    // is same day <4am
+    public boolean isSameDay(long lastKnownTime){
+        // check if lastKnownTime is on the same day as now and before the next day at 4am
+
+        Instant lastKnownUTC = Instant.ofEpochMilli(lastKnownTime*1000L);
+        ZoneId lastKnownTZ = ZoneId.of(this.userTimezone);
+        ZonedDateTime lastKnownTimezone = ZonedDateTime.ofInstant(lastKnownUTC, lastKnownTZ);
+        LocalDateTime lastKnownLocalTime = lastKnownTimezone.toLocalDateTime();
+
+        Instant nowUTC = Instant.now();
+        ZoneId userTZ = ZoneId.of(this.userTimezone);
+        ZonedDateTime nowUserTimezone = ZonedDateTime.ofInstant(nowUTC, userTZ);
+        LocalDateTime nowUserLocalTime = nowUserTimezone.toLocalDateTime();
+
+        LocalDateTime currentTime4am = LocalDateTime.of(nowUserLocalTime.getYear(), nowUserLocalTime.getMonth(), nowUserLocalTime.getDayOfMonth(), 04, 00, 00);
+        currentTime4am = currentTime4am.plusDays(1);
+        long secondsUntil4am = Duration.between(lastKnownLocalTime, currentTime4am).getSeconds();
+
+        if (secondsUntil4am > 86400){
+            return false;
+        } else {
+            return true;
+        }
+    }
+
     /**
     * gets the user's timezone
     */
