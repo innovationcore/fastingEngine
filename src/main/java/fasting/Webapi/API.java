@@ -25,8 +25,10 @@ import org.apache.http.HttpRequest;
 import java.net.URI;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
+import com.google.gson.JsonElement;
 
 @Path("/sms")
 public class API {
@@ -86,9 +88,13 @@ public class API {
                 request.setEntity(params);
                 HttpResponse response = httpClient.execute(request);
                 int code = response.getStatusLine().getStatusCode();
-                if (code==200) { // response comes back in the form [{recipient-id:XXX, text:hello world}] as a bytestream
+                if (code==200) { // response comes back in the form [{recipient-id, text}] as a bytestream
                     String text = gson.fromJson(EntityUtils.toString(response.getEntity()), JsonArray.class).get(0).getAsJsonObject().get("text").getAsString();
-                    System.out.println(text);
+                    System.out.println(text); // message to the user
+                    HttpGet intent_request = new HttpGet("http://localhost:5005/conversations/"+participantId+"/tracker");
+                    HttpResponse intent_response = httpClient.execute(intent_request);
+                    String intent = gson.fromJson(EntityUtils.toString(intent_response.getEntity()), JsonElement.class).getAsJsonObject().get("latest_message").getAsJsonObject().get("intent").getAsJsonObject().get("name").getAsString();
+                    System.out.println(intent); // intent of previous message
                 } else {
                     System.out.println("HTTP Error Code "+code);
                 }
