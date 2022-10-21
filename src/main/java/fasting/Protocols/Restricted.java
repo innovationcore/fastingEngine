@@ -29,6 +29,7 @@ public class Restricted extends RestrictedBase {
     private long startTimestamp = 0;
     private TimezoneHelper TZHelper;
     private boolean pauseMessages;
+    private Map<String,String> incomingMap;
 
     public String stateJSON;
 
@@ -72,6 +73,7 @@ public class Restricted extends RestrictedBase {
     }
 
     public void incomingText(Map<String,String> incomingMap) {
+        this.incomingMap = incomingMap;
         try {
             State state = getState();
             switch (state) {
@@ -83,6 +85,9 @@ public class Restricted extends RestrictedBase {
                         Launcher.msgUtils.sendMessage(participantMap.get("number"), "Got it, no TRE today! Thank you for telling us. Please still let us know your \"STARTCAL\" and \"ENDCAL\" today.");
                     } else if (isEndCal(incomingMap.get("Body"))) {
                         Launcher.msgUtils.sendMessage(participantMap.get("number"), TZHelper.yesterdaysDate()+ ": " + pickRandomEndCalMessage());
+                        // update startcal time in state_log
+                        long unixTS = TZHelper.parseTime(incomingMap.get("Body").split("\\s+")[1], true);
+                        Launcher.dbEngine.saveEndCalTime(participantMap.get("participant_uuid"), unixTS);
                     } else if(isStartCal(incomingMap.get("Body"))) {
                         receivedStartCal();
                     } else {
@@ -95,6 +100,9 @@ public class Restricted extends RestrictedBase {
                         Launcher.msgUtils.sendMessage(participantMap.get("number"), "Got it, no TRE today! Thank you for telling us. Please still let us know your \"STARTCAL\" and \"ENDCAL\" today.");
                     } else if (isEndCal(incomingMap.get("Body"))) {
                         Launcher.msgUtils.sendMessage(participantMap.get("number"), TZHelper.yesterdaysDate() + ": " + pickRandomEndCalMessage());
+                        // update startcal time in state_log
+                        long unixTS = TZHelper.parseTime(incomingMap.get("Body").split("\\s+")[1], true);
+                        Launcher.dbEngine.saveEndCalTime(participantMap.get("participant_uuid"), unixTS);
                     } else if(isStartCal(incomingMap.get("Body"))) {
                         receivedStartCal();
                     } else {
@@ -254,7 +262,7 @@ public class Restricted extends RestrictedBase {
 
         //save change to state log
         logState(state);
-
+        long unixTS;
 
         if(stateMap != null) {
             stateMap.put(state, System.currentTimeMillis() / 1000);
@@ -264,7 +272,6 @@ public class Restricted extends RestrictedBase {
         } else {
             stateJSON = saveStateJSON();
         }
-
 
         switch (State.valueOf(state)) {
             case initial:
@@ -293,7 +300,7 @@ public class Restricted extends RestrictedBase {
                 Launcher.dbEngine.uploadSaveState(stateJSON, participantMap.get("participant_uuid"));
                 break;
             case startcal:
-                //set warn and end
+                //set warn timer
                 // In the CSV with responses they don't have anything for sending startcal
                 int secondsTo2059pm = TZHelper.getSecondsTo2059pm();
                 // if after 9pm, don't immediately send warnEndCal message. Wait some time so user has time to respond
@@ -303,6 +310,18 @@ public class Restricted extends RestrictedBase {
                 setEndWarnDeadline(secondsTo2059pm); //timeToD19pm());
                 String startCalMessage = participantMap.get("participant_uuid") + " thanks for sending startcal: endwarndeadline timeout " + TZHelper.getDateFromAddingSeconds(secondsTo2059pm);
                 logger.info(startCalMessage);
+                
+                // update startcal time in state_log
+                if (incomingMap == null) {
+                    unixTS = Launcher.dbEngine.getStartCalTime(participantMap.get("participant_uuid"));
+                    if (unixTS == 0) {
+                        unixTS = TZHelper.getUnixTimestampNow();
+                    }
+                } else {
+                    unixTS = TZHelper.parseTime(incomingMap.get("Body").split("\\s+")[1], false);
+                }
+                Launcher.dbEngine.saveStartCalTime(participantMap.get("participant_uuid"), unixTS);
+                
                 //save state info
                 stateJSON = saveStateJSON();
                 Launcher.dbEngine.uploadSaveState(stateJSON, participantMap.get("participant_uuid"));
@@ -343,6 +362,16 @@ public class Restricted extends RestrictedBase {
                     Launcher.msgUtils.sendMessage(participantMap.get("number"), endCalMessage);
                 }
                 resetNoEndCal();
+                // update startcal time in state_log
+                if (incomingMap == null) {
+                    unixTS = Launcher.dbEngine.getEndCalTime(participantMap.get("participant_uuid"));
+                    if (unixTS == 0) {
+                        unixTS = TZHelper.getUnixTimestampNow();
+                    }
+                } else {
+                    unixTS = TZHelper.parseTime(incomingMap.get("Body").split("\\s+")[1], false);
+                }
+                Launcher.dbEngine.saveEndCalTime(participantMap.get("participant_uuid"), unixTS);
                 //save state info
                 stateJSON = saveStateJSON();
                 Launcher.dbEngine.uploadSaveState(stateJSON, participantMap.get("participant_uuid"));
@@ -440,6 +469,11 @@ public class Restricted extends RestrictedBase {
                         if (secondsTo2059pm < 0) {
                             secondsTo2059pm = 0;
                         }
+                        long unixTS = Launcher.dbEngine.getStartCalTime(participantMap.get("participant_uuid"));
+                        if (unixTS == 0) {
+                            unixTS = TZHelper.getUnixTimestampNow();
+                        }
+                        Launcher.dbEngine.saveStartCalTime(participantMap.get("participant_uuid"), unixTS);
                         this.pauseMessages = true;
                         setEndWarnDeadline(secondsTo2059pm); //timeToD19pm());
                         receivedStartCal();
@@ -460,6 +494,9 @@ public class Restricted extends RestrictedBase {
                         this.pauseMessages = false;
                         break;
                     case missedEndCal:
+                        break;
+                    case endcal:
+                        //no timers
                         break;
                     case endOfEpisode:
                         // reset endOfEpisodeDeadline

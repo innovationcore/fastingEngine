@@ -218,6 +218,42 @@ public class TimezoneHelper {
         }
     }
 
+    public long parseTime(String time, boolean forYesterday){
+        // parse time string into seconds
+        // time string should be in format HH:MM:SS
+        try {
+            String[] timeArray = time.split(":");
+            int hours = Integer.parseInt(timeArray[0]);
+            int minutes = Integer.parseInt(timeArray[1].substring(0,2));
+            String ampm = timeArray[1].substring(2,4).toLowerCase();
+            if (ampm.equals("pm")){
+                hours += 12;
+            }
+
+            Instant nowUTC = Instant.now();
+            ZoneId userTZ = ZoneId.of(this.userTimezone);
+            ZonedDateTime nowUserTimezone = ZonedDateTime.ofInstant(nowUTC, userTZ);
+            LocalDateTime nowUserLocalTime = nowUserTimezone.toLocalDateTime();
+            LocalDateTime currentDateAndTime = LocalDateTime.of(nowUserLocalTime.getYear(), nowUserLocalTime.getMonth(), nowUserLocalTime.getDayOfMonth(), hours, minutes, 00);
+            if (forYesterday){
+                currentDateAndTime = currentDateAndTime.minusDays(1);
+            }
+            return currentDateAndTime.toEpochSecond(userTZ.getRules().getOffset(currentDateAndTime));
+        } catch (Exception e){
+            // if fails to parse time, return the time now
+            e.printStackTrace();
+            return getUnixTimestampNow();
+        }
+    }
+
+    public long getUnixTimestampNow(){
+        Instant nowUTC = Instant.now();
+        ZoneId userTZ = ZoneId.of(this.userTimezone);
+        ZonedDateTime nowUserTimezone = ZonedDateTime.ofInstant(nowUTC, userTZ);
+        LocalDateTime nowUserLocalTime = nowUserTimezone.toLocalDateTime();
+        return nowUserLocalTime.toEpochSecond(userTZ.getRules().getOffset(nowUserLocalTime));
+    }
+
     /**
     * gets the user's timezone
     */
