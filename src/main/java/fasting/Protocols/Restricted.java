@@ -293,8 +293,13 @@ public class Restricted extends RestrictedBase {
             case warnStartCal:
                 //set start fail timer
                 setStartDeadline(TZHelper.getSecondsTo359am()); // timeToD2359am());
-                String warnStartCalMessage = participantMap.get("participant_uuid") + " please submit startcal: startdeadline timeout " + TZHelper.getDateFromAddingSeconds(TZHelper.getSecondsTo359am());
-                logger.warn(warnStartCalMessage);
+                String warnStartCalMessageLog = participantMap.get("participant_uuid") + " please submit startcal: startdeadline timeout " + TZHelper.getDateFromAddingSeconds(TZHelper.getSecondsTo359am());
+                logger.warn(warnStartCalMessageLog);
+                // send reminder message at noon
+                String warnStartCalMessage = "";
+                if (!pauseMessages){
+                    Launcher.msgUtils.sendMessage(participantMap.get("number"), warnStartCalMessage);
+                }
                 //save state info
                 stateJSON = saveStateJSON();
                 Launcher.dbEngine.uploadSaveState(stateJSON, participantMap.get("participant_uuid"));
@@ -562,7 +567,7 @@ public class Restricted extends RestrictedBase {
     }
 
     public String pickRandomEndCalMessage() {
-         // this is a list of responses for when a participant sends endcal
+        // this is a list of responses for when a participant sends endcal
         final List<String> endCalMessages = Collections.unmodifiableList(
         new ArrayList<String>() {{
             add("Thanks! You are now running calorie free!");
@@ -581,6 +586,31 @@ public class Restricted extends RestrictedBase {
         String message = endCalMessages.get(rnd);
         if (message.contains("[NAME]")) {
             message = message.replace("[NAME]", participantMap.get("first_name"));
+        }
+        return message;
+    }
+
+    public String pickRandomSuccessTRE(){
+        // this is a list of responses for when a participant sends endcal
+        final List<String> successMessages = Collections.unmodifiableList(
+        new ArrayList<String>() {{
+            add("Good show! Your overall success rate is now [SUCCESS]!");
+            add("Perfect! Your overall success rate is now [SUCCESS]!");
+            add("Smashing! Your overall success rate is now [SUCCESS]!");
+            add("Bravo, [NAME]! Your overall success rate is now [SUCCESS]!");
+            add("Jolly good show! Your overall success rate is now [SUCCESS]!");
+            add("Superb! Your overall success rate is now [SUCCESS]!");
+            add("Great! Your overall success rate is now [SUCCESS]!");
+        }});
+        Random rand = new Random();
+        int rnd = new Random().nextInt(successMessages.size());
+        String message = endCalMessages.get(rnd);
+        if (message.contains("[NAME]")) {
+            message = message.replace("[NAME]", participantMap.get("first_name"));
+        }
+        if (message.contains("[SUCCESS]")) {
+            String successRate = Launcher.dbEngine.getSuccessRate(participantMap.get("participant_uuid"));
+            message = message.replace("[SUCCESS]", successRate);
         }
         return message;
     }

@@ -647,4 +647,106 @@ public class DBEngine {
         return unixTS;
     }
 
+    public boolean doSuccessFieldsExist(String participantUUID){
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        boolean successSet = false;
+
+        try {
+            String query = "SELECT TOP 1 JSON_VALUE(log_json, '$.total_TRE') FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'endcal' ORDER BY TS DESC";
+            conn = ds.getConnection();
+            stmt = conn.prepareStatement(query);
+            stmt.setString(1, participantUUID);
+            rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                successSet = !rs.wasNull();
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        } finally {
+            try { rs.close(); }   catch (Exception e) { /* Null Ignored */ }
+            try { stmt.close(); } catch (Exception e) { /* Null Ignored */ }
+            try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
+        }
+        return successSet;
+    }
+
+    public void setSuccessRate(String participantUUID, boolean wasSucessful){
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        String query = "";
+        //success rate = (between 9-11 hours)/total
+        try {
+            boolean isSuccessIncluded = doSuccessFieldsExist(participantUUID);
+            if (!isSuccessIncluded && wasSucessful) {
+                // initial addition to json
+                query = "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.successful_TRE', 1) WHERE TS IN (SELECT TOP 1 TS FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'endcal' ORDER BY TS DESC);";
+                query += "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.total_TRE', 1) WHERE TS IN (SELECT TOP 1 TS FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'endcal' ORDER BY TS DESC)";
+                conn = ds.getConnection();
+                stmt = conn.prepareStatement(query);
+                stmt.setString(1, participantUUID);
+                stmt.setString(2, participantUUID);
+            } else if (!isSuccessIncluded && !wasSucessful) {
+                // initial addition to json
+                query = "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.successful_TRE', 0) WHERE TS IN (SELECT TOP 1 TS FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'endcal' ORDER BY TS DESC);";
+                query += "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.total_TRE', 1) WHERE TS IN (SELECT TOP 1 TS FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'endcal' ORDER BY TS DESC)";
+                conn = ds.getConnection();
+                stmt = conn.prepareStatement(query);
+                stmt.setString(1, participantUUID);
+                stmt.setString(2, participantUUID);
+            } else if (isSuccessIncluded && wasSucessful) {
+                // increment if successful
+                query = "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.successful_TRE', JSON_VALUE(log_json, '$.successful_TRE') + 1) WHERE TS IN (SELECT TOP 1 TS FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'endcal' ORDER BY TS DESC);";
+                query += "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.total_TRE', JSON_VALUE(log_json, '$.total_TRE') + 1) WHERE TS IN (SELECT TOP 1 TS FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'endcal' ORDER BY TS DESC)";
+                conn = ds.getConnection();
+                stmt = conn.prepareStatement(query);
+                stmt.setString(1, participantUUID);
+                stmt.setString(2, participantUUID);
+            } else {
+                // don't increment if not successful
+                query = "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.total_TRE', JSON_VALUE(log_json, '$.total_TRE') + 1) WHERE TS IN (SELECT TOP 1 TS FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'endcal' ORDER BY TS DESC)";
+                conn = ds.getConnection();
+                stmt = conn.prepareStatement(query);
+                stmt.setString(1, participantUUID);
+            }
+            stmt.executeUpdate();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        } finally {
+            try { stmt.close(); } catch (Exception e) { /* Null Ignored */ }
+            try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
+        }
+    }
+
+    public String getSuccessRate(String participantUUID) {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        String successRate = "";
+
+        try {
+            // successfulTRE/totalTRE
+            String query = "SELECT TOP 1 JSON_VALUE(log_json, '$.successful_TRE'), JSON_VALUE(log_json, '$.total_TRE') FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'endcal' ORDER BY TS DESC";
+            conn = ds.getConnection();
+            stmt = conn.prepareStatement(query);
+            stmt.setString(1, participantUUID);
+            rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                int successCount = Integer.parseInt(rs.getString(1));
+                int totalCount = Integer.parseInt(rs.getString(2));
+                successRate = String.format("%.2f%%", (double)successCount/totalCount);
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        } finally {
+            try { rs.close(); }   catch (Exception e) { /* Null Ignored */ }
+            try { stmt.close(); } catch (Exception e) { /* Null Ignored */ }
+            try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
+        }
+        return successRate;
+    }
+
 }
