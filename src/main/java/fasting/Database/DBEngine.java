@@ -661,6 +661,8 @@ public class DBEngine {
             rs = stmt.executeQuery();
 
             if (rs.next()) {
+                String totalTRE = rs.getString(1);
+                System.out.println("totalTRE: " + totalTRE);
                 successSet = !rs.wasNull();
             }
         } catch (Exception ex) {
@@ -681,6 +683,7 @@ public class DBEngine {
         try {
             boolean isSuccessIncluded = doSuccessFieldsExist(participantUUID);
             if (!isSuccessIncluded && wasSucessful) {
+                System.out.println("HERE1");
                 // initial addition to json
                 query = "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.successful_TRE', 1) WHERE TS IN (SELECT TOP 1 TS FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'endcal' ORDER BY TS DESC);";
                 query += "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.total_TRE', 1) WHERE TS IN (SELECT TOP 1 TS FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'endcal' ORDER BY TS DESC)";
@@ -689,6 +692,7 @@ public class DBEngine {
                 stmt.setString(1, participantUUID);
                 stmt.setString(2, participantUUID);
             } else if (!isSuccessIncluded && !wasSucessful) {
+                System.out.println("HERE2");
                 // initial addition to json
                 query = "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.successful_TRE', 0) WHERE TS IN (SELECT TOP 1 TS FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'endcal' ORDER BY TS DESC);";
                 query += "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.total_TRE', 1) WHERE TS IN (SELECT TOP 1 TS FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'endcal' ORDER BY TS DESC)";
@@ -697,6 +701,7 @@ public class DBEngine {
                 stmt.setString(1, participantUUID);
                 stmt.setString(2, participantUUID);
             } else if (isSuccessIncluded && wasSucessful) {
+                System.out.println("HERE3");
                 // increment if successful
                 query = "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.successful_TRE', JSON_VALUE(log_json, '$.successful_TRE') + 1) WHERE TS IN (SELECT TOP 1 TS FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'endcal' ORDER BY TS DESC);";
                 query += "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.total_TRE', JSON_VALUE(log_json, '$.total_TRE') + 1) WHERE TS IN (SELECT TOP 1 TS FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'endcal' ORDER BY TS DESC)";
@@ -705,6 +710,7 @@ public class DBEngine {
                 stmt.setString(1, participantUUID);
                 stmt.setString(2, participantUUID);
             } else {
+                System.out.println("HERE4");
                 // don't increment if not successful
                 query = "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.total_TRE', JSON_VALUE(log_json, '$.total_TRE') + 1) WHERE TS IN (SELECT TOP 1 TS FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'endcal' ORDER BY TS DESC)";
                 conn = ds.getConnection();
@@ -740,7 +746,6 @@ public class DBEngine {
     }
 
 
-    // TODO: parseInt returns null for some reason
     public String getSuccessRate(String participantUUID) {
         Connection conn = null;
         PreparedStatement stmt = null;
@@ -756,8 +761,17 @@ public class DBEngine {
             rs = stmt.executeQuery();
 
             if (rs.next()) {
-                int successCount = Integer.parseInt(rs.getString(1));
-                int totalCount = Integer.parseInt(rs.getString(2));
+                int successCount = rs.getInt(1);
+                int totalCount = rs.getInt(2);
+
+                System.out.println('\n');
+                System.out.println(successCount);
+                System.out.println(totalCount);
+                System.out.println('\n');
+                
+                // if (rs.wasNull()){
+                //     setSuccessRate(participantUUID, false);
+                // }
                 successRate = String.format("%.2f%%", (double)successCount/totalCount);
             }
         } catch (Exception ex) {

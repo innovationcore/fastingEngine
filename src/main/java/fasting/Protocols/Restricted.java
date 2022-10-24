@@ -125,6 +125,8 @@ public class Restricted extends RestrictedBase {
                         // update startcal time in state_log
                         long unixTS = TZHelper.parseTime(incomingMap.get("Body").split("\\s+")[1], true);
                         Launcher.dbEngine.saveEndCalTime(participantMap.get("participant_uuid"), unixTS);
+                        // update the success rate
+                        Launcher.dbEngine.setSuccessNextDay(participantMap.get("participant_uuid"));
                         long startTime = Launcher.dbEngine.getStartCalTime(participantMap.get("participant_uuid"));
                         long endTime = Launcher.dbEngine.getEndCalTime(participantMap.get("participant_uuid"));
                         int validTRE = TZHelper.determineGoodFastTime(startTime, endTime);
@@ -336,7 +338,7 @@ public class Restricted extends RestrictedBase {
                 String warnStartCalMessageLog = participantMap.get("participant_uuid") + " please submit startcal: startdeadline timeout " + TZHelper.getDateFromAddingSeconds(TZHelper.getSecondsTo359am());
                 logger.warn(warnStartCalMessageLog);
                 // send reminder message at noon
-                String warnStartCalMessage = "";
+                String warnStartCalMessage = "No \"STARTCAL\" received yet today. Please send us your \"STARTCAL\" so we know when your calories began today.";
                 if (!pauseMessages){
                     Launcher.msgUtils.sendMessage(participantMap.get("number"), warnStartCalMessage);
                 }
