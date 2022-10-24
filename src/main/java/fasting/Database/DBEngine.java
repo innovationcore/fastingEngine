@@ -720,6 +720,27 @@ public class DBEngine {
         }
     }
 
+    public void setSuccessNextDay(String participantUUID){
+         Connection conn = null;
+        PreparedStatement stmt = null;
+        //success rate = (between 9-11 hours)/total
+        try {
+            // if sent endcal during the next day update on previous endcal
+            String query = "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.successful_TRE', JSON_VALUE(log_json, '$.successful_TRE') + 1) WHERE TS IN (SELECT TOP 1 TS FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'endcal' ORDER BY TS DESC)";
+            conn = ds.getConnection();
+            stmt = conn.prepareStatement(query);
+            stmt.setString(1, participantUUID);
+            stmt.executeUpdate();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        } finally {
+            try { stmt.close(); } catch (Exception e) { /* Null Ignored */ }
+            try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
+        }
+    }
+
+
+    // TODO: parseInt returns null for some reason
     public String getSuccessRate(String participantUUID) {
         Connection conn = null;
         PreparedStatement stmt = null;
@@ -748,5 +769,4 @@ public class DBEngine {
         }
         return successRate;
     }
-
 }

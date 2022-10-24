@@ -63,6 +63,17 @@ public class Launcher {
             // testing.testNoEnd();
             // TimezoneHelper TZHelper = new TimezoneHelper("America/Louisville","America/Louisville");
             // System.out.println(TZHelper.yesterdaysDate());
+//             System.out.println('\n');
+//             System.out.println(TZHelper.determineGoodFastTime(1666627200, 1666641600)); // <9, noon, 4pm
+//             System.out.println(TZHelper.determineGoodFastTime(1666627200, 1666663200)); // 9-11, noon, 10pm
+//             System.out.println(TZHelper.determineGoodFastTime(1666627200, 1666670399)); // >11, noon, 11:59pm
+// System.out.println('\n');
+//             System.out.println(TZHelper.getHoursMinutesBefore(1666627200, 1666641600, 32400)); // noon, 4pm
+// System.out.println('\n');
+//             System.out.println(TZHelper.isAfter8PM(1666641600)); //4pm
+//             System.out.println(TZHelper.isAfter8PM(1666670399)); //11:59pm
+// System.out.println('\n');
+
     
             //start protocols
             restrictedWatcher = new RestrictedWatcher();
