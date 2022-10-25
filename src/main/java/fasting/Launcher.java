@@ -30,6 +30,7 @@ public class Launcher {
     public static MsgUtils msgUtils;
     public static RestrictedWatcher restrictedWatcher;
     public static Testing testing;
+    public static TimezoneHelper TZHelper;
 
     public static void main(String[] argv) {
 
@@ -62,9 +63,29 @@ public class Launcher {
             // testing.testNoEnd();
             // TimezoneHelper TZHelper = new TimezoneHelper("America/Louisville","America/Louisville");
             // System.out.println(TZHelper.yesterdaysDate());
+//             System.out.println('\n');
+//             System.out.println(TZHelper.determineGoodFastTime(1666627200, 1666641600)); // <9, noon, 4pm
+//             System.out.println(TZHelper.determineGoodFastTime(1666627200, 1666663200)); // 9-11, noon, 10pm
+//             System.out.println(TZHelper.determineGoodFastTime(1666627200, 1666670399)); // >11, noon, 11:59pm
+// System.out.println('\n');
+//             System.out.println(TZHelper.getHoursMinutesBefore(1666627200, 1666641600, 32400)); // noon, 4pm
+// System.out.println('\n');
+//             System.out.println(TZHelper.isAfter8PM(1666641600)); //4pm
+//             System.out.println(TZHelper.isAfter8PM(1666670399)); //11:59pm
+// System.out.println('\n');
 
+    
             //start protocols
             restrictedWatcher = new RestrictedWatcher();
+            // Map<String, String> test = new HashMap<>();
+            // test.put("From", "+18596844789");
+            // test.put("Body", "startcal 11:43am");
+            // Thread.sleep(10000);
+            // restrictedWatcher.incomingText("E8F5CA95-E7F7-4232-BD33-A3F09F479BDA", test);
+            // Thread.sleep(5000);
+            // test.put("Body", "endcal");
+            // restrictedWatcher.incomingText("E8F5CA95-E7F7-4232-BD33-A3F09F479BDA", test);
+
 
         } catch (Exception ex) {
             ex.printStackTrace();

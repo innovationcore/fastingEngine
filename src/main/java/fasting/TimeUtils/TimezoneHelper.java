@@ -218,6 +218,80 @@ public class TimezoneHelper {
         }
     }
 
+    public long parseTime(String time, boolean forYesterday){
+        // parse time string into seconds
+        // time string should be in format HH:MM:SS
+        try {
+            String[] timeArray = time.split(":");
+            int hours = Integer.parseInt(timeArray[0]);
+            int minutes = Integer.parseInt(timeArray[1].substring(0,2));
+            String ampm = timeArray[1].substring(2,4).toLowerCase();
+            if (ampm.equals("pm")){
+                hours += 12;
+            }
+
+            Instant nowUTC = Instant.now();
+            ZoneId userTZ = ZoneId.of(this.userTimezone);
+            ZonedDateTime nowUserTimezone = ZonedDateTime.ofInstant(nowUTC, userTZ);
+            LocalDateTime nowUserLocalTime = nowUserTimezone.toLocalDateTime();
+            LocalDateTime currentDateAndTime = LocalDateTime.of(nowUserLocalTime.getYear(), nowUserLocalTime.getMonth(), nowUserLocalTime.getDayOfMonth(), hours, minutes, 00);
+            if (forYesterday){
+                currentDateAndTime = currentDateAndTime.minusDays(1);
+            }
+            return currentDateAndTime.toEpochSecond(userTZ.getRules().getOffset(currentDateAndTime));
+        } catch (Exception e){
+            // if fails to parse time, return the time now
+            e.printStackTrace();
+            return getUnixTimestampNow();
+        }
+    }
+
+    public long getUnixTimestampNow(){
+        Instant nowUTC = Instant.now();
+        ZoneId userTZ = ZoneId.of(this.userTimezone);
+        ZonedDateTime nowUserTimezone = ZonedDateTime.ofInstant(nowUTC, userTZ);
+        LocalDateTime nowUserLocalTime = nowUserTimezone.toLocalDateTime();
+        return nowUserLocalTime.toEpochSecond(userTZ.getRules().getOffset(nowUserLocalTime));
+    }
+
+    // returns -1 if before 9 hours, 0 if between 9 and 11 hours, 1 if after 11 hours
+    public int determineGoodFastTime(long start, long end) {
+        long duration = end - start;
+        if (duration < 32400) { // 9 hours
+            return -1;
+        } else if (duration > 39600) { // 11 hours
+            return 1;
+        } else {
+            return 0;
+        }
+    }
+
+    // start unix time, end unix time, time in seconds (9 hours = 32400)
+    public String getHoursMinutesBefore(long start, long end, long cutoffTime) {
+        long duration = end - start;
+        long durationBeforeCutoff = cutoffTime - duration;
+        if (durationBeforeCutoff < 0) {
+            return "0h 0m";
+        }
+        long hours = durationBeforeCutoff / 3600;
+        long minutes = (durationBeforeCutoff % 3600) / 60;
+        return hours + "h " + String.format("%02dm", minutes);
+    }
+
+    public boolean isAfter8PM(long endTime){
+        Instant endUTC = Instant.ofEpochMilli(endTime*1000L);
+        ZoneId endTZ = ZoneId.of(this.userTimezone);
+        ZonedDateTime endUserTimezone = ZonedDateTime.ofInstant(endUTC, endTZ);
+        LocalDateTime endUserLocalTime = endUserTimezone.toLocalDateTime();
+        LocalDateTime endUserLocalTime8pm = LocalDateTime.of(endUserLocalTime.getYear(), endUserLocalTime.getMonth(), endUserLocalTime.getDayOfMonth(), 20, 00, 00);
+        long secondsUntil8pm = Duration.between(endUserLocalTime, endUserLocalTime8pm).getSeconds();
+        if (secondsUntil8pm < 0){
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     /**
     * gets the user's timezone
     */

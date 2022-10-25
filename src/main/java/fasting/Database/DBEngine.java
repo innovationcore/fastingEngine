@@ -18,7 +18,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-
+import java.time.LocalTime;
+import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
 
 public class DBEngine {
 
@@ -547,4 +549,265 @@ public class DBEngine {
         return json;
     }
 
+    public void saveStartCalTime(String participantUUID, long unixTS) {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+
+        try {
+            String query = "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.start_cal_time', ?) WHERE TS IN (SELECT TOP 1 TS FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'startcal' ORDER BY TS DESC)";
+            conn = ds.getConnection();
+            stmt = conn.prepareStatement(query);
+            stmt.setString(1, Long.toString(unixTS));
+            stmt.setString(2, participantUUID);
+            stmt.executeUpdate();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        } finally {
+            try { stmt.close(); } catch (Exception e) { /* Null Ignored */ }
+            try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
+        }
+    }
+
+    public long getStartCalTime(String participantUUID) {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        String unixString = "";
+        long unixTS = 0;
+
+        try {
+            String query = "SELECT TOP 1 JSON_VALUE(log_json, '$.start_cal_time') FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'startcal' ORDER BY TS DESC";
+            conn = ds.getConnection();
+            stmt = conn.prepareStatement(query);
+            stmt.setString(1, participantUUID);
+            rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                unixString = rs.getString(1);
+                if(!rs.wasNull()){
+                    unixTS = Long.parseLong(unixString);
+                }
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        } finally {
+            try { rs.close(); }   catch (Exception e) { /* Null Ignored */ }
+            try { stmt.close(); } catch (Exception e) { /* Null Ignored */ }
+            try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
+        }
+        return unixTS;
+    }
+
+    public void saveEndCalTime(String participantUUID, long unixTS) {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+
+        try {
+            String query = "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.end_cal_time', ?) WHERE TS IN (SELECT TOP 1 TS FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'endcal' ORDER BY TS DESC)";
+            conn = ds.getConnection();
+            stmt = conn.prepareStatement(query);
+            stmt.setString(1, Long.toString(unixTS));
+            stmt.setString(2, participantUUID);
+            stmt.executeUpdate();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        } finally {
+            try { stmt.close(); } catch (Exception e) { /* Null Ignored */ }
+            try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
+        }
+    }
+
+    public long getEndCalTime(String participantUUID) {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        String unixString = "";
+        long unixTS = 0;
+
+        try {
+            String query = "SELECT TOP 1 JSON_VALUE(log_json, '$.end_cal_time') FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'endcal' ORDER BY TS DESC";
+            conn = ds.getConnection();
+            stmt = conn.prepareStatement(query);
+            stmt.setString(1, participantUUID);
+            rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                unixString = rs.getString(1);
+                if(!rs.wasNull()){
+                    unixTS = Long.parseLong(unixString);
+                }
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        } finally {
+            try { rs.close(); }   catch (Exception e) { /* Null Ignored */ }
+            try { stmt.close(); } catch (Exception e) { /* Null Ignored */ }
+            try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
+        }
+        return unixTS;
+    }
+
+    public int getLastKnownSuccessCount(String participantUUID) {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        int successCount = 0;
+
+        try {
+             String query = "SELECT JSON_VALUE(log_json, '$.successful_TRE') FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'endcal' ORDER BY TS DESC";
+            conn = ds.getConnection();
+            stmt = conn.prepareStatement(query);
+            stmt.setString(1, participantUUID);
+            rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                int count = rs.getInt(1);
+                if(!rs.wasNull()){
+                    successCount = count;
+                    break;
+                }
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        } finally {
+            try { rs.close(); }   catch (Exception e) { /* Null Ignored */ }
+            try { stmt.close(); } catch (Exception e) { /* Null Ignored */ }
+            try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
+        }
+        return successCount;
+    }
+
+    public int getLastKnownTotalCount(String participantUUID) {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        int totalCount = 0;
+
+        try {
+             String query = "SELECT JSON_VALUE(log_json, '$.total_TRE') FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'endcal' ORDER BY TS DESC";
+            conn = ds.getConnection();
+            stmt = conn.prepareStatement(query);
+            stmt.setString(1, participantUUID);
+            rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                int count = rs.getInt(1);
+                if(!rs.wasNull()){
+                    totalCount = count;
+                    break;
+                }
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        } finally {
+            try { rs.close(); }   catch (Exception e) { /* Null Ignored */ }
+            try { stmt.close(); } catch (Exception e) { /* Null Ignored */ }
+            try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
+        }
+        return totalCount;
+    }
+
+    public void setSuccessRate(String participantUUID, boolean wasSucessful){
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        String query = "";
+        //success rate = (between 9-11 hours)/total
+        try {
+            //boolean isSuccessIncluded = doSuccessFieldsExist(participantUUID);
+            // need to get values from second endcal to update to latest endcal
+            int successCount = getLastKnownSuccessCount(participantUUID);
+            int totalCount = getLastKnownTotalCount(participantUUID);
+            if (totalCount == 0 && wasSucessful) {
+                // initial addition to json
+                query = "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.successful_TRE', 1) WHERE TS IN (SELECT TOP 1 TS FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'endcal' ORDER BY TS DESC);";
+                query += "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.total_TRE', 1) WHERE TS IN (SELECT TOP 1 TS FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'endcal' ORDER BY TS DESC)";
+                conn = ds.getConnection();
+                stmt = conn.prepareStatement(query);
+                stmt.setString(1, participantUUID);
+                stmt.setString(2, participantUUID);
+            } else if (totalCount == 0 && !wasSucessful) {
+                // initial addition to json
+                query = "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.successful_TRE', 0) WHERE TS IN (SELECT TOP 1 TS FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'endcal' ORDER BY TS DESC);";
+                query += "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.total_TRE', 1) WHERE TS IN (SELECT TOP 1 TS FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'endcal' ORDER BY TS DESC)";
+                conn = ds.getConnection();
+                stmt = conn.prepareStatement(query);
+                stmt.setString(1, participantUUID);
+                stmt.setString(2, participantUUID);
+            } else if (totalCount > 0 && wasSucessful) {
+                // increment if successful
+                query = "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.successful_TRE', "+ (successCount+1) +") WHERE TS IN (SELECT TOP 1 TS FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'endcal' ORDER BY TS DESC);";
+                query += "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.total_TRE', "+ (totalCount + 1) +") WHERE TS IN (SELECT TOP 1 TS FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'endcal' ORDER BY TS DESC)";
+                conn = ds.getConnection();
+                stmt = conn.prepareStatement(query);
+                stmt.setString(1, participantUUID);
+                stmt.setString(2, participantUUID);
+            } else {
+                // don't increment if not successful
+                query = "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.successful_TRE', "+ successCount +") WHERE TS IN (SELECT TOP 1 TS FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'endcal' ORDER BY TS DESC);";
+                query += "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.total_TRE', "+ (totalCount+1) +") WHERE TS IN (SELECT TOP 1 TS FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'endcal' ORDER BY TS DESC)";
+                conn = ds.getConnection();
+                stmt = conn.prepareStatement(query);
+                stmt.setString(1, participantUUID);
+                stmt.setString(2, participantUUID);
+            }
+            stmt.executeUpdate();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        } finally {
+            try { stmt.close(); } catch (Exception e) { /* Null Ignored */ }
+            try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
+        }
+    }
+
+    public void setSuccessNextDay(String participantUUID, boolean wasSucessful){
+         Connection conn = null;
+        PreparedStatement stmt = null;
+        //success rate = (between 9-11 hours)/total
+        try {
+            // if sent endcal during the next day update on previous endcal
+            if (wasSucessful){
+                String query = "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.successful_TRE', JSON_VALUE(log_json, '$.successful_TRE') + 1) WHERE TS IN (SELECT TOP 1 TS FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'endcal' ORDER BY TS DESC)";
+                conn = ds.getConnection();
+                stmt = conn.prepareStatement(query);
+                stmt.setString(1, participantUUID);
+                stmt.executeUpdate();
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        } finally {
+            try { stmt.close(); } catch (Exception e) { /* Null Ignored */ }
+            try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
+        }
+    }
+
+
+    public String getSuccessRate(String participantUUID) {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        String successRate = "";
+
+        try {
+            // successfulTRE/totalTRE
+            String query = "SELECT TOP 1 JSON_VALUE(log_json, '$.successful_TRE'), JSON_VALUE(log_json, '$.total_TRE') FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'endcal' ORDER BY TS DESC";
+            conn = ds.getConnection();
+            stmt = conn.prepareStatement(query);
+            stmt.setString(1, participantUUID);
+            rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                int successCount = rs.getInt(1);
+                int totalCount = rs.getInt(2);
+            
+                successRate = String.format("%.2f%%", ((double)successCount/totalCount)*100);
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        } finally {
+            try { rs.close(); }   catch (Exception e) { /* Null Ignored */ }
+            try { stmt.close(); } catch (Exception e) { /* Null Ignored */ }
+            try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
+        }
+        return successRate;
+    }
 }
