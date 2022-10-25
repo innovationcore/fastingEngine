@@ -87,7 +87,13 @@ public class Restricted extends RestrictedBase {
                         // send endcal message for yesterday
                         Launcher.msgUtils.sendMessage(participantMap.get("number"), TZHelper.yesterdaysDate()+ ": " + pickRandomEndCalMessage());
                         // update endcal time in state_log
-                        long unixTS = TZHelper.parseTime(incomingMap.get("Body").split("\\s+")[1], true);
+                        String[] endCalSplit = incomingMap.get("Body").split("\\s+");
+                        long unixTS;
+                        if (endCalSplit.length >= 2){
+                            unixTS = TZHelper.parseTime(endCalSplit[1], true);
+                        } else {
+                            unixTS = TZHelper.getUnixTimestampNow();
+                        }
                         Launcher.dbEngine.saveEndCalTime(participantMap.get("participant_uuid"), unixTS);
                         // send successrate message depending on if <9, 9-11, or >11
                         long startTime = Launcher.dbEngine.getStartCalTime(participantMap.get("participant_uuid"));
@@ -129,8 +135,14 @@ public class Restricted extends RestrictedBase {
                     } else if (isEndCal(incomingMap.get("Body"))) {
                         Launcher.msgUtils.sendMessage(participantMap.get("number"), TZHelper.yesterdaysDate() + ": " + pickRandomEndCalMessage());
                         // update startcal time in state_log
-                        long unixTS1 = TZHelper.parseTime(incomingMap.get("Body").split("\\s+")[1], true);
-                        Launcher.dbEngine.saveEndCalTime(participantMap.get("participant_uuid"), unixTS1);
+                        String[] endCalSplit = incomingMap.get("Body").split("\\s+");
+                        long unixTS;
+                        if (endCalSplit.length >= 2){
+                            unixTS = TZHelper.parseTime(endCalSplit[1], true);
+                        } else {
+                            unixTS = TZHelper.getUnixTimestampNow();
+                        }
+                        Launcher.dbEngine.saveEndCalTime(participantMap.get("participant_uuid"), unixTS);
                         long startTime1 = Launcher.dbEngine.getStartCalTime(participantMap.get("participant_uuid"));
                         long endTime1 = Launcher.dbEngine.getEndCalTime(participantMap.get("participant_uuid"));
                         int validTRE1 = TZHelper.determineGoodFastTime(startTime1, endTime1);
@@ -170,7 +182,14 @@ public class Restricted extends RestrictedBase {
                     } else if(isStartCal(incomingMap.get("Body"))){
                         Launcher.msgUtils.sendMessage(participantMap.get("number"), "You've already started consuming calories for the day. Text \"ENDCAL\" when you finish your TRE today.");
                     } else if(isEndCal(incomingMap.get("Body"))) {
-                        if (TZHelper.isBetween3AMand3PM()){
+                        String[] endCalSplit = incomingMap.get("Body").split("\\s+");
+                        boolean isBetween3AMand3PM;
+                        if (endCalSplit.length >= 2){
+                            isBetween3AMand3PM = TZHelper.isBetween3AMand3PM(TZHelper.parseTime(endCalSplit[1], false));
+                        } else {
+                            isBetween3AMand3PM = TZHelper.isBetween3AMand3PM(); // gets time now
+                        }
+                        if (isBetween3AMand3PM) {
                             Launcher.msgUtils.sendMessage(participantMap.get("number"), "We don't recommend that you end calories this early in the day. " +
                                                                                         "Try again in the evening. Text 270-402-2214 if you want to receive " +
                                                                                         "a call about how to manage TRE safely.");
@@ -188,7 +207,14 @@ public class Restricted extends RestrictedBase {
                     break;
                 case warnEndCal:
                     if(isEndCal(incomingMap.get("Body"))) {
-                        if (TZHelper.isBetween3AMand3PM()){
+                        String[] endCalSplit = incomingMap.get("Body").split("\\s+");
+                        boolean isBetween3AMand3PM;
+                        if (endCalSplit.length >= 2){
+                            isBetween3AMand3PM = TZHelper.isBetween3AMand3PM(TZHelper.parseTime(endCalSplit[1], false));
+                        } else {
+                            isBetween3AMand3PM = TZHelper.isBetween3AMand3PM(); // gets time now
+                        }
+                        if (isBetween3AMand3PM){
                             Launcher.msgUtils.sendMessage(participantMap.get("number"), "We don't recommend that you end calories this early in the day. " +
                                                                                         "Try again in the evening. Text 270-402-2214 if you want to receive " +
                                                                                         "a call about how to manage TRE safely.");
@@ -202,7 +228,14 @@ public class Restricted extends RestrictedBase {
                     break;
                 case endcal:
                     if(isEndCal(incomingMap.get("Body"))) {
-                        if (TZHelper.isBetween3AMand3PM()){
+                        String[] endCalSplit = incomingMap.get("Body").split("\\s+");
+                        boolean isBetween3AMand3PM;
+                        if (endCalSplit.length >= 2){
+                            isBetween3AMand3PM = TZHelper.isBetween3AMand3PM(TZHelper.parseTime(endCalSplit[1], false));
+                        } else {
+                            isBetween3AMand3PM = TZHelper.isBetween3AMand3PM(); // gets time now
+                        }
+                        if (isBetween3AMand3PM){
                             Launcher.msgUtils.sendMessage(participantMap.get("number"), "We don't recommend that you end calories this early in the day. " +
                                                                                         "Try again in the evening. Text 270-402-2214 if you want to receive " +
                                                                                         "a call about how to manage TRE safely.");
@@ -221,6 +254,7 @@ public class Restricted extends RestrictedBase {
                 case endOfEpisode:
                     String endOfEpisodeMessage = participantMap.get("participant_uuid") + " endOfEpisode unexpected message";
                     logger.warn(endOfEpisodeMessage);
+                    Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Text 270-402-2214 if you need help.");
                     break;
                 default:
                     logger.error("stateNotify: Invalid state: " + getState());
@@ -230,6 +264,7 @@ public class Restricted extends RestrictedBase {
         } catch (Exception ex) {
             logger.error("incomingText");
             logger.error(ex.getMessage());
+            ex.printStackTrace();
         }
     }
 
@@ -254,7 +289,6 @@ public class Restricted extends RestrictedBase {
         try {
 
             if(messageBody.toLowerCase().contains("startcal")) {
-                //Launcher.msgUtils.sendMessage(participantMap.get("number"), "startcal accepted");
                 isStart = true;
             } else {
                 isStart = false;
@@ -379,7 +413,12 @@ public class Restricted extends RestrictedBase {
                         unixTS = TZHelper.getUnixTimestampNow();
                     }
                 } else {
-                    unixTS = TZHelper.parseTime(incomingMap.get("Body").split("\\s+")[1], false);
+                    String[] startCalSplit = incomingMap.get("Body").split("\\s+");
+                    if (startCalSplit.length >= 2){
+                        unixTS = TZHelper.parseTime(startCalSplit[1], false);
+                    } else {
+                        unixTS = TZHelper.getUnixTimestampNow();
+                    }
                 }
                 Launcher.dbEngine.saveStartCalTime(participantMap.get("participant_uuid"), unixTS);
                 
@@ -397,9 +436,9 @@ public class Restricted extends RestrictedBase {
                 }
                 if (!pauseMessages) {
                     Launcher.msgUtils.sendMessage(participantMap.get("number"), missedStartCalMessage);
+                    Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false);
                 }
                 logger.warn(missedStartCalMessage);
-                Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false);
                 //save state info
                 stateJSON = saveStateJSON();
                 Launcher.dbEngine.uploadSaveState(stateJSON, participantMap.get("participant_uuid"));
@@ -430,7 +469,12 @@ public class Restricted extends RestrictedBase {
                         unixTS = TZHelper.getUnixTimestampNow();
                     }
                 } else {
-                    unixTS = TZHelper.parseTime(incomingMap.get("Body").split("\\s+")[1], false);
+                    String[] endCalSplit = incomingMap.get("Body").split("\\s+");
+                    if (endCalSplit.length >= 2){
+                        unixTS = TZHelper.parseTime(endCalSplit[1], false);
+                    } else {
+                        unixTS = TZHelper.getUnixTimestampNow();
+                    }
                 }
                 // save endcal time to state_log
                 Launcher.dbEngine.saveEndCalTime(participantMap.get("participant_uuid"), unixTS);
@@ -439,27 +483,34 @@ public class Restricted extends RestrictedBase {
                 long endTime = Launcher.dbEngine.getEndCalTime(participantMap.get("participant_uuid"));
                 int validTRE = TZHelper.determineGoodFastTime(startTime, endTime);
                 if (validTRE == -1){
-                    // update the success rate
-                    Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false);
-                    String before9Msg = pickRandomLess9TRE(startTime, endTime);
-                    Launcher.msgUtils.sendMessage(participantMap.get("number"), before9Msg);
+                    if (!pauseMessages){
+                        // update the success rate
+                        Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false);
+                        String before9Msg = pickRandomLess9TRE(startTime, endTime);
+                        Launcher.msgUtils.sendMessage(participantMap.get("number"), before9Msg);
+                    }
                 } else if (validTRE == 1) {
-                    // update the success rate
-                    Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false);
-                    String after11Msg = pickRandomGreater11TRE();
-                    Launcher.msgUtils.sendMessage(participantMap.get("number"), after11Msg);
+                    if (!pauseMessages){
+                        // update the success rate
+                        Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false);
+                        String after11Msg = pickRandomGreater11TRE();
+                        Launcher.msgUtils.sendMessage(participantMap.get("number"), after11Msg);
+                    }
                 } else {
-                    // update the success rate
-                    Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), true);
-                    String successMsg = pickRandomSuccessTRE();
-                    Launcher.msgUtils.sendMessage(participantMap.get("number"), successMsg);
+                    if (!pauseMessages){
+                        // update the success rate
+                        Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), true);
+                        String successMsg = pickRandomSuccessTRE();
+                        Launcher.msgUtils.sendMessage(participantMap.get("number"), successMsg);
+                    }
                 }
-
 
                 // send message if endcal is after 8pm
                 if (TZHelper.isAfter8PM(endTime)) {
-                    String after8PMMsg = randomAfter8PMMessage();
-                    Launcher.msgUtils.sendMessage(participantMap.get("number"), after8PMMsg);
+                    if (!pauseMessages){
+                        String after8PMMsg = randomAfter8PMMessage();
+                        Launcher.msgUtils.sendMessage(participantMap.get("number"), after8PMMsg);
+                    }
                 }
                 //save state info
                 stateJSON = saveStateJSON();
@@ -477,7 +528,9 @@ public class Restricted extends RestrictedBase {
                     }
                     resetNoEndCal();
                 }
-                Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false);
+                if (!pauseMessages){
+                    Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false);
+                }
                 //save state info
                 stateJSON = saveStateJSON();
                 Launcher.dbEngine.uploadSaveState(stateJSON, participantMap.get("participant_uuid"));

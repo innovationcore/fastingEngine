@@ -175,7 +175,24 @@ public class TimezoneHelper {
         long secondsUntil3am = Duration.between(nowUserLocalTime, userLocalTime3am).getSeconds();
         long secondsUntil3pm = Duration.between(nowUserLocalTime, userLocalTime3pm).getSeconds();
 
-        if (secondsUntil3am < 0 && secondsUntil3pm > 0) {
+        if (secondsUntil3am <= 0 && secondsUntil3pm >= 0) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public Boolean isBetween3AMand3PM(long unixTS) {
+        Instant unixUTC = Instant.ofEpochMilli(unixTS*1000L);
+        ZoneId userTZ = ZoneId.of(this.userTimezone);
+        ZonedDateTime nowUserTimezone = ZonedDateTime.ofInstant(unixUTC, userTZ);
+        LocalDateTime nowUserLocalTime = nowUserTimezone.toLocalDateTime();
+        LocalDateTime userLocalTime3am = LocalDateTime.of(nowUserLocalTime.getYear(), nowUserLocalTime.getMonth(), nowUserLocalTime.getDayOfMonth(), 03, 00, 00);
+        LocalDateTime userLocalTime3pm = LocalDateTime.of(nowUserLocalTime.getYear(), nowUserLocalTime.getMonth(), nowUserLocalTime.getDayOfMonth(), 15, 00, 00);
+        long secondsUntil3am = Duration.between(nowUserLocalTime, userLocalTime3am).getSeconds();
+        long secondsUntil3pm = Duration.between(nowUserLocalTime, userLocalTime3pm).getSeconds();
+
+        if (secondsUntil3am <= 0 && secondsUntil3pm >= 0) {
             return true;
         } else {
             return false;

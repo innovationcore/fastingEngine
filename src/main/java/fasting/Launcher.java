@@ -55,28 +55,17 @@ public class Launcher {
             startServer();
 
             //testing
-            // testing.testTiming();
-            // testing.testHappyWorking();
-            // System.out.println("\n\n\n");
-            // testing.testNoStart();
-            // System.out.println("\n\n\n");
-            // testing.testNoEnd();
             // TimezoneHelper TZHelper = new TimezoneHelper("America/Louisville","America/Louisville");
-            // System.out.println(TZHelper.yesterdaysDate());
-//             System.out.println('\n');
-//             System.out.println(TZHelper.determineGoodFastTime(1666627200, 1666641600)); // <9, noon, 4pm
-//             System.out.println(TZHelper.determineGoodFastTime(1666627200, 1666663200)); // 9-11, noon, 10pm
-//             System.out.println(TZHelper.determineGoodFastTime(1666627200, 1666670399)); // >11, noon, 11:59pm
-// System.out.println('\n');
-//             System.out.println(TZHelper.getHoursMinutesBefore(1666627200, 1666641600, 32400)); // noon, 4pm
-// System.out.println('\n');
-//             System.out.println(TZHelper.isAfter8PM(1666641600)); //4pm
-//             System.out.println(TZHelper.isAfter8PM(1666670399)); //11:59pm
-// System.out.println('\n');
+            // System.out.println(TZHelper.isBetween3AMand3PM());
+            // System.out.println(TZHelper.isBetween3AMand3PM(1666724400));
+            
 
     
             //start protocols
             restrictedWatcher = new RestrictedWatcher();
+            
+            
+            //testing
             // Map<String, String> test = new HashMap<>();
             // test.put("From", "+18596844789");
             // test.put("Body", "startcal 11:43am");
