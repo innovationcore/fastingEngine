@@ -89,22 +89,28 @@ public class Restricted extends RestrictedBase {
                         // update endcal time in state_log
                         long unixTS = TZHelper.parseTime(incomingMap.get("Body").split("\\s+")[1], true);
                         Launcher.dbEngine.saveEndCalTime(participantMap.get("participant_uuid"), unixTS);
-                        // update the success rate
-                        Launcher.dbEngine.setSuccessNextDay(participantMap.get("participant_uuid"));
                         // send successrate message depending on if <9, 9-11, or >11
                         long startTime = Launcher.dbEngine.getStartCalTime(participantMap.get("participant_uuid"));
                         long endTime = Launcher.dbEngine.getEndCalTime(participantMap.get("participant_uuid"));
                         int validTRE = TZHelper.determineGoodFastTime(startTime, endTime);
+
                         if (validTRE == -1){
+                            // update the success rate
+                            Launcher.dbEngine.setSuccessNextDay(participantMap.get("participant_uuid"), false);
                             String before9Msg = pickRandomLess9TRE(startTime, endTime);
                             Launcher.msgUtils.sendMessage(participantMap.get("number"), before9Msg);
                         } else if (validTRE == 1) {
+                            // update the success rate
+                            Launcher.dbEngine.setSuccessNextDay(participantMap.get("participant_uuid"), false);
                             String after11Msg = pickRandomGreater11TRE();
                             Launcher.msgUtils.sendMessage(participantMap.get("number"), after11Msg);
                         } else {
                             String successMsg = pickRandomSuccessTRE();
+                            // update the success rate
+                            Launcher.dbEngine.setSuccessNextDay(participantMap.get("participant_uuid"), true);
                             Launcher.msgUtils.sendMessage(participantMap.get("number"), successMsg);
                         }
+
                         // send message if endcal is after 8pm
                         if (TZHelper.isAfter8PM(endTime)) {
                             String after8PMMsg = randomAfter8PMMessage();
@@ -123,27 +129,33 @@ public class Restricted extends RestrictedBase {
                     } else if (isEndCal(incomingMap.get("Body"))) {
                         Launcher.msgUtils.sendMessage(participantMap.get("number"), TZHelper.yesterdaysDate() + ": " + pickRandomEndCalMessage());
                         // update startcal time in state_log
-                        long unixTS = TZHelper.parseTime(incomingMap.get("Body").split("\\s+")[1], true);
-                        Launcher.dbEngine.saveEndCalTime(participantMap.get("participant_uuid"), unixTS);
-                        // update the success rate
-                        Launcher.dbEngine.setSuccessNextDay(participantMap.get("participant_uuid"));
-                        long startTime = Launcher.dbEngine.getStartCalTime(participantMap.get("participant_uuid"));
-                        long endTime = Launcher.dbEngine.getEndCalTime(participantMap.get("participant_uuid"));
-                        int validTRE = TZHelper.determineGoodFastTime(startTime, endTime);
-                        if (validTRE == -1){
-                            String before9Msg = pickRandomLess9TRE(startTime, endTime);
-                            Launcher.msgUtils.sendMessage(participantMap.get("number"), before9Msg);
-                        } else if (validTRE == 1) {
-                            String after11Msg = pickRandomGreater11TRE();
-                            Launcher.msgUtils.sendMessage(participantMap.get("number"), after11Msg);
+                        long unixTS1 = TZHelper.parseTime(incomingMap.get("Body").split("\\s+")[1], true);
+                        Launcher.dbEngine.saveEndCalTime(participantMap.get("participant_uuid"), unixTS1);
+                        long startTime1 = Launcher.dbEngine.getStartCalTime(participantMap.get("participant_uuid"));
+                        long endTime1 = Launcher.dbEngine.getEndCalTime(participantMap.get("participant_uuid"));
+                        int validTRE1 = TZHelper.determineGoodFastTime(startTime1, endTime1);
+
+                        if (validTRE1 == -1){
+                            // update the success rate
+                            Launcher.dbEngine.setSuccessNextDay(participantMap.get("participant_uuid"), false);
+                            String before9Msg1 = pickRandomLess9TRE(startTime1, endTime1);
+                            Launcher.msgUtils.sendMessage(participantMap.get("number"), before9Msg1);
+                        } else if (validTRE1 == 1) {
+                            // update the success rate
+                            Launcher.dbEngine.setSuccessNextDay(participantMap.get("participant_uuid"), false);
+                            String after11Msg1 = pickRandomGreater11TRE();
+                            Launcher.msgUtils.sendMessage(participantMap.get("number"), after11Msg1);
                         } else {
-                            String successMsg = pickRandomSuccessTRE();
-                            Launcher.msgUtils.sendMessage(participantMap.get("number"), successMsg);
+                            // update the success rate
+                            Launcher.dbEngine.setSuccessNextDay(participantMap.get("participant_uuid"), true);
+                            String successMsg1 = pickRandomSuccessTRE();
+                            Launcher.msgUtils.sendMessage(participantMap.get("number"), successMsg1);
                         }
+
                         // send message if endcal is after 8pm
-                        if (TZHelper.isAfter8PM(endTime)) {
-                            String after8PMMsg = randomAfter8PMMessage();
-                            Launcher.msgUtils.sendMessage(participantMap.get("number"), after8PMMsg);
+                        if (TZHelper.isAfter8PM(endTime1)) {
+                            String after8PMMsg1 = randomAfter8PMMessage();
+                            Launcher.msgUtils.sendMessage(participantMap.get("number"), after8PMMsg1);
                         }
                     } else if(isStartCal(incomingMap.get("Body"))) {
                         receivedStartCal();
@@ -302,8 +314,10 @@ public class Restricted extends RestrictedBase {
     @Override
     public boolean stateNotify(String state){
 
-        //save change to state log
-        logState(state);
+        //save change to state log, only if not currently restoring state
+        if(!pauseMessages) {
+            logState(state);
+        }
         long unixTS;
 
         if(stateMap != null) {
@@ -391,8 +405,7 @@ public class Restricted extends RestrictedBase {
                 Launcher.dbEngine.uploadSaveState(stateJSON, participantMap.get("participant_uuid"));
                 break;
             case warnEndCal:
-                //set end for end
-                // maybe this should be sent 9 hours after startcal
+                //set end for endcal
                 setEndDeadline(TZHelper.getSecondsTo359am());
                 String warnEndCalMessage = participantMap.get("first_name") +  ", we haven't heard from you. Remember to text \"ENDCAL\" when you go calorie free.";
                 if (!pauseMessages){
@@ -421,22 +434,28 @@ public class Restricted extends RestrictedBase {
                 }
                 // save endcal time to state_log
                 Launcher.dbEngine.saveEndCalTime(participantMap.get("participant_uuid"), unixTS);
-                // update the successrate in state_log
-                Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), true);
                 // determine if the user endcal'd <9, 9-11, >11
                 long startTime = Launcher.dbEngine.getStartCalTime(participantMap.get("participant_uuid"));
                 long endTime = Launcher.dbEngine.getEndCalTime(participantMap.get("participant_uuid"));
                 int validTRE = TZHelper.determineGoodFastTime(startTime, endTime);
                 if (validTRE == -1){
+                    // update the success rate
+                    Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false);
                     String before9Msg = pickRandomLess9TRE(startTime, endTime);
                     Launcher.msgUtils.sendMessage(participantMap.get("number"), before9Msg);
                 } else if (validTRE == 1) {
+                    // update the success rate
+                    Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false);
                     String after11Msg = pickRandomGreater11TRE();
                     Launcher.msgUtils.sendMessage(participantMap.get("number"), after11Msg);
                 } else {
+                    // update the success rate
+                    Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), true);
                     String successMsg = pickRandomSuccessTRE();
                     Launcher.msgUtils.sendMessage(participantMap.get("number"), successMsg);
                 }
+
+
                 // send message if endcal is after 8pm
                 if (TZHelper.isAfter8PM(endTime)) {
                     String after8PMMsg = randomAfter8PMMessage();
@@ -592,10 +611,8 @@ public class Restricted extends RestrictedBase {
                 if(startWarnDiff <= 0) {
                     startWarnDiff = 300;
                 }
-                this.pauseMessages = true;
                 setStartWarnDeadline(startWarnDiff);
                 receivedWaitStart(); // initial to waitStart
-                this.pauseMessages = false;
             }
 
         } catch (Exception ex) {
@@ -687,7 +704,7 @@ public class Restricted extends RestrictedBase {
         new ArrayList<String>() {{
             add("You ended your time-restricted eating [SHORT] too early. Your success rate is now [SUCCESS]. Try planning ahead for how you will end your TRE.");
             add("You ended your time-restricted eating too early! [NAME], your success rate is now [SUCCESS]. Have small snacks or meals ready so you can stay on time.");
-            add("[NAME] you ended your time-restricted eating too early! Your success rate is now [SUCCESS]. If you need help, get a family member to help you end your fasting time!");
+            add("[NAME], you ended your time-restricted eating too early! Your success rate is now [SUCCESS]. If you need help, get a family member to help you end your fasting time!");
             add("You ended your time-restricted eating too early. Your success rate is now [SUCCESS]. Try putting Post-Its on your fridge and cupboards to help you remember your target End Calories time!");
         }});
         Random rand = new Random();
@@ -713,7 +730,7 @@ public class Restricted extends RestrictedBase {
         new ArrayList<String>() {{
             add("You ended your TRE too late. Your success rate is now [SUCCESS]. Try planning ahead for how you will end calories earlier.");
             add("You slipped up and ended too late. Your success rate is now [SUCCESS]. Let's get back on track tomorrow!");
-            add("[NAME] you exceeded the target eating window! Your success rate is now [SUCCESS]. If you need help, get a family member to help you end your calories on time!");
+            add("[NAME], you exceeded the target eating window! Your success rate is now [SUCCESS]. If you need help, get a family member to help you end your calories on time!");
             add("You slipped up and consumed calories for too long. Your success rate is now [SUCCESS]. Let's get back on track tomorrow!");
         }});
         Random rand = new Random();
