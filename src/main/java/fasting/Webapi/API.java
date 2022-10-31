@@ -165,13 +165,14 @@ public class API {
     @Path("/next-state")
     @Produces(MediaType.APPLICATION_JSON)
     public Response moveToNextState(@QueryParam("participantUUID") String participantId,
-                                    @QueryParam("toState") String nextState) {
+                                    @QueryParam("toState") String nextState,
+                                    @QueryParam("time") long time) {
         String responseString = "";
         try {
 
             if (participantId != null) {
                 //send to state machine
-                String newState = Launcher.restrictedWatcher.moveToState(participantId, nextState);
+                String newState = Launcher.restrictedWatcher.moveToState(participantId, nextState, time);
 
                 Map<String,String> response = new HashMap<>();
                 response.put("status","ok");

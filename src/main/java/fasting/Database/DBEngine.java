@@ -576,16 +576,18 @@ public class DBEngine {
         long unixTS = 0;
 
         try {
-            String query = "SELECT TOP 1 JSON_VALUE(log_json, '$.start_cal_time') FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'startcal' ORDER BY TS DESC";
+            // changing this from TOP 1 bc a new log without time gets logged which will always make this return null
+            String query = "SELECT JSON_VALUE(log_json, '$.start_cal_time') FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'startcal' ORDER BY TS DESC";
             conn = ds.getConnection();
             stmt = conn.prepareStatement(query);
             stmt.setString(1, participantUUID);
             rs = stmt.executeQuery();
 
-            if (rs.next()) {
+            while (rs.next()) {
                 unixString = rs.getString(1);
                 if(!rs.wasNull()){
                     unixTS = Long.parseLong(unixString);
+                    break;
                 }
             }
         } catch (Exception ex) {
