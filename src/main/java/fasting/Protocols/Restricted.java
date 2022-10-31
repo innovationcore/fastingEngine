@@ -84,44 +84,59 @@ public class Restricted extends RestrictedBase {
                     if (isDayoff(incomingMap.get("Body"))) {
                         Launcher.msgUtils.sendMessage(participantMap.get("number"), "Got it, no TRE today! Thank you for telling us. Please still let us know your \"STARTCAL\" and \"ENDCAL\" today.");
                     } else if (isEndCal(incomingMap.get("Body"))) {
-                        // send endcal message for yesterday
-                        Launcher.msgUtils.sendMessage(participantMap.get("number"), TZHelper.yesterdaysDate()+ ": " + pickRandomEndCalMessage());
-                        // update endcal time in state_log
-                        String[] endCalSplit = incomingMap.get("Body").split("\\s+");
-                        long unixTS;
-                        if (endCalSplit.length >= 2){
-                            unixTS = TZHelper.parseTime(endCalSplit[1], true);
+                        // check to see if startcal was sent yesterday
+                        // if so, save and send message
+                        // if not, sent unknown message message
+                        long recentStartCalTime = Launcher.dbEngine.getStartCalTime(participantMap.get("participant_uuid"));
+                        if (recentStartCalTime == 0) {
+                            Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Please send \"STARTCAL\" when you begin calories for " +
+                                                                                    "the day; \"ENDCAL\" when you are done with calories for the day.");
                         } else {
-                            unixTS = TZHelper.getUnixTimestampNow();
-                        }
-                        Launcher.dbEngine.saveEndCalTime(participantMap.get("participant_uuid"), unixTS);
-                        // send successrate message depending on if <9, 9-11, or >11
-                        long startTime = Launcher.dbEngine.getStartCalTime(participantMap.get("participant_uuid"));
-                        long endTime = Launcher.dbEngine.getEndCalTime(participantMap.get("participant_uuid"));
-                        int validTRE = TZHelper.determineGoodFastTime(startTime, endTime);
+                            boolean wasStartCalSentYesterday = TZHelper.isTimeForYesterday(recentStartCalTime);
+                            if (wasStartCalSentYesterday) {
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), TZHelper.yesterdaysDate()+ ": " + pickRandomEndCalMessage());
+                                // update endcal time in state_log
+                                String[] endCalSplit = incomingMap.get("Body").split("\\s+");
+                                long unixTS;
+                                if (endCalSplit.length >= 2){
+                                    unixTS = TZHelper.parseTime(endCalSplit[1], true);
+                                } else {
+                                    unixTS = TZHelper.getUnixTimestampNow();
+                                }
+                                Launcher.dbEngine.saveEndCalTime(participantMap.get("participant_uuid"), unixTS);
+                                // send successrate message depending on if <9, 9-11, or >11
+                                long startTime = Launcher.dbEngine.getStartCalTime(participantMap.get("participant_uuid"));
+                                long endTime = Launcher.dbEngine.getEndCalTime(participantMap.get("participant_uuid"));
+                                int validTRE = TZHelper.determineGoodFastTime(startTime, endTime);
 
-                        if (validTRE == -1){
-                            // update the success rate
-                            Launcher.dbEngine.setSuccessNextDay(participantMap.get("participant_uuid"), false);
-                            String before9Msg = pickRandomLess9TRE(startTime, endTime);
-                            Launcher.msgUtils.sendMessage(participantMap.get("number"), before9Msg);
-                        } else if (validTRE == 1) {
-                            // update the success rate
-                            Launcher.dbEngine.setSuccessNextDay(participantMap.get("participant_uuid"), false);
-                            String after11Msg = pickRandomGreater11TRE();
-                            Launcher.msgUtils.sendMessage(participantMap.get("number"), after11Msg);
-                        } else {
-                            String successMsg = pickRandomSuccessTRE();
-                            // update the success rate
-                            Launcher.dbEngine.setSuccessNextDay(participantMap.get("participant_uuid"), true);
-                            Launcher.msgUtils.sendMessage(participantMap.get("number"), successMsg);
-                        }
+                                if (validTRE == -1){
+                                    // update the success rate
+                                    Launcher.dbEngine.setSuccessNextDay(participantMap.get("participant_uuid"), false);
+                                    String before9Msg = pickRandomLess9TRE(startTime, endTime);
+                                    Launcher.msgUtils.sendMessage(participantMap.get("number"), before9Msg);
+                                } else if (validTRE == 1) {
+                                    // update the success rate
+                                    Launcher.dbEngine.setSuccessNextDay(participantMap.get("participant_uuid"), false);
+                                    String after11Msg = pickRandomGreater11TRE();
+                                    Launcher.msgUtils.sendMessage(participantMap.get("number"), after11Msg);
+                                } else {
+                                    String successMsg = pickRandomSuccessTRE();
+                                    // update the success rate
+                                    Launcher.dbEngine.setSuccessNextDay(participantMap.get("participant_uuid"), true);
+                                    Launcher.msgUtils.sendMessage(participantMap.get("number"), successMsg);
+                                }
 
-                        // send message if endcal is after 8pm
-                        if (TZHelper.isAfter8PM(endTime)) {
-                            String after8PMMsg = randomAfter8PMMessage();
-                            Launcher.msgUtils.sendMessage(participantMap.get("number"), after8PMMsg);
+                                // send message if endcal is after 8pm
+                                if (TZHelper.isAfter8PM(endTime)) {
+                                    String after8PMMsg = randomAfter8PMMessage();
+                                    Launcher.msgUtils.sendMessage(participantMap.get("number"), after8PMMsg);
+                                }
+                            } else {
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Please send \"STARTCAL\" when you begin calories for " +
+                                                                                        "the day; \"ENDCAL\" when you are done with calories for the day.");
+                            }
                         }
+                        
                     } else if(isStartCal(incomingMap.get("Body"))) {
                         receivedStartCal();
                     } else {
@@ -133,41 +148,57 @@ public class Restricted extends RestrictedBase {
                     if (isDayoff(incomingMap.get("Body"))) {
                         Launcher.msgUtils.sendMessage(participantMap.get("number"), "Got it, no TRE today! Thank you for telling us. Please still let us know your \"STARTCAL\" and \"ENDCAL\" today.");
                     } else if (isEndCal(incomingMap.get("Body"))) {
-                        Launcher.msgUtils.sendMessage(participantMap.get("number"), TZHelper.yesterdaysDate() + ": " + pickRandomEndCalMessage());
-                        // update startcal time in state_log
-                        String[] endCalSplit = incomingMap.get("Body").split("\\s+");
-                        long unixTS;
-                        if (endCalSplit.length >= 2){
-                            unixTS = TZHelper.parseTime(endCalSplit[1], true);
+                        // check to see if startcal was sent yesterday
+                        // if so, save and send message
+                        // if not, sent unknown message message
+                        long recentStartCalTime = Launcher.dbEngine.getStartCalTime(participantMap.get("participant_uuid"));
+                        if (recentStartCalTime == 0) {
+                            Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Please send \"STARTCAL\" when you begin calories for " +
+                                                                                    "the day; \"ENDCAL\" when you are done with calories for the day.");
                         } else {
-                            unixTS = TZHelper.getUnixTimestampNow();
-                        }
-                        Launcher.dbEngine.saveEndCalTime(participantMap.get("participant_uuid"), unixTS);
-                        long startTime1 = Launcher.dbEngine.getStartCalTime(participantMap.get("participant_uuid"));
-                        long endTime1 = Launcher.dbEngine.getEndCalTime(participantMap.get("participant_uuid"));
-                        int validTRE1 = TZHelper.determineGoodFastTime(startTime1, endTime1);
+                            boolean wasStartCalSentYesterday = TZHelper.isTimeForYesterday(recentStartCalTime);
+                            if (wasStartCalSentYesterday) {
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), TZHelper.yesterdaysDate()+ ": " + pickRandomEndCalMessage());
+                                // update endcal time in state_log
+                                String[] endCalSplit = incomingMap.get("Body").split("\\s+");
+                                long unixTS;
+                                if (endCalSplit.length >= 2){
+                                    unixTS = TZHelper.parseTime(endCalSplit[1], true);
+                                } else {
+                                    unixTS = TZHelper.getUnixTimestampNow();
+                                }
+                                Launcher.dbEngine.saveEndCalTime(participantMap.get("participant_uuid"), unixTS);
+                                // send successrate message depending on if <9, 9-11, or >11
+                                long startTime = Launcher.dbEngine.getStartCalTime(participantMap.get("participant_uuid"));
+                                long endTime = Launcher.dbEngine.getEndCalTime(participantMap.get("participant_uuid"));
+                                int validTRE = TZHelper.determineGoodFastTime(startTime, endTime);
 
-                        if (validTRE1 == -1){
-                            // update the success rate
-                            Launcher.dbEngine.setSuccessNextDay(participantMap.get("participant_uuid"), false);
-                            String before9Msg1 = pickRandomLess9TRE(startTime1, endTime1);
-                            Launcher.msgUtils.sendMessage(participantMap.get("number"), before9Msg1);
-                        } else if (validTRE1 == 1) {
-                            // update the success rate
-                            Launcher.dbEngine.setSuccessNextDay(participantMap.get("participant_uuid"), false);
-                            String after11Msg1 = pickRandomGreater11TRE();
-                            Launcher.msgUtils.sendMessage(participantMap.get("number"), after11Msg1);
-                        } else {
-                            // update the success rate
-                            Launcher.dbEngine.setSuccessNextDay(participantMap.get("participant_uuid"), true);
-                            String successMsg1 = pickRandomSuccessTRE();
-                            Launcher.msgUtils.sendMessage(participantMap.get("number"), successMsg1);
-                        }
+                                if (validTRE == -1){
+                                    // update the success rate
+                                    Launcher.dbEngine.setSuccessNextDay(participantMap.get("participant_uuid"), false);
+                                    String before9Msg = pickRandomLess9TRE(startTime, endTime);
+                                    Launcher.msgUtils.sendMessage(participantMap.get("number"), before9Msg);
+                                } else if (validTRE == 1) {
+                                    // update the success rate
+                                    Launcher.dbEngine.setSuccessNextDay(participantMap.get("participant_uuid"), false);
+                                    String after11Msg = pickRandomGreater11TRE();
+                                    Launcher.msgUtils.sendMessage(participantMap.get("number"), after11Msg);
+                                } else {
+                                    String successMsg = pickRandomSuccessTRE();
+                                    // update the success rate
+                                    Launcher.dbEngine.setSuccessNextDay(participantMap.get("participant_uuid"), true);
+                                    Launcher.msgUtils.sendMessage(participantMap.get("number"), successMsg);
+                                }
 
-                        // send message if endcal is after 8pm
-                        if (TZHelper.isAfter8PM(endTime1)) {
-                            String after8PMMsg1 = randomAfter8PMMessage();
-                            Launcher.msgUtils.sendMessage(participantMap.get("number"), after8PMMsg1);
+                                // send message if endcal is after 8pm
+                                if (TZHelper.isAfter8PM(endTime)) {
+                                    String after8PMMsg = randomAfter8PMMessage();
+                                    Launcher.msgUtils.sendMessage(participantMap.get("number"), after8PMMsg);
+                                }
+                            } else {
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Please send \"STARTCAL\" when you begin calories for " +
+                                                                                        "the day; \"ENDCAL\" when you are done with calories for the day.");
+                            }
                         }
                     } else if(isStartCal(incomingMap.get("Body"))) {
                         receivedStartCal();
