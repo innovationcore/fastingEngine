@@ -110,7 +110,7 @@ public class RestrictedWatcher {
         return validNextStates;
     }
 
-    public String moveToState(String participantId, String moveToState) {
+    public String moveToState(String participantId, String moveToState, long timestamp) {
         String newState = "";
         try {
             Restricted participant = restrictedMap.get(participantId);
@@ -150,6 +150,7 @@ public class RestrictedWatcher {
                 case warnStartCal:
                     if (moveToState.equals("startcal")) {
                         participant.receivedStartCal();
+                        Launcher.dbEngine.saveStartCalTime(participantId, timestamp);
                         newState = "startcal";
                     } else if (moveToState.equals("missedStartCal")) {
                         participant.timeoutwarnStartCalTomissedStartCal();
@@ -163,9 +164,11 @@ public class RestrictedWatcher {
                 case startcal:
                     if (moveToState.equals("startcal")){ 
                         participant.receivedStartCal();
+                        Launcher.dbEngine.saveStartCalTime(participantId, timestamp);
                         newState = "startcal";
                     } else if (moveToState.equals("endcal")) {
                         participant.receivedEndCal();
+                        Launcher.dbEngine.saveEndCalTime(participantId, timestamp);
                         newState = "endcal";
                     } else if (moveToState.equals("warnEndCal")){
                         participant.timeoutstartcalTowarnEndCal();
@@ -189,6 +192,7 @@ public class RestrictedWatcher {
                 case warnEndCal:
                     if (moveToState.equals("endcal")) {
                         participant.receivedEndCal();
+                        Launcher.dbEngine.saveEndCalTime(participantId, timestamp);
                         newState = "endcal";
                     } else if (moveToState.equals("missedEndCal")){ 
                         participant.timeoutwarnEndCalTomissedEndCal();

@@ -348,10 +348,9 @@ public class Restricted extends RestrictedBase {
     @Override
     public boolean stateNotify(String state){
 
-        //save change to state log, only if not currently restoring state
-        if(!pauseMessages) {
-            logState(state);
-        }
+        // can't add a pause here, because it will get stuck if it restarts next day
+        logState(state);
+        
         long unixTS;
 
         if(stateMap != null) {
@@ -420,6 +419,7 @@ public class Restricted extends RestrictedBase {
                         unixTS = TZHelper.getUnixTimestampNow();
                     }
                 }
+
                 Launcher.dbEngine.saveStartCalTime(participantMap.get("participant_uuid"), unixTS);
                 
                 //save state info
@@ -690,6 +690,9 @@ public class Restricted extends RestrictedBase {
         if(gson != null) {
             Map<String,String> messageMap = new HashMap<>();
             messageMap.put("state",state);
+            if (pauseMessages) {
+                messageMap.put("restored","true");
+            }
             String json_string = gson.toJson(messageMap);
 
             String insertQuery = "INSERT INTO state_log " +
