@@ -79,24 +79,36 @@ public class API {
                 //record incoming
                 Launcher.dbEngine.executeUpdate(insertQuery);
 
-                //send and receive from rasa
+                //build a Post request and send to rasa
                 String body = formParams.get("Body").get(0);
                 HttpClient httpClient = HttpClientBuilder.create().build();
                 HttpPost request = new HttpPost("http://localhost:5005/webhooks/rest/webhook");
                 StringEntity params = new StringEntity("{\"sender\":\""+participantId+"\", \"message\":\""+body+"\"}");
                 request.addHeader("content-type", "application/raw");
                 request.setEntity(params);
+
                 HttpResponse response = httpClient.execute(request);
                 int code = response.getStatusLine().getStatusCode();
+
                 if (code==200) { // response comes back in the form [{recipient-id, text}] as a bytestream
                     String text = gson.fromJson(EntityUtils.toString(response.getEntity()), JsonArray.class).get(0).getAsJsonObject().get("text").getAsString();
-                    System.out.println(text); // message to the user
+                    logger.info("Bot Response: "+text); // message to the user
+
+                    //build Get request to rasa to extract intent
                     HttpGet intent_request = new HttpGet("http://localhost:5005/conversations/"+participantId+"/tracker");
                     HttpResponse intent_response = httpClient.execute(intent_request);
-                    String intent = gson.fromJson(EntityUtils.toString(intent_response.getEntity()), JsonElement.class).getAsJsonObject().get("latest_message").getAsJsonObject().get("intent").getAsJsonObject().get("name").getAsString();
-                    System.out.println(intent); // intent of previous message
+                    JsonObject intent_object = gson.fromJson(EntityUtils.toString(intent_response.getEntity()), JsonElement.class).getAsJsonObject();
+                    String intent = intent_object.get("latest_message").getAsJsonObject().get("intent").getAsJsonObject().get("name").getAsString();
+                    logger.info("Predicted Intent: "+intent); // intent of previous message
+
+                    //also extract user input time from Get request if applicable
+                    if (intent.equals("start")||intent.equals("end")){ // time input detected
+                        float time = intent_object.get("slots").getAsJsonObject().get("time").getAsFloat();
+                        logger.info("Time Input: "+time); // user input time as a decimal number of hours (e.g. 8:30pm = 20.5)
+                        // if no input argument was specified, defaults to rasa system time
+                    }
                 } else {
-                    System.out.println("HTTP Error Code "+code);
+                    logger.error("HTTP Error Code: "+code);
                 }
 
                 //send to state machine
