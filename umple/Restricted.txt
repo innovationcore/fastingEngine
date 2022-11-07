@@ -33,6 +33,7 @@ class RestrictedBase
       };
 
       receivedStartCal -> startcal;
+      receivedYesterdayEndCal -> yesterdayEndCalWait;
       after(startWarnDeadline) -> warnStartCal;
     }
 
@@ -42,8 +43,21 @@ class RestrictedBase
       };
 
       receivedStartCal -> startcal;
+       receivedYesterdayEndCal -> yesterdayEndCalWarn;
       after(startDeadline) -> missedStartCal;
 
+    }
+    
+    yesterdayEndCalWait {
+      entry / {
+        stateNotify("yesterdayEndCalWait");
+      } -> waitStart;
+    }
+    
+    yesterdayEndCalWarn {
+      entry / {
+        stateNotify("yesterdayEndCalWarn");
+      } -> warnStartCal;
     }
 
     startcal {
