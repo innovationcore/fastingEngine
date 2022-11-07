@@ -71,10 +71,10 @@ public class RestrictedWatcher {
                     validNextStates = "waitStart,warnStartCal,startcal,warnEndCal";
                     break;
                 case "waitStart":
-                    validNextStates = "warnStartCal,startcal";
+                    validNextStates = "warnStartCal,startcal,yesterdayEndCalWait";
                     break;
                 case "warnStartCal":
-                    validNextStates = "startcal,missedStartCal";
+                    validNextStates = "startcal,missedStartCal,yesterdayEndCalWarn";
                     break;
                 case "startcal":
                     validNextStates = "startcal,endcal,warnEndCal";
@@ -138,6 +138,10 @@ public class RestrictedWatcher {
                     if (moveToState.equals("warnStartCal")){
                         participant.timeoutwaitStartTowarnStartCal();
                         newState = "warnStartCal";
+                    } else if (moveToState.equals("yesterdayEndCalWait")) {
+                        Launcher.dbEngine.createEndCal(participantId, timestamp);
+                        participant.receivedYesterdayEndCal();
+                        newState = "yesterdayEndCalWait";
                     } else if (moveToState.equals("startcal")) {
                         participant.receivedStartCal();
                         newState = "startcal";
@@ -152,6 +156,10 @@ public class RestrictedWatcher {
                         participant.receivedStartCal();
                         Launcher.dbEngine.saveStartCalTime(participantId, timestamp);
                         newState = "startcal";
+                    } else if (moveToState.equals("yesterdayEndCalWarn")) {
+                        Launcher.dbEngine.createEndCal(participantId, timestamp);
+                        participant.receivedYesterdayEndCal();
+                        newState = "yesterdayEndCalWarn";
                     } else if (moveToState.equals("missedStartCal")) {
                         participant.timeoutwarnStartCalTomissedStartCal();
                         newState = "missedStartCal";

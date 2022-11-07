@@ -309,6 +309,31 @@ public class TimezoneHelper {
         }
     }
 
+    public boolean isTimeForYesterday(long unixTS){
+        Instant unixUTC = Instant.ofEpochMilli(unixTS*1000L);
+        ZoneId unixTZ = ZoneId.of(this.userTimezone);
+        ZonedDateTime userTimezoneDate = ZonedDateTime.ofInstant(unixUTC, unixTZ);
+        LocalDateTime unixLocalTime = userTimezoneDate.toLocalDateTime();
+
+        Instant nowUTC = Instant.now();
+        ZoneId userTZ = ZoneId.of(this.userTimezone);
+        ZonedDateTime nowUserTimezone = ZonedDateTime.ofInstant(nowUTC, userTZ);
+        LocalDateTime nowUserLocalTime = nowUserTimezone.toLocalDateTime();
+
+        LocalDateTime yesterdayLocalTime4am = LocalDateTime.of(nowUserLocalTime.getYear(), nowUserLocalTime.getMonth(), nowUserLocalTime.getDayOfMonth(), 04, 00, 00);
+        yesterdayLocalTime4am = yesterdayLocalTime4am.minusDays(1);
+        LocalDateTime todayLocalTime4am = LocalDateTime.of(nowUserLocalTime.getYear(), nowUserLocalTime.getMonth(), nowUserLocalTime.getDayOfMonth(), 04, 00, 00);
+        long secondsYesterday4am = Duration.between(unixLocalTime, yesterdayLocalTime4am).getSeconds(); 
+        long secondsToday4am = Duration.between(unixLocalTime, todayLocalTime4am).getSeconds(); 
+
+        if (secondsYesterday4am <= 0 && secondsToday4am >= 0){
+            return true;
+        } else {
+            return false;
+        }
+
+    }
+
     /**
     * gets the user's timezone
     */

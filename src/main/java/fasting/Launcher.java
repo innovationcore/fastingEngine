@@ -56,6 +56,11 @@ public class Launcher {
 
             //testing
             // TimezoneHelper TZHelper = new TimezoneHelper("America/Louisville","America/Louisville");
+            // System.out.println(TZHelper.isTimeForYesterday(1667116799)); //before yesterday 4am
+            // System.out.println(TZHelper.isTimeForYesterday(1667116800)); //yesterday 4am
+            // System.out.println(TZHelper.isTimeForYesterday(1667150000)); // between yest 4am and today 4am
+            // System.out.println(TZHelper.isTimeForYesterday(1667203200)); // today 4am
+            // System.out.println(TZHelper.isTimeForYesterday(1667203201)); // aftertoday 4am
             // System.out.println(TZHelper.isBetween3AMand3PM());
             // System.out.println(TZHelper.isBetween3AMand3PM(1666724400));
             
