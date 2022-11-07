@@ -878,4 +878,51 @@ public class DBEngine {
         }
         return successRate;
     }
+
+    // public void addDayoff(String participantUUID){
+    //     Connection conn = null;
+    //     PreparedStatement stmt = null;
+
+    //     try {
+    //         String query = "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.dayoff', 'true') WHERE TS IN (SELECT TOP 1 TS FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'waitStart' ORDER BY TS DESC)";
+    //         conn = ds.getConnection();
+    //         stmt = conn.prepareStatement(query);
+    //         stmt.setString(1, participantUUID);
+    //         stmt.executeUpdate();
+
+    //     } catch (Exception ex) {
+    //         ex.printStackTrace();
+    //     } finally {
+    //         try { stmt.close(); } catch (Exception e) { /* Null Ignored */ }
+    //         try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
+    //     }
+    // }
+
+    // public String isDayoff(String participantUUID){
+    //     Connection conn = null;
+    //     PreparedStatement stmt = null;
+    //     ResultSet rs = null;
+    //     String timestamp = "";
+
+    //     try {
+    //         String query = "SELECT TOP 1 JSON_VALUE(log_json, '$.dayoff') AS dayoff, TS FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'waitStart' ORDER BY TS DESC";
+    //         conn = ds.getConnection();
+    //         stmt = conn.prepareStatement(query);
+    //         stmt.setString(1, participantUUID);
+    //         rs = stmt.executeQuery();
+    //         if(rs.next()){
+    //             String dayoff = rs.getString("dayoff");
+    //             if(!rs.wasNull() && dayoff.equals("true")){
+    //                 timestamp = rs.getTimestamp("TS").toString().split("\\.")[0];
+    //             }
+    //         }
+    //     } catch (Exception ex) {
+    //         ex.printStackTrace();
+    //     } finally {
+    //         try { rs.close(); }   catch (Exception e) { /* Null Ignored */ }
+    //         try { stmt.close(); } catch (Exception e) { /* Null Ignored */ }
+    //         try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
+    //     }
+    //     return timestamp;
+    // }
 }

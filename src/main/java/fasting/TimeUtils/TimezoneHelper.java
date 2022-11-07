@@ -331,8 +331,20 @@ public class TimezoneHelper {
         } else {
             return false;
         }
-
     }
+
+    // public boolean isSameDayDayoff(String sqlTimeString) {
+    //     // 2022-11-07 21:06:07.343
+    //     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    //     LocalDateTime datetime = LocalDateTime.parse(sqlTimeString, formatter);
+    //     ZoneId sqlTZ = ZoneId.of("UTC");
+    //     ZonedDateTime zonedDateTime = ZonedDateTime.of(datetime, sqlTZ);
+    //     LocalDateTime nowSQLLocalTime = zonedDateTime.toLocalDateTime();
+    //     // check if zonedDateTime is today
+
+    //     long epochts = nowSQLLocalTime.toEpochSecond(sqlTZ.getRules().getOffset(nowSQLLocalTime));
+    //     return isSameDay(epochts);
+    // }
 
     /**
     * gets the user's timezone

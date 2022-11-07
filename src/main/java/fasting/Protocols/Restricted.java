@@ -29,6 +29,7 @@ public class Restricted extends RestrictedBase {
     private long startTimestamp = 0;
     private TimezoneHelper TZHelper;
     private boolean pauseMessages;
+    private boolean isDayOff = false;
     private boolean isFromYesterday = false;
     private Map<String,String> incomingMap;
 
@@ -83,6 +84,7 @@ public class Restricted extends RestrictedBase {
                     break;
                 case waitStart:
                     if (isDayoff(incomingMap.get("Body"))) {
+                        isDayOff = true;
                         Launcher.msgUtils.sendMessage(participantMap.get("number"), "Got it, no TRE today! Thank you for telling us. Please still let us know your \"STARTCAL\" and \"ENDCAL\" today.");
                     } else if (isEndCal(incomingMap.get("Body"))) {
                         receivedYesterdayEndCal();
@@ -95,6 +97,7 @@ public class Restricted extends RestrictedBase {
                     break;
                 case warnStartCal:
                     if (isDayoff(incomingMap.get("Body"))) {
+                        isDayOff = true;
                         Launcher.msgUtils.sendMessage(participantMap.get("number"), "Got it, no TRE today! Thank you for telling us. Please still let us know your \"STARTCAL\" and \"ENDCAL\" today.");
                     } else if (isEndCal(incomingMap.get("Body"))) {
                         receivedYesterdayEndCal();
@@ -106,15 +109,16 @@ public class Restricted extends RestrictedBase {
                     }
                     break;
                 case yesterdayEndCalWait:
-                     String yesterdayEndCalWaitMessage =  participantMap.get("participant_uuid") + " yesterdayEndCalWait unexpected message";
+                    String yesterdayEndCalWaitMessage =  participantMap.get("participant_uuid") + " yesterdayEndCalWait unexpected message";
                     logger.warn(yesterdayEndCalWaitMessage);
                     break;
                 case yesterdayEndCalWarn:
-                     String yesterdayEndCalWarnMessage =  participantMap.get("participant_uuid") + " yesterdayEndCalWarn unexpected message";
+                    String yesterdayEndCalWarnMessage =  participantMap.get("participant_uuid") + " yesterdayEndCalWarn unexpected message";
                     logger.warn(yesterdayEndCalWarnMessage);
                     break;
                 case startcal:
                     if (isDayoff(incomingMap.get("Body"))) {
+                        isDayOff = true;
                         Launcher.msgUtils.sendMessage(participantMap.get("number"), "Got it, no TRE today! Thank you for telling us. Please still let us know your \"ENDCAL\" today. ");
                     } else if(isStartCal(incomingMap.get("Body"))){
                         Launcher.msgUtils.sendMessage(participantMap.get("number"), "You've already started consuming calories for the day. Text \"ENDCAL\" when you finish your TRE today.");
@@ -287,6 +291,7 @@ public class Restricted extends RestrictedBase {
 
         long unixTS;
         long recentStartCalTime;
+        boolean isSameDay;
 
         logState(state);
     
@@ -367,17 +372,23 @@ public class Restricted extends RestrictedBase {
 
                         if (validTRE == -1){
                             // update the success rate
-                            Launcher.dbEngine.setSuccessNextDay(participantMap.get("participant_uuid"), false);
+                            if (!isDayOff){
+                                Launcher.dbEngine.setSuccessNextDay(participantMap.get("participant_uuid"), false);
+                            }
                             String before9Msg = pickRandomLess9TRE(startTime, endTime);
                             Launcher.msgUtils.sendMessage(participantMap.get("number"), TZHelper.yesterdaysDate()+ ": " + before9Msg);
                         } else if (validTRE == 1) {
                             // update the success rate
-                            Launcher.dbEngine.setSuccessNextDay(participantMap.get("participant_uuid"), false);
+                            if (!isDayOff){
+                                Launcher.dbEngine.setSuccessNextDay(participantMap.get("participant_uuid"), false);
+                            }
                             String after11Msg = pickRandomGreater11TRE();
                             Launcher.msgUtils.sendMessage(participantMap.get("number"), TZHelper.yesterdaysDate()+ ": " + after11Msg);
                         } else {
                             // update the success rate
-                            Launcher.dbEngine.setSuccessNextDay(participantMap.get("participant_uuid"), true);
+                            if (!isDayOff){
+                                Launcher.dbEngine.setSuccessNextDay(participantMap.get("participant_uuid"), true);
+                            }
                             String successMsg = pickRandomSuccessTRE();
                             Launcher.msgUtils.sendMessage(participantMap.get("number"), TZHelper.yesterdaysDate()+ ": " + successMsg);
                         }
@@ -433,17 +444,23 @@ public class Restricted extends RestrictedBase {
 
                         if (validTRE == -1){
                             // update the success rate
-                            Launcher.dbEngine.setSuccessNextDay(participantMap.get("participant_uuid"), false);
+                            if (!isDayOff){
+                                Launcher.dbEngine.setSuccessNextDay(participantMap.get("participant_uuid"), false);
+                            }
                             String before9Msg = pickRandomLess9TRE(startTime, endTime);
                             Launcher.msgUtils.sendMessage(participantMap.get("number"), TZHelper.yesterdaysDate()+ ": " + before9Msg);
                         } else if (validTRE == 1) {
                             // update the success rate
-                            Launcher.dbEngine.setSuccessNextDay(participantMap.get("participant_uuid"), false);
+                            if (!isDayOff) {
+                                Launcher.dbEngine.setSuccessNextDay(participantMap.get("participant_uuid"), false);
+                            }
                             String after11Msg = pickRandomGreater11TRE();
                             Launcher.msgUtils.sendMessage(participantMap.get("number"), TZHelper.yesterdaysDate()+ ": " + after11Msg);
                         } else {
                             // update the success rate
-                            Launcher.dbEngine.setSuccessNextDay(participantMap.get("participant_uuid"), true);
+                            if (!isDayOff) {
+                                Launcher.dbEngine.setSuccessNextDay(participantMap.get("participant_uuid"), true);
+                            }
                             String successMsg = pickRandomSuccessTRE();
                             Launcher.msgUtils.sendMessage(participantMap.get("number"), TZHelper.yesterdaysDate()+ ": " + successMsg);
                         }
@@ -504,7 +521,9 @@ public class Restricted extends RestrictedBase {
                 }
                 if (!pauseMessages) {
                     Launcher.msgUtils.sendMessage(participantMap.get("number"), missedStartCalMessage);
-                    Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false);
+                    if (!isDayOff){
+                        Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false);
+                    }
                 }
                 logger.warn(missedStartCalMessage);
                 //save state info
@@ -553,21 +572,27 @@ public class Restricted extends RestrictedBase {
                 if (validTRE == -1){
                     if (!pauseMessages){
                         // update the success rate
-                        Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false);
+                        if (!isDayOff){
+                            Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false);
+                        }
                         String before9Msg = pickRandomLess9TRE(startTime, endTime);
                         Launcher.msgUtils.sendMessage(participantMap.get("number"), before9Msg);
                     }
                 } else if (validTRE == 1) {
                     if (!pauseMessages){
                         // update the success rate
-                        Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false);
+                        if (!isDayOff) {
+                            Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false);
+                        }
                         String after11Msg = pickRandomGreater11TRE();
                         Launcher.msgUtils.sendMessage(participantMap.get("number"), after11Msg);
                     }
                 } else {
                     if (!pauseMessages){
                         // update the success rate
-                        Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), true);
+                        if (!isDayOff) {
+                            Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), true);
+                        }
                         String successMsg = pickRandomSuccessTRE();
                         Launcher.msgUtils.sendMessage(participantMap.get("number"), successMsg);
                     }
@@ -597,7 +622,9 @@ public class Restricted extends RestrictedBase {
                     resetNoEndCal();
                 }
                 if (!pauseMessages){
-                    Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false);
+                    if (!isDayOff) {
+                        Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false);
+                    }
                 }
                 //save state info
                 stateJSON = saveStateJSON();
@@ -611,6 +638,7 @@ public class Restricted extends RestrictedBase {
                 //save state info
                 stateJSON = saveStateJSON();
                 Launcher.dbEngine.uploadSaveState(stateJSON, participantMap.get("participant_uuid"));
+                isDayOff = false;
                 break;
             default:
                 logger.error("stateNotify: Invalid state: " + state);
