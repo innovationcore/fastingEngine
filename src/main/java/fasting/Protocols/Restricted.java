@@ -84,7 +84,7 @@ public class Restricted extends RestrictedBase {
                     break;
                 case waitStart:
                     if (isDayoff(incomingMap.get("Body"))) {
-                        isDayOff = true;
+                        receivedDayOff();
                         Launcher.msgUtils.sendMessage(participantMap.get("number"), "Got it, no TRE today! Thank you for telling us. Please still let us know your \"STARTCAL\" and \"ENDCAL\" today.");
                     } else if (isEndCal(incomingMap.get("Body"))) {
                         receivedYesterdayEndCal();
@@ -97,7 +97,7 @@ public class Restricted extends RestrictedBase {
                     break;
                 case warnStartCal:
                     if (isDayoff(incomingMap.get("Body"))) {
-                        isDayOff = true;
+                        receivedDayOff();
                         Launcher.msgUtils.sendMessage(participantMap.get("number"), "Got it, no TRE today! Thank you for telling us. Please still let us know your \"STARTCAL\" and \"ENDCAL\" today.");
                     } else if (isEndCal(incomingMap.get("Body"))) {
                         receivedYesterdayEndCal();
@@ -108,17 +108,9 @@ public class Restricted extends RestrictedBase {
                                                                                     "the day; \"ENDCAL\" when you are done with calories for the day.");
                     }
                     break;
-                case yesterdayEndCalWait:
-                    String yesterdayEndCalWaitMessage =  participantMap.get("participant_uuid") + " yesterdayEndCalWait unexpected message";
-                    logger.warn(yesterdayEndCalWaitMessage);
-                    break;
-                case yesterdayEndCalWarn:
-                    String yesterdayEndCalWarnMessage =  participantMap.get("participant_uuid") + " yesterdayEndCalWarn unexpected message";
-                    logger.warn(yesterdayEndCalWarnMessage);
-                    break;
                 case startcal:
                     if (isDayoff(incomingMap.get("Body"))) {
-                        isDayOff = true;
+                        receivedDayOff();
                         Launcher.msgUtils.sendMessage(participantMap.get("number"), "Got it, no TRE today! Thank you for telling us. Please still let us know your \"ENDCAL\" today. ");
                     } else if(isStartCal(incomingMap.get("Body"))){
                         Launcher.msgUtils.sendMessage(participantMap.get("number"), "You've already started consuming calories for the day. Text \"ENDCAL\" when you finish your TRE today.");
@@ -147,7 +139,10 @@ public class Restricted extends RestrictedBase {
                     logger.warn(missedStartCalMessage);
                     break;
                 case warnEndCal:
-                    if(isEndCal(incomingMap.get("Body"))) {
+                    if (isDayoff(incomingMap.get("Body"))){
+                        receivedDayOff();
+                        Launcher.msgUtils.sendMessage(participantMap.get("number"), "Got it, no TRE today! Thank you for telling us. Please still let us know your \"ENDCAL\" today. ");
+                    } else if (isEndCal(incomingMap.get("Body"))) {
                         String[] endCalSplit = incomingMap.get("Body").split("\\s+");
                         boolean isBetween3AMand3PM;
                         if (endCalSplit.length >= 2){
@@ -196,6 +191,26 @@ public class Restricted extends RestrictedBase {
                     String endOfEpisodeMessage = participantMap.get("participant_uuid") + " endOfEpisode unexpected message";
                     logger.warn(endOfEpisodeMessage);
                     Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Text 270-402-2214 if you need help.");
+                    break;
+                case yesterdayEndCalWait:
+                    String yesterdayEndCalWaitMessage =  participantMap.get("participant_uuid") + " yesterdayEndCalWait unexpected message";
+                    logger.warn(yesterdayEndCalWaitMessage);
+                    break;
+                case yesterdayEndCalWarn:
+                    String yesterdayEndCalWarnMessage =  participantMap.get("participant_uuid") + " yesterdayEndCalWarn unexpected message";
+                    logger.warn(yesterdayEndCalWarnMessage);
+                    break;
+                case dayOffWait:
+                    logger.warn(participantMap.get("participant_uuid") + " dayOffWait unexpected message");
+                    break;
+                case dayOffWarn:
+                    logger.warn(participantMap.get("participant_uuid") + " dayOffWarn unexpected message");
+                    break;
+                case dayOffStartCal:
+                    logger.warn(participantMap.get("participant_uuid") + " dayOffStartCal unexpected message");
+                    break;
+                case dayOffWarnEndCal:
+                    logger.warn(participantMap.get("participant_uuid") + " dayOffWarnEndCal unexpected message");
                     break;
                 default:
                     logger.error("stateNotify: Invalid state: " + getState());
@@ -480,6 +495,7 @@ public class Restricted extends RestrictedBase {
                 Launcher.dbEngine.uploadSaveState(stateJSON, participantMap.get("participant_uuid"));
                 break;
             case startcal:
+                Launcher.dbEngine.setDayOffFlag(false);
                 //set warn timer
                 // In the CSV with responses they don't have anything for sending startcal
                 int secondsTo2059pm = TZHelper.getSecondsTo2059pm();
@@ -640,6 +656,18 @@ public class Restricted extends RestrictedBase {
                 Launcher.dbEngine.uploadSaveState(stateJSON, participantMap.get("participant_uuid"));
                 isDayOff = false;
                 break;
+            case dayOffWait:
+                Launcher.dbEngine.setDayOffFlag(true);
+                break;
+            case dayOffWarn:
+                Launcher.dbEngine.setDayOffFlag(true);
+                break;
+            case dayOffStartCal:
+                Launcher.dbEngine.setDayOffFlag(true);
+                break;
+            case dayOffWarnEndCal:
+                Launcher.dbEngine.setDayOffFlag(true);
+                break;
             default:
                 logger.error("stateNotify: Invalid state: " + state);
         }
@@ -674,7 +702,12 @@ public class Restricted extends RestrictedBase {
                 boolean isSameDay = TZHelper.isSameDay(saveCurrentTime);
                 if (!isSameDay) {
                     stateName = "waitStart";
+                } else {
+                    // check if participant was in DayOff
+                    // TODO: Check if DayOff
                 }
+
+                
 
                 switch (State.valueOf(stateName)) {
                     case initial:

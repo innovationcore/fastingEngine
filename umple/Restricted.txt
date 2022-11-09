@@ -34,7 +34,14 @@ class RestrictedBase
 
       receivedStartCal -> startcal;
       receivedYesterdayEndCal -> yesterdayEndCalWait;
+      receivedDayOff -> dayOffWait;
       after(startWarnDeadline) -> warnStartCal;
+    }
+    
+    dayOffWait {
+      entry / {
+        stateNotify("dayOffWait");
+      } -> waitStart;
     }
 
      warnStartCal {
@@ -43,9 +50,16 @@ class RestrictedBase
       };
 
       receivedStartCal -> startcal;
-       receivedYesterdayEndCal -> yesterdayEndCalWarn;
+      receivedYesterdayEndCal -> yesterdayEndCalWarn;
+      receivedDayOff -> dayOffWarn;
       after(startDeadline) -> missedStartCal;
 
+    }
+    
+    dayOffWarn {
+      entry / {
+        stateNotify("dayOffWarn");
+      } -> warnStartCal;
     }
     
     yesterdayEndCalWait {
@@ -70,8 +84,15 @@ class RestrictedBase
           // Send Error about duplicate start
       } startcal;
       receivedEndCal -> endcal;
+      receivedDayOff -> dayOffStartCal;
       after(endWarnDeadline) -> warnEndCal;
 
+    }
+    
+    dayOffStartCal {
+      entry / {
+        stateNotify("dayOffStartCal");
+      } -> startcal;
     }
 
     missedStartCal {
@@ -86,9 +107,17 @@ class RestrictedBase
         stateNotify("warnEndCal");
       };
       receivedEndCal -> endcal;
+      receivedDayOff -> dayOffWarnEndCal;
       after(endDeadline) -> missedEndCal;
 
     }
+    
+    dayOffWarnEndCal {
+      entry / {
+        stateNotify("dayOffWarnEndCal");
+      } -> warnEndCal;
+    }
+    
 
     endcal {
       entry / {
