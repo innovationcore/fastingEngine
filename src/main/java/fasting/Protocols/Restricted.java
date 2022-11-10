@@ -29,7 +29,7 @@ public class Restricted extends RestrictedBase {
     private long startTimestamp = 0;
     private TimezoneHelper TZHelper;
     private boolean pauseMessages;
-    private boolean isDayOff = false;
+    private boolean isDayOff;
     private boolean isFromYesterday = false;
     private Map<String,String> incomingMap;
 
@@ -47,6 +47,7 @@ public class Restricted extends RestrictedBase {
         this.participantMap = participantMap;
         this.stateMap = new HashMap<>();
         this.pauseMessages = false;
+        this.isDayOff = false;
 
         // this initializes the user's and machine's timezone
         this.TZHelper = new TimezoneHelper(participantMap.get("time_zone"), TimeZone.getDefault().getID());
@@ -85,7 +86,6 @@ public class Restricted extends RestrictedBase {
                 case waitStart:
                     if (isDayoff(incomingMap.get("Body"))) {
                         receivedDayOff();
-                        Launcher.msgUtils.sendMessage(participantMap.get("number"), "Got it, no TRE today! Thank you for telling us. Please still let us know your \"STARTCAL\" and \"ENDCAL\" today.");
                     } else if (isEndCal(incomingMap.get("Body"))) {
                         receivedYesterdayEndCal();
                     } else if(isStartCal(incomingMap.get("Body"))) {
@@ -98,7 +98,6 @@ public class Restricted extends RestrictedBase {
                 case warnStartCal:
                     if (isDayoff(incomingMap.get("Body"))) {
                         receivedDayOff();
-                        Launcher.msgUtils.sendMessage(participantMap.get("number"), "Got it, no TRE today! Thank you for telling us. Please still let us know your \"STARTCAL\" and \"ENDCAL\" today.");
                     } else if (isEndCal(incomingMap.get("Body"))) {
                         receivedYesterdayEndCal();
                     } else if(isStartCal(incomingMap.get("Body"))) {
@@ -111,7 +110,6 @@ public class Restricted extends RestrictedBase {
                 case startcal:
                     if (isDayoff(incomingMap.get("Body"))) {
                         receivedDayOff();
-                        Launcher.msgUtils.sendMessage(participantMap.get("number"), "Got it, no TRE today! Thank you for telling us. Please still let us know your \"ENDCAL\" today. ");
                     } else if(isStartCal(incomingMap.get("Body"))){
                         Launcher.msgUtils.sendMessage(participantMap.get("number"), "You've already started consuming calories for the day. Text \"ENDCAL\" when you finish your TRE today.");
                     } else if(isEndCal(incomingMap.get("Body"))) {
@@ -141,7 +139,6 @@ public class Restricted extends RestrictedBase {
                 case warnEndCal:
                     if (isDayoff(incomingMap.get("Body"))){
                         receivedDayOff();
-                        Launcher.msgUtils.sendMessage(participantMap.get("number"), "Got it, no TRE today! Thank you for telling us. Please still let us know your \"ENDCAL\" today. ");
                     } else if (isEndCal(incomingMap.get("Body"))) {
                         String[] endCalSplit = incomingMap.get("Body").split("\\s+");
                         boolean isBetween3AMand3PM;
@@ -356,6 +353,7 @@ public class Restricted extends RestrictedBase {
                 // check to see if startcal was sent yesterday
                 // if so, save and send message
                 // if not, sent unknown message message
+                logState("endcal");
                 recentStartCalTime = Launcher.dbEngine.getStartCalTime(participantMap.get("participant_uuid"));
                 if (recentStartCalTime == 0) {
                     Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Please send \"STARTCAL\" when you begin calories for " +
@@ -391,21 +389,28 @@ public class Restricted extends RestrictedBase {
                                 Launcher.dbEngine.setSuccessNextDay(participantMap.get("participant_uuid"), false);
                             }
                             String before9Msg = pickRandomLess9TRE(startTime, endTime);
-                            Launcher.msgUtils.sendMessage(participantMap.get("number"), TZHelper.yesterdaysDate()+ ": " + before9Msg);
+                            if (!before9Msg.equals("")){
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), TZHelper.yesterdaysDate()+ ": " + before9Msg);
+                            }
+                            
                         } else if (validTRE == 1) {
                             // update the success rate
                             if (!isDayOff){
                                 Launcher.dbEngine.setSuccessNextDay(participantMap.get("participant_uuid"), false);
                             }
                             String after11Msg = pickRandomGreater11TRE();
-                            Launcher.msgUtils.sendMessage(participantMap.get("number"), TZHelper.yesterdaysDate()+ ": " + after11Msg);
+                            if (!after11Msg.equals("")) {
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), TZHelper.yesterdaysDate()+ ": " + after11Msg);
+                            }
                         } else {
                             // update the success rate
                             if (!isDayOff){
                                 Launcher.dbEngine.setSuccessNextDay(participantMap.get("participant_uuid"), true);
                             }
                             String successMsg = pickRandomSuccessTRE();
-                            Launcher.msgUtils.sendMessage(participantMap.get("number"), TZHelper.yesterdaysDate()+ ": " + successMsg);
+                            if (!successMsg.equals("")) {
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), TZHelper.yesterdaysDate()+ ": " + successMsg);
+                            }
                         }
 
                         // send message if endcal is after 8pm
@@ -427,6 +432,7 @@ public class Restricted extends RestrictedBase {
                 // check to see if startcal was sent yesterday
                 // if so, save and send message
                 // if not, sent unknown message message
+                logState("endcal");
                 recentStartCalTime = Launcher.dbEngine.getStartCalTime(participantMap.get("participant_uuid"));
                 if (recentStartCalTime == 0) {
                     Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Please send \"STARTCAL\" when you begin calories for " +
@@ -463,21 +469,27 @@ public class Restricted extends RestrictedBase {
                                 Launcher.dbEngine.setSuccessNextDay(participantMap.get("participant_uuid"), false);
                             }
                             String before9Msg = pickRandomLess9TRE(startTime, endTime);
-                            Launcher.msgUtils.sendMessage(participantMap.get("number"), TZHelper.yesterdaysDate()+ ": " + before9Msg);
+                            if (!before9Msg.equals("")){
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), TZHelper.yesterdaysDate()+ ": " + before9Msg);
+                            }
                         } else if (validTRE == 1) {
                             // update the success rate
                             if (!isDayOff) {
                                 Launcher.dbEngine.setSuccessNextDay(participantMap.get("participant_uuid"), false);
                             }
                             String after11Msg = pickRandomGreater11TRE();
-                            Launcher.msgUtils.sendMessage(participantMap.get("number"), TZHelper.yesterdaysDate()+ ": " + after11Msg);
+                            if (!after11Msg.equals("")){
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), TZHelper.yesterdaysDate()+ ": " + after11Msg);
+                            }
                         } else {
                             // update the success rate
                             if (!isDayOff) {
                                 Launcher.dbEngine.setSuccessNextDay(participantMap.get("participant_uuid"), true);
                             }
                             String successMsg = pickRandomSuccessTRE();
-                            Launcher.msgUtils.sendMessage(participantMap.get("number"), TZHelper.yesterdaysDate()+ ": " + successMsg);
+                            if (!successMsg.equals("")){
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), TZHelper.yesterdaysDate()+ ": " + successMsg);
+                            }
                         }
 
                         // send message if endcal is after 8pm
@@ -495,7 +507,6 @@ public class Restricted extends RestrictedBase {
                 Launcher.dbEngine.uploadSaveState(stateJSON, participantMap.get("participant_uuid"));
                 break;
             case startcal:
-                Launcher.dbEngine.setDayOffFlag(false);
                 //set warn timer
                 // In the CSV with responses they don't have anything for sending startcal
                 int secondsTo2059pm = TZHelper.getSecondsTo2059pm();
@@ -585,6 +596,7 @@ public class Restricted extends RestrictedBase {
                 long startTime = Launcher.dbEngine.getStartCalTime(participantMap.get("participant_uuid"));
                 long endTime = Launcher.dbEngine.getEndCalTime(participantMap.get("participant_uuid"));
                 int validTRE = TZHelper.determineGoodFastTime(startTime, endTime);
+
                 if (validTRE == -1){
                     if (!pauseMessages){
                         // update the success rate
@@ -592,7 +604,9 @@ public class Restricted extends RestrictedBase {
                             Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false);
                         }
                         String before9Msg = pickRandomLess9TRE(startTime, endTime);
-                        Launcher.msgUtils.sendMessage(participantMap.get("number"), before9Msg);
+                        if (!before9Msg.equals("")){
+                            Launcher.msgUtils.sendMessage(participantMap.get("number"), before9Msg);
+                        }
                     }
                 } else if (validTRE == 1) {
                     if (!pauseMessages){
@@ -601,7 +615,9 @@ public class Restricted extends RestrictedBase {
                             Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false);
                         }
                         String after11Msg = pickRandomGreater11TRE();
-                        Launcher.msgUtils.sendMessage(participantMap.get("number"), after11Msg);
+                        if (!after11Msg.equals("")){
+                            Launcher.msgUtils.sendMessage(participantMap.get("number"), after11Msg);
+                        }
                     }
                 } else {
                     if (!pauseMessages){
@@ -610,7 +626,9 @@ public class Restricted extends RestrictedBase {
                             Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), true);
                         }
                         String successMsg = pickRandomSuccessTRE();
-                        Launcher.msgUtils.sendMessage(participantMap.get("number"), successMsg);
+                        if(!successMsg.equals("")){
+                            Launcher.msgUtils.sendMessage(participantMap.get("number"), successMsg);
+                        }
                     }
                 }
 
@@ -647,6 +665,7 @@ public class Restricted extends RestrictedBase {
                 Launcher.dbEngine.uploadSaveState(stateJSON, participantMap.get("participant_uuid"));
                 break;
             case endOfEpisode:
+                this.isDayOff = false;
                 //set restart one minute after other timeouts
                 setEndOfEpisodeDeadline(TZHelper.getSecondsTo4am());// timeToD2359am() + 60);
                 String endOfEpisode = participantMap.get("participant_uuid") + " end of episode timeout " + TZHelper.getDateFromAddingSeconds(TZHelper.getSecondsTo4am());
@@ -657,16 +676,24 @@ public class Restricted extends RestrictedBase {
                 isDayOff = false;
                 break;
             case dayOffWait:
-                Launcher.dbEngine.setDayOffFlag(true);
+                this.isDayOff = true;
+                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Got it, no TRE today! Thank you for telling us. Please still let us know your \"STARTCAL\" and \"ENDCAL\" today.");
+                logger.info(participantMap.get("participant_uuid") + " DayOff in waitStart");
                 break;
             case dayOffWarn:
-                Launcher.dbEngine.setDayOffFlag(true);
+                this.isDayOff = true;
+                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Got it, no TRE today! Thank you for telling us. Please still let us know your \"STARTCAL\" and \"ENDCAL\" today.");
+                logger.info(participantMap.get("participant_uuid") + " DayOff in warnStart");
                 break;
             case dayOffStartCal:
-                Launcher.dbEngine.setDayOffFlag(true);
+                this.isDayOff = true;
+                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Got it, no TRE today! Thank you for telling us. Please still let us know your \"ENDCAL\" today.");
+                logger.info(participantMap.get("participant_uuid") + " DayOff in StartCal");
                 break;
             case dayOffWarnEndCal:
-                Launcher.dbEngine.setDayOffFlag(true);
+                this.isDayOff = true;
+                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Got it, no TRE today! Thank you for telling us. Please still let us know your \"ENDCAL\" today.");
+                logger.info(participantMap.get("participant_uuid") + " DayOff in WarnEndCal");
                 break;
             default:
                 logger.error("stateNotify: Invalid state: " + state);
@@ -702,12 +729,16 @@ public class Restricted extends RestrictedBase {
                 boolean isSameDay = TZHelper.isSameDay(saveCurrentTime);
                 if (!isSameDay) {
                     stateName = "waitStart";
+                    this.isDayOff = false;
                 } else {
-                    // check if participant was in DayOff
-                    // TODO: Check if DayOff
+                    String lastDayOffString = Launcher.dbEngine.getLastDayOff(participantMap.get("participant_uuid"));
+                    if (!lastDayOffString.equals("")) {
+                        boolean isSameDayOff = TZHelper.isSameDay(TZHelper.parseSQLTimestamp(lastDayOffString)); 
+                        this.isDayOff = isSameDayOff;
+                    } else {
+                        this.isDayOff = false;
+                    }
                 }
-
-                
 
                 switch (State.valueOf(stateName)) {
                     case initial:
@@ -883,8 +914,11 @@ public class Restricted extends RestrictedBase {
             message = message.replace("[NAME]", participantMap.get("first_name"));
         }
         if (message.contains("[SUCCESS]")) {
-            String successRate = Launcher.dbEngine.getSuccessRate(participantMap.get("participant_uuid")); // TODO: this is returning the wrong value
+            String successRate = Launcher.dbEngine.getSuccessRate(participantMap.get("participant_uuid"));
             message = message.replace("[SUCCESS]", successRate);
+            if (successRate.equals("")) {
+                message = "";
+            }
         }
         return message;
     }
@@ -907,6 +941,9 @@ public class Restricted extends RestrictedBase {
         if (message.contains("[SUCCESS]")) {
             String successRate = Launcher.dbEngine.getSuccessRate(participantMap.get("participant_uuid"));
             message = message.replace("[SUCCESS]", successRate);
+            if (successRate.equals("")) {
+                message = "";
+            }
         }
         if (message.contains("[SHORT]")) {
             String shortTime = TZHelper.getHoursMinutesBefore(startTime, endTime, 32400L); // 9 hours
@@ -933,6 +970,9 @@ public class Restricted extends RestrictedBase {
         if (message.contains("[SUCCESS]")) {
             String successRate = Launcher.dbEngine.getSuccessRate(participantMap.get("participant_uuid"));
             message = message.replace("[SUCCESS]", successRate);
+            if (successRate.equals("")) {
+                message = "";
+            }
         }
         return message;
     }

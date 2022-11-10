@@ -273,7 +273,7 @@ public class TimezoneHelper {
 
     // returns -1 if before 9 hours, 0 if between 9 and 11 hours, 1 if after 11 hours
     public int determineGoodFastTime(long start, long end) {
-        long duration = end - start;
+        int duration = (int)(end - start);
         if (duration < 32400) { // 9 hours
             return -1;
         } else if (duration > 39600) { // 11 hours
@@ -333,18 +333,17 @@ public class TimezoneHelper {
         }
     }
 
-    // public boolean isSameDayDayoff(String sqlTimeString) {
-    //     // 2022-11-07 21:06:07.343
-    //     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-    //     LocalDateTime datetime = LocalDateTime.parse(sqlTimeString, formatter);
-    //     ZoneId sqlTZ = ZoneId.of("UTC");
-    //     ZonedDateTime zonedDateTime = ZonedDateTime.of(datetime, sqlTZ);
-    //     LocalDateTime nowSQLLocalTime = zonedDateTime.toLocalDateTime();
-    //     // check if zonedDateTime is today
+    public long parseSQLTimestamp(String sqlTimeString) {
+        // 2022-11-07 21:06:07.343
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        LocalDateTime datetime = LocalDateTime.parse(sqlTimeString, formatter);
+        ZoneId sqlTZ = ZoneId.of("UTC");
+        ZonedDateTime zonedDateTime = ZonedDateTime.of(datetime, sqlTZ);
+        LocalDateTime nowSQLLocalTime = zonedDateTime.toLocalDateTime();
 
-    //     long epochts = nowSQLLocalTime.toEpochSecond(sqlTZ.getRules().getOffset(nowSQLLocalTime));
-    //     return isSameDay(epochts);
-    // }
+        long epochts = nowSQLLocalTime.toEpochSecond(sqlTZ.getRules().getOffset(nowSQLLocalTime));
+        return epochts;
+    }
 
     /**
     * gets the user's timezone
