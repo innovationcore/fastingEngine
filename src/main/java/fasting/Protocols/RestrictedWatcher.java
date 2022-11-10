@@ -71,19 +71,19 @@ public class RestrictedWatcher {
                     validNextStates = "waitStart,warnStartCal,startcal,warnEndCal";
                     break;
                 case "waitStart":
-                    validNextStates = "warnStartCal,startcal,yesterdayEndCalWait";
+                    validNextStates = "warnStartCal,startcal,yesterdayEndCalWait,dayOffWait";
                     break;
                 case "warnStartCal":
-                    validNextStates = "startcal,missedStartCal,yesterdayEndCalWarn";
+                    validNextStates = "startcal,missedStartCal,yesterdayEndCalWarn,dayOffWarn";
                     break;
                 case "startcal":
-                    validNextStates = "startcal,endcal,warnEndCal";
+                    validNextStates = "startcal,endcal,warnEndCal,dayOffStartCal";
                     break;
                 case "missedStartCal":
                     validNextStates = "endOfEpisode";
                     break;
                 case "warnEndCal":
-                    validNextStates = "endcal,missedEndCal";
+                    validNextStates = "endcal,missedEndCal,dayOffWarnEndCal";
                     break;
                 case "endcal":
                     validNextStates = "endOfEpisode";
@@ -139,12 +139,17 @@ public class RestrictedWatcher {
                         participant.timeoutwaitStartTowarnStartCal();
                         newState = "warnStartCal";
                     } else if (moveToState.equals("yesterdayEndCalWait")) {
-                        Launcher.dbEngine.createEndCal(participantId, timestamp);
+                        Launcher.dbEngine.saveEndCalTimeCreateTemp(participantId, timestamp);
                         participant.receivedYesterdayEndCal();
+                        Launcher.dbEngine.removeTempEndCal(participantId);
                         newState = "yesterdayEndCalWait";
                     } else if (moveToState.equals("startcal")) {
                         participant.receivedStartCal();
+                        Launcher.dbEngine.saveStartCalTime(participantId, timestamp);
                         newState = "startcal";
+                    } else if (moveToState.equals("dayOffWait")) {
+                    participant.receivedDayOff();
+                    newState = "dayOffWait";
                     } else {
                         // invalid state
                         newState = "waitstart invalid";
@@ -157,12 +162,16 @@ public class RestrictedWatcher {
                         Launcher.dbEngine.saveStartCalTime(participantId, timestamp);
                         newState = "startcal";
                     } else if (moveToState.equals("yesterdayEndCalWarn")) {
-                        Launcher.dbEngine.createEndCal(participantId, timestamp);
+                        Launcher.dbEngine.saveEndCalTimeCreateTemp(participantId, timestamp);
                         participant.receivedYesterdayEndCal();
+                        Launcher.dbEngine.removeTempEndCal(participantId);
                         newState = "yesterdayEndCalWarn";
                     } else if (moveToState.equals("missedStartCal")) {
                         participant.timeoutwarnStartCalTomissedStartCal();
                         newState = "missedStartCal";
+                    } else if (moveToState.equals("dayOffWarn")) {
+                        participant.receivedDayOff();
+                        newState = "dayOffWarn";
                     } else {
                         newState = "warnstart invalid";
                         // invalid state
@@ -175,12 +184,16 @@ public class RestrictedWatcher {
                         Launcher.dbEngine.saveStartCalTime(participantId, timestamp);
                         newState = "startcal";
                     } else if (moveToState.equals("endcal")) {
+                        Launcher.dbEngine.saveEndCalTimeCreateTemp(participantId, timestamp);
                         participant.receivedEndCal();
-                        Launcher.dbEngine.saveEndCalTime(participantId, timestamp);
+                        Launcher.dbEngine.removeTempEndCal(participantId);
                         newState = "endcal";
                     } else if (moveToState.equals("warnEndCal")){
                         participant.timeoutstartcalTowarnEndCal();
                         newState = "warnEndCal";
+                    } else if (moveToState.equals("dayOffStartCal")) {
+                        participant.receivedDayOff();
+                        newState = "dayOffStartCal";
                     } else {
                         newState = "startcal invalid";
                         // invalid state
@@ -199,12 +212,16 @@ public class RestrictedWatcher {
                     break;
                 case warnEndCal:
                     if (moveToState.equals("endcal")) {
-                        participant.receivedEndCal();
-                        Launcher.dbEngine.saveEndCalTime(participantId, timestamp);
+                        Launcher.dbEngine.saveEndCalTimeCreateTemp(participantId, timestamp);
+                        participant.receivedEndCal(); // needs to create endcal state before saving time
+                        Launcher.dbEngine.removeTempEndCal(participantId);
                         newState = "endcal";
                     } else if (moveToState.equals("missedEndCal")){ 
                         participant.timeoutwarnEndCalTomissedEndCal();
                         newState = "missedEndCal";
+                    } else if (moveToState.equals("dayOffWarnEndCal")) {
+                        participant.receivedDayOff();
+                        newState = "dayOffWarnEndCal";
                     } else {
                         // invalid state
                         newState = "warnEndCal invalid";
