@@ -16,11 +16,12 @@ class ActionTimeSet(Action):
             arg = datetime.now().time()
         else:
             arg = parse(arg)
-        arg = arg.hour + arg.minute / 60.0
+        arg = arg.hour + (arg.minute / 100.0)
         if arg >= 20.0:  # If the user ends after 8pm, scold them.
             dispatcher.utter_message(response="utter_after8")
         return [SlotSet("prevtime", tracker.get_slot('time')),
                 SlotSet("time", arg)]
+    # Return datetime obj as a string in format intent hh:mmMM
 
 
 class ActionCompleteFast(Action):

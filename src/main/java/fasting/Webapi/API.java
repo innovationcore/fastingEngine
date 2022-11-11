@@ -99,14 +99,24 @@ public class API {
                     HttpResponse intent_response = httpClient.execute(intent_request);
                     JsonObject intent_object = gson.fromJson(EntityUtils.toString(intent_response.getEntity()), JsonElement.class).getAsJsonObject();
                     String intent = intent_object.get("latest_message").getAsJsonObject().get("intent").getAsJsonObject().get("name").getAsString();
-                    logger.info("Predicted Intent: "+intent); // intent of previous message
 
                     //also extract user input time from Get request if applicable
                     if (intent.equals("start")||intent.equals("end")){ // time input detected
-                        float time = intent_object.get("slots").getAsJsonObject().get("time").getAsFloat();
-                        logger.info("Time Input: "+time); // user input time as a decimal number of hours (e.g. 8:30pm = 20.5)
-                        // if no input argument was specified, defaults to rasa system time
+                        intent += "cal";
+                        String time = intent_object.get("slots").getAsJsonObject().get("time").getAsString(); // user input time as hh.mm (e.g. 8:55pm = 20.55)
+                        int separator = time.indexOf(".");
+                        String hours = time.substring(0, separator);
+                        String minutes = time.substring(separator+1);
+                        String meridiem = "am";
+                        if (Integer.valueOf(hours)>12){
+                            hours = Integer.toString(Integer.valueOf(hours)-12);
+                            meridiem = "pm";
+                        }
+                        time = hours + ":" + minutes + meridiem;
+                        logger.info("Time Input: "+time);
+                        //logger.info(intent+"cal "+time);
                     }
+                    logger.info("Predicted Intent: "+intent); // intent of previous message
                 } else {
                     logger.error("HTTP Error Code: "+code);
                 }
