@@ -224,7 +224,7 @@ public class TimezoneHelper {
         ZonedDateTime nowUserTimezone = ZonedDateTime.ofInstant(nowUTC, userTZ);
         LocalDateTime nowUserLocalTime = nowUserTimezone.toLocalDateTime();
 
-        LocalDateTime currentTime4am = LocalDateTime.of(nowUserLocalTime.getYear(), nowUserLocalTime.getMonth(), nowUserLocalTime.getDayOfMonth(), 04, 00, 00);
+        LocalDateTime currentTime4am = LocalDateTime.of(nowUserLocalTime.getYear(), nowUserLocalTime.getMonth(), nowUserLocalTime.getDayOfMonth(), 04, 05, 00);
         currentTime4am = currentTime4am.plusDays(1);
         long secondsUntil4am = Duration.between(lastKnownLocalTime, currentTime4am).getSeconds();
 
