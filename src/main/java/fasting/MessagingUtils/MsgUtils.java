@@ -34,11 +34,17 @@ public class MsgUtils {
     }
 
     public void sendMessage(String textTo, String body) {
-        Message message = Message.creator(
+        Boolean isMessagingDisabled = Launcher.config.getBooleanParam("disable_messaging");
+        if (isMessagingDisabled) {
+            logger.warn("Messaging is disabled. Messages will be saved, but not sent.");
+        }
+        else {
+            Message message = Message.creator(
                         new com.twilio.type.PhoneNumber(textTo),
                         new com.twilio.type.PhoneNumber(textFrom),
                         body)
                 .create();
+        }
 
         String messageId = UUID.randomUUID().toString();
         String participantId = Launcher.dbEngine.getParticipantIdFromPhoneNumber(textTo);
@@ -49,14 +55,10 @@ public class MsgUtils {
         format.setTimeZone(TimeZone.getTimeZone("UTC"));
         String timestamp = format.format(date);
 
-        // for some reason this was uploading as EDT
-        // String pattern = "yyyy-MM-dd HH:mm:ss.SSS";
-        // SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern, new Locale("en", "USA"));
-        // String date = simpleDateFormat.format(new Date());
-
         Map<String,String> messageMap = new HashMap<>();
         messageMap.put("Body",body);
         String json_string = gson.toJson(messageMap);
+        logger.info(json_string);
 
         String insertQuery = "INSERT INTO messages " +
                 "(message_uuid, participant_uuid, TS, message_direction, message_json)" +
@@ -64,8 +66,6 @@ public class MsgUtils {
                 participantId + "' ,'" + timestamp + "', '" +
                 messageDirection + "', '" + json_string +
                 "')";
-
-        logger.info(insertQuery);
 
         Launcher.dbEngine.executeUpdate(insertQuery);
 

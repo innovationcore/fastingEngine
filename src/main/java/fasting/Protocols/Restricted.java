@@ -56,12 +56,11 @@ public class Restricted extends RestrictedBase {
         new Thread(){
             public void run(){
                 try {
-                    while (!getState().toString().equals("endOfEpisode")) {
+                    while (!getState().toString().equals("endOfEpisode") || !getState().toString().equals("endProtocol")) {
 
                         if(startTimestamp > 0) {
                             stateJSON = saveStateJSON();
                             Launcher.dbEngine.uploadSaveState(stateJSON, participantMap.get("participant_uuid"));
-                            //logger.info(stateJSON);
                         }
 
                         Thread.sleep(900000); // 900000 = 15 mins
@@ -215,6 +214,9 @@ public class Restricted extends RestrictedBase {
                     break;
                 case dayOffWarnEndCal:
                     logger.warn(participantMap.get("participant_uuid") + " dayOffWarnEndCal unexpected message");
+                    break;
+                case endProtocol:
+                    logger.warn(participantMap.get("participant_uuid") + " endProtocol unexpected message");
                     break;
                 default:
                     logger.error("stateNotify: Invalid state: " + getState());
@@ -717,6 +719,9 @@ public class Restricted extends RestrictedBase {
                 logger.info(participantMap.get("participant_uuid") + " DayOff in WarnEndCal");
                 this.pauseMessages = true;
                 break;
+            case endProtocol:
+                logger.warn(participantMap.get("participant_uuid") + " is not longer in protocol.");
+                break;
             default:
                 logger.error("stateNotify: Invalid state: " + state);
         }
@@ -750,7 +755,10 @@ public class Restricted extends RestrictedBase {
                 // if past 4am, reset everything to beginning
                 boolean isSameDay = TZHelper.isSameDay(saveCurrentTime);
                 if (!isSameDay) {
-                    stateName = "waitStart";
+                    // if state is endProtocol, do not restart cycle
+                    if(!stateName.equals("endProtocol")) {
+                        stateName = "waitStart";
+                    }
                     this.isDayOff = false;
                 } else {
                     String lastDayOffString = Launcher.dbEngine.getLastDayOff(participantMap.get("participant_uuid"));
@@ -841,6 +849,9 @@ public class Restricted extends RestrictedBase {
                         receivedStartCal();
                         receivedEndCal();
                         this.pauseMessages = false;
+                        break;
+                    case endProtocol:
+                        //no timers
                         break;
                     default:
                         logger.error("restoreSaveState: Invalid state: " + stateName);
@@ -1011,5 +1022,9 @@ public class Restricted extends RestrictedBase {
         int rnd = new Random().nextInt(successMessages.size());
         String message = successMessages.get(rnd);
         return message;
+    }
+
+    public void stopTimers(){
+        
     }
 }

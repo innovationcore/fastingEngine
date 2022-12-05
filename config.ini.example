@@ -1,5 +1,7 @@
 [general]
 
+disable_messaging=false
+
 web_port=9000
 
 db_host=url

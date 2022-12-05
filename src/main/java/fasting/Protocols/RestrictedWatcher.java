@@ -68,22 +68,22 @@ public class RestrictedWatcher {
 
             switch (currentState){
                 case "initial":
-                    validNextStates = "waitStart,warnStartCal,startcal,warnEndCal";
+                    validNextStates = "waitStart,warnStartCal,startcal,warnEndCal,endProtocol";
                     break;
                 case "waitStart":
-                    validNextStates = "warnStartCal,startcal,yesterdayEndCalWait,dayOffWait";
+                    validNextStates = "warnStartCal,startcal,yesterdayEndCalWait,dayOffWait,endProtocol";
                     break;
                 case "warnStartCal":
-                    validNextStates = "startcal,missedStartCal,yesterdayEndCalWarn,dayOffWarn";
+                    validNextStates = "startcal,missedStartCal,yesterdayEndCalWarn,dayOffWarn,endProtocol";
                     break;
                 case "startcal":
-                    validNextStates = "startcal,endcal,warnEndCal,dayOffStartCal";
+                    validNextStates = "startcal,endcal,warnEndCal,dayOffStartCal,endProtocol";
                     break;
                 case "missedStartCal":
                     validNextStates = "endOfEpisode";
                     break;
                 case "warnEndCal":
-                    validNextStates = "endcal,missedEndCal,dayOffWarnEndCal";
+                    validNextStates = "endcal,missedEndCal,dayOffWarnEndCal,endProtocol";
                     break;
                 case "endcal":
                     validNextStates = "endOfEpisode";
@@ -92,7 +92,10 @@ public class RestrictedWatcher {
                     validNextStates = "endOfEpisode";
                     break;
                 case "endOfEpisode":
-                    validNextStates = "waitStart";
+                    validNextStates = "waitStart,endProtocol";
+                    break;
+                case "endProtocol":
+                    validNextStates = "";
                     break;
                 default:
                     // not in any state?
@@ -258,6 +261,10 @@ public class RestrictedWatcher {
                         break;
                     }
                     break;
+                case endProtocol:
+                    // no states to move to
+                    newState = "endProtocol invalid";
+                    break;
                 default:
                     // invalid currentState
                     newState = "default invalid";
@@ -276,39 +283,55 @@ public class RestrictedWatcher {
 
     class startRestricted extends TimerTask {
         private Logger logger;
+        private List<Map<String,String>> previousMapList;
         public startRestricted() {
             logger = LoggerFactory.getLogger(startRestricted.class);
         }
 
         public void run() {
             try {
-               synchronized (lockEpisodeReset) {
-                   List<Map<String,String>> participantMapList = Launcher.dbEngine.getParticipantMapByGroup("TRE");
-                   for (Map<String, String> participantMap : participantMapList) {
+                synchronized (lockEpisodeReset) {
+                    List<Map<String,String>> participantMapList = Launcher.dbEngine.getParticipantMapByGroup("TRE");
+                    if (previousMapList == null){
+                        //first run
+                        previousMapList = participantMapList;
+                    }
+                    for (Map<String, String> participantMap : participantMapList) {
 
-                       boolean isActive = false;
-                       synchronized (lockRestricted) {
-                           if(!restrictedMap.containsKey(participantMap.get("participant_uuid"))) {
-                               isActive = true;
-                           }
-                       }
+                        boolean isActive = false;
+                        synchronized (lockRestricted) {
+                            if(!restrictedMap.containsKey(participantMap.get("participant_uuid"))) {
+                                isActive = true;
+                            } else if (!previousMapList.equals(participantMapList)) {
+                                // figure out who go removed
+                                // find which participant is in previousMapList but not in participantMapList
+                                for (Map<String, String> previousMap : previousMapList) {
+                                    if (!participantMapList.contains(previousMap)) {
+                                        // removing participant
+                                        Restricted toRemove = restrictedMap.remove(previousMap.get("participant_uuid"));
+                                        toRemove.receivedEndProtocol();
+                                        toRemove = null;
+                                        System.gc();
+                                    }
+                                }
+                            }
+                        }
 
-                       if(isActive) {
-                           logger.info("Creating state machine for participant_uuid=" + participantMap.get("participant_uuid"));
-                           //Create person
-                           Restricted p0 = new Restricted(participantMap);
+                        if(isActive) {
+                            logger.info("Creating state machine for participant_uuid=" + participantMap.get("participant_uuid"));
+                            //Create person
+                            Restricted p0 = new Restricted(participantMap);
 
-                           logger.info("Restoring State for participant_uuid=" + participantMap.get("participant_uuid"));
-                           p0.restoreSaveState();
+                            logger.info("Restoring State for participant_uuid=" + participantMap.get("participant_uuid"));
+                            p0.restoreSaveState();
 
-                           synchronized (lockRestricted) {
-                               restrictedMap.put(participantMap.get("participant_uuid"), p0);
-                           }
-                       }
-
-                   }
-
-               }
+                            synchronized (lockRestricted) {
+                                restrictedMap.put(participantMap.get("participant_uuid"), p0);
+                            }
+                        }
+                    }
+                    previousMapList = participantMapList;
+                }
 
             } catch (Exception ex) {
                 StringWriter sw = new StringWriter();

@@ -23,6 +23,7 @@ class RestrictedBase
       receivedWarnStartCal -> warnStartCal;
       receivedStartCal -> startcal;
       recievedWarnEndCal -> warnEndCal;
+      receivedEndProtocol -> endProtocol;
     }
 
     waitStart {
@@ -36,6 +37,7 @@ class RestrictedBase
       receivedYesterdayEndCal -> yesterdayEndCalWait;
       receivedDayOff -> dayOffWait;
       after(startWarnDeadline) -> warnStartCal;
+      receivedEndProtocol -> endProtocol;
     }
     
     dayOffWait {
@@ -53,6 +55,7 @@ class RestrictedBase
       receivedYesterdayEndCal -> yesterdayEndCalWarn;
       receivedDayOff -> dayOffWarn;
       after(startDeadline) -> missedStartCal;
+      receivedEndProtocol -> endProtocol;
 
     }
     
@@ -86,7 +89,7 @@ class RestrictedBase
       receivedEndCal -> endcal;
       receivedDayOff -> dayOffStartCal;
       after(endWarnDeadline) -> warnEndCal;
-
+      receivedEndProtocol -> endProtocol;
     }
     
     dayOffStartCal {
@@ -99,7 +102,6 @@ class RestrictedBase
       entry / {
         stateNotify("missedStartCal");
       } -> endOfEpisode;
-
     }
 
     warnEndCal {
@@ -109,7 +111,7 @@ class RestrictedBase
       receivedEndCal -> endcal;
       receivedDayOff -> dayOffWarnEndCal;
       after(endDeadline) -> missedEndCal;
-
+      receivedEndProtocol -> endProtocol;
     }
     
     dayOffWarnEndCal {
@@ -125,7 +127,6 @@ class RestrictedBase
         // Possibly send missed fasts messages
         stateNotify("endcal");
       } -> endOfEpisode;
-
     }
 
 
@@ -143,6 +144,15 @@ class RestrictedBase
         stateNotify("endOfEpisode");
       };
       after(endOfEpisodeDeadline) -> waitStart;
+      receivedEndProtocol -> endProtocol;
+    }
+    
+    endProtocol {
+      // if participant is moved off protocol, or removed then enter inescapable state
+      entry / {
+        stateNotify("endProtocol");
+      };
+        receivedRestart -> waitStart;
     }
 
   }
