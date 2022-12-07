@@ -309,9 +309,11 @@ public class RestrictedWatcher {
                                     if (!participantMapList.contains(previousMap)) {
                                         // removing participant
                                         Restricted toRemove = restrictedMap.remove(previousMap.get("participant_uuid"));
-                                        toRemove.receivedEndProtocol();
-                                        toRemove = null;
-                                        System.gc();
+                                        if(toRemove != null){
+                                            toRemove.receivedEndProtocol();
+                                            toRemove = null;
+                                            System.gc();
+                                        }
                                     }
                                 }
                             }
