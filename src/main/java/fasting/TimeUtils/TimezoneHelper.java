@@ -182,6 +182,23 @@ public class TimezoneHelper {
         }
     }
 
+    public Boolean isBetween12AMand4AM() {
+        Instant nowUTC = Instant.now();
+        ZoneId userTZ = ZoneId.of(this.userTimezone);
+        ZonedDateTime nowUserTimezone = ZonedDateTime.ofInstant(nowUTC, userTZ);
+        LocalDateTime nowUserLocalTime = nowUserTimezone.toLocalDateTime();
+        LocalDateTime userLocalTime12am = LocalDateTime.of(nowUserLocalTime.getYear(), nowUserLocalTime.getMonth(), nowUserLocalTime.getDayOfMonth(), 00, 00, 00);
+        LocalDateTime userLocalTime4am = LocalDateTime.of(nowUserLocalTime.getYear(), nowUserLocalTime.getMonth(), nowUserLocalTime.getDayOfMonth(), 4, 00, 00);
+        long secondsUntil12am = Duration.between(nowUserLocalTime, userLocalTime12am).getSeconds();
+        long secondsUntil4am = Duration.between(nowUserLocalTime, userLocalTime4am).getSeconds();
+
+        if (secondsUntil12am <= 0 && secondsUntil4am >= 0) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     public Boolean isBetween3AMand3PM(long unixTS) {
         Instant unixUTC = Instant.ofEpochMilli(unixTS*1000L);
         ZoneId userTZ = ZoneId.of(this.userTimezone);
@@ -251,6 +268,11 @@ public class TimezoneHelper {
             ZoneId userTZ = ZoneId.of(this.userTimezone);
             ZonedDateTime nowUserTimezone = ZonedDateTime.ofInstant(nowUTC, userTZ);
             LocalDateTime nowUserLocalTime = nowUserTimezone.toLocalDateTime();
+            // if current time is after 12am and before 4 am, set the date to yesterday
+            if (isBetween12AMand4AM()){
+                forYesterday = true;
+            } 
+            
             LocalDateTime currentDateAndTime = LocalDateTime.of(nowUserLocalTime.getYear(), nowUserLocalTime.getMonth(), nowUserLocalTime.getDayOfMonth(), hours, minutes, 00);
             if (forYesterday){
                 currentDateAndTime = currentDateAndTime.minusDays(1);

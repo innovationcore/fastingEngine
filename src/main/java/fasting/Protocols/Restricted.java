@@ -59,7 +59,10 @@ public class Restricted extends RestrictedBase {
 
                         if(startTimestamp > 0) {
                             stateJSON = saveStateJSON();
-                            Launcher.dbEngine.uploadSaveState(stateJSON, participantMap.get("participant_uuid"));
+                            boolean didUpload = Launcher.dbEngine.uploadSaveState(stateJSON, participantMap.get("participant_uuid"));
+                            if(!didUpload){
+                                break;
+                            }
                         }
 
                         Thread.sleep(900000); // 900000 = 15 mins
@@ -398,11 +401,7 @@ public class Restricted extends RestrictedBase {
                         if (validTRE == -1){
                             // update the success rate
                             if (!this.isDayOff){
-                                if(TZHelper.isAfter8PM(endTime)){
-                                    Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false);
-                                } else {
-                                    Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), true);
-                                }
+                                Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false);
                                 String before9Msg = pickRandomLess9TRE(startTime, endTime);
                                 if (!before9Msg.equals("")){
                                     Launcher.msgUtils.sendMessage(participantMap.get("number"), TZHelper.yesterdaysDate()+ ": " + before9Msg);
@@ -411,11 +410,7 @@ public class Restricted extends RestrictedBase {
                         } else if (validTRE == 1) {
                             // update the success rate
                             if (!this.isDayOff){
-                                if(TZHelper.isAfter8PM(endTime)){
-                                    Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false);
-                                } else {
-                                    Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), true);
-                                }
+                                Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false);
                                 String after11Msg = pickRandomGreater11TRE();
                                 if (!after11Msg.equals("")) {
                                     Launcher.msgUtils.sendMessage(participantMap.get("number"), TZHelper.yesterdaysDate()+ ": " + after11Msg);
@@ -491,11 +486,7 @@ public class Restricted extends RestrictedBase {
                         if (validTRE == -1){
                             // update the success rate
                             if (!this.isDayOff){
-                               if(TZHelper.isAfter8PM(endTime)){
-                                    Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false);
-                                } else {
-                                    Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), true);
-                                }
+                                Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false);
                                 String before9Msg = pickRandomLess9TRE(startTime, endTime);
                                 if (!before9Msg.equals("")){
                                     Launcher.msgUtils.sendMessage(participantMap.get("number"), TZHelper.yesterdaysDate()+ ": " + before9Msg);
@@ -504,11 +495,7 @@ public class Restricted extends RestrictedBase {
                         } else if (validTRE == 1) {
                             // update the success rate
                             if (!this.isDayOff) {
-                                if(TZHelper.isAfter8PM(endTime)){
-                                    Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false);
-                                } else {
-                                    Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), true);
-                                }
+                                Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false);
                                 String after11Msg = pickRandomGreater11TRE();
                                 if (!after11Msg.equals("")){
                                     Launcher.msgUtils.sendMessage(participantMap.get("number"), TZHelper.yesterdaysDate()+ ": " + after11Msg);
@@ -643,11 +630,7 @@ public class Restricted extends RestrictedBase {
                     if (!this.pauseMessages){
                         // update the success rate
                         if (!this.isDayOff){
-                            if(TZHelper.isAfter8PM(endTime)){
-                                Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false);
-                            } else {
-                                Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), true);
-                            }
+                            Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false);
                             String before9Msg = pickRandomLess9TRE(startTime, endTime);
                             if (!before9Msg.equals("")){
                                 Launcher.msgUtils.sendMessage(participantMap.get("number"), before9Msg);
@@ -658,11 +641,7 @@ public class Restricted extends RestrictedBase {
                     if (!this.pauseMessages){
                         // update the success rate
                         if (!this.isDayOff) {
-                            if(TZHelper.isAfter8PM(endTime)){
-                                Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false);
-                            } else {
-                                Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), true);
-                            }
+                            Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false);
                             String after11Msg = pickRandomGreater11TRE();
                             if (!after11Msg.equals("")){
                                 Launcher.msgUtils.sendMessage(participantMap.get("number"), after11Msg);

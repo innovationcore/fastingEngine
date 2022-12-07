@@ -476,11 +476,13 @@ public class DBEngine {
         }
     }
 
-    public void uploadSaveState(String stateJSON, String participant_uuid){
+    public boolean uploadSaveState(String stateJSON, String participant_uuid){
         Connection conn = null;
         PreparedStatement stmt = null;
         try {
             String enrollment_uuid = getEnrollmentUUID(participant_uuid);
+            if(enrollment_uuid == null) 
+                return false;
             pruneSaveStateEntries(enrollment_uuid);
             String query = "INSERT INTO save_state (enrollment_uuid, TS, state_json) VALUES (?, GETUTCDATE(), ?)";
             conn = ds.getConnection();
@@ -494,6 +496,7 @@ public class DBEngine {
             try { stmt.close(); } catch (Exception e) { /* Null Ignored */ }
             try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
         }
+        return true;
     }
 
     public String getParticipantCurrentState(String partUUID) {
