@@ -7,21 +7,17 @@ import com.twilio.Twilio;
 import com.twilio.rest.api.v2010.account.Message;
 import com.twilio.type.PhoneNumber;
 import fasting.Launcher;
-import fasting.Webapi.API;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.logging.Handler;
 import java.io.StringWriter;
 import java.io.PrintWriter;
 
 public class MsgUtils {
     // Find your Account SID and Auth Token at twilio.com/console
     // and set the environment variables. See http://twil.io/secure
-    private String account_sid;
-    private String auth_token;
     private String textFrom;
     private Logger logger;
     private Gson gson;
@@ -40,8 +36,8 @@ public class MsgUtils {
         }
         else {
             Message message = Message.creator(
-                        new com.twilio.type.PhoneNumber(textTo),
-                        new com.twilio.type.PhoneNumber(textFrom),
+                        new PhoneNumber(textTo),
+                        new PhoneNumber(textFrom),
                         body)
                 .create();
         }
@@ -71,8 +67,8 @@ public class MsgUtils {
 
     }
 
-    public void fakeIncomingMessage(Map<String, String> formsMap, String phone_number) {
-        String responseString;
+    public String fakeIncomingMessage(Map<String, String> formsMap, String phone_number) {
+        String responseString = "Error";
         try {
 
             String messageId = UUID.randomUUID().toString();
@@ -99,12 +95,14 @@ public class MsgUtils {
                 Map<String,String> responce = new HashMap<>();
                 responce.put("status","ok");
                 responseString = gson.toJson(responce);
+                return responseString;
 
             } else {
                 Map<String,String> responce = new HashMap<>();
                 responce.put("status","error");
                 responce.put("status_desc","participant not found");
                 responseString = gson.toJson(responce);
+                return responseString;
             }
 
         } catch (Exception ex) {
@@ -113,9 +111,10 @@ public class MsgUtils {
             ex.printStackTrace(new PrintWriter(sw));
             String exceptionAsString = sw.toString();
             ex.printStackTrace();
-            logger.error("incomingText");
+            logger.error("fakeIncomingText");
             logger.error(exceptionAsString);
 
         }
+        return responseString;
     }
 }

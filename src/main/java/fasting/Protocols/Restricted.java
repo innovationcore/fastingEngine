@@ -3,21 +3,11 @@ package fasting.Protocols;
 import fasting.TimeUtils.TimezoneHelper;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import com.twilio.rest.api.v2010.account.Message;
 import fasting.Launcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.lang.reflect.Type;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class Restricted extends RestrictedBase {
     private Type typeOfHashMap = new TypeToken<Map<String, Map<String,Long>>>() { }.getType();
@@ -36,10 +26,6 @@ public class Restricted extends RestrictedBase {
 
     private Gson gson;
     private static final Logger logger = LoggerFactory.getLogger(Restricted.class.getName());
-
-    public Restricted(String participant_uuid) {
-
-    }
 
     public Restricted(Map<String, String> participantMap) {
         this.gson = new Gson();
@@ -116,7 +102,7 @@ public class Restricted extends RestrictedBase {
                         Launcher.msgUtils.sendMessage(participantMap.get("number"), "You've already started consuming calories for the day. Text \"ENDCAL\" when you finish your TRE today.");
                     } else if(isEndCal(incomingMap.get("Body"))) {
                         String textBody = incomingMap.get("Body").trim(); // removes whitespace before and after
-                        String[] endCalSplit = incomingMap.get("Body").split(" ");
+                        String[] endCalSplit = textBody.split(" ");
                         boolean isBetween3AMand3PM;
                         if (endCalSplit.length >= 2){
                             isBetween3AMand3PM = TZHelper.isBetween3AMand3PM(TZHelper.parseTime(endCalSplit[1], false));
@@ -144,7 +130,7 @@ public class Restricted extends RestrictedBase {
                         receivedDayOff();
                     } else if (isEndCal(incomingMap.get("Body"))) {
                         String textBody = incomingMap.get("Body").trim(); // removes whitespace before and after
-                        String[] endCalSplit = incomingMap.get("Body").split(" ");
+                        String[] endCalSplit = textBody.split(" ");
                         boolean isBetween3AMand3PM;
                         if (endCalSplit.length >= 2){
                             isBetween3AMand3PM = TZHelper.isBetween3AMand3PM(TZHelper.parseTime(endCalSplit[1], false));
@@ -168,7 +154,7 @@ public class Restricted extends RestrictedBase {
                 case endcal:
                     if(isEndCal(incomingMap.get("Body"))) {
                         String textBody = incomingMap.get("Body").trim(); // removes whitespace before and after
-                        String[] endCalSplit = incomingMap.get("Body").split(" ");
+                        String[] endCalSplit = textBody.split(" ");
                         boolean isBetween3AMand3PM;
                         if (endCalSplit.length >= 2){
                             isBetween3AMand3PM = TZHelper.isBetween3AMand3PM(TZHelper.parseTime(endCalSplit[1], false));
@@ -315,7 +301,6 @@ public class Restricted extends RestrictedBase {
 
         long unixTS;
         long recentStartCalTime;
-        boolean isSameDay;
 
         logState(state);
     
@@ -384,7 +369,7 @@ public class Restricted extends RestrictedBase {
                             }
                         } else {
                             String textBody = incomingMap.get("Body").trim(); // removes whitespace before and after
-                            String[] endCalSplit = incomingMap.get("Body").split(" ");
+                            String[] endCalSplit = textBody.split(" ");
                             if (endCalSplit.length >= 2){
                                 unixTS = TZHelper.parseTime(endCalSplit[1], true);
                             } else {
@@ -468,7 +453,7 @@ public class Restricted extends RestrictedBase {
                             }
                         } else {
                             String textBody = incomingMap.get("Body").trim(); // removes whitespace before and after
-                            String[] endCalSplit = incomingMap.get("Body").split(" ");
+                            String[] endCalSplit = textBody.split(" ");
                             if (endCalSplit.length >= 2){
                                 unixTS = TZHelper.parseTime(endCalSplit[1], true);
                             } else {
@@ -517,11 +502,9 @@ public class Restricted extends RestrictedBase {
                         }
 
                         // send message if endcal is after 8pm
-                        if (TZHelper.isAfter8PM(endTime)) {
-                            if(!this.isDayOff){
-                                String after8PMMsg = randomAfter8PMMessage();
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), TZHelper.yesterdaysDate()+ ": " + after8PMMsg);
-                            }
+                        if (TZHelper.isAfter8PM(endTime) && !this.isDayOff) {
+                            String after8PMMsg = randomAfter8PMMessage();
+                            Launcher.msgUtils.sendMessage(participantMap.get("number"), TZHelper.yesterdaysDate()+ ": " + after8PMMsg);
                         }
                     } else {
                         Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Please send \"STARTCAL\" when you begin calories for " +
@@ -552,7 +535,7 @@ public class Restricted extends RestrictedBase {
                     }
                 } else {
                     String textBody = incomingMap.get("Body").trim(); // removes whitespace before and after
-                    String[] startCalSplit = incomingMap.get("Body").split(" ");
+                    String[] startCalSplit = textBody.split(" ");
                     if (startCalSplit.length >= 2){
                         unixTS = TZHelper.parseTime(startCalSplit[1], false);
                     } else {
@@ -612,7 +595,7 @@ public class Restricted extends RestrictedBase {
                     }
                 } else {
                     String textBody = incomingMap.get("Body").trim(); // removes whitespace before and after
-                    String[] endCalSplit = incomingMap.get("Body").split(" ");
+                    String[] endCalSplit = textBody.split(" ");
                     if (endCalSplit.length >= 2){
                         unixTS = TZHelper.parseTime(endCalSplit[1], false);
                     } else {
@@ -627,50 +610,42 @@ public class Restricted extends RestrictedBase {
                 int validTRE = TZHelper.determineGoodFastTime(startTime, endTime);
 
                 if (validTRE == -1){
-                    if (!this.pauseMessages){
+                    if (!this.pauseMessages && !this.isDayOff){
                         // update the success rate
-                        if (!this.isDayOff){
-                            Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false);
-                            String before9Msg = pickRandomLess9TRE(startTime, endTime);
-                            if (!before9Msg.equals("")){
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), before9Msg);
-                            }
-                        }
+                        Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false);
+                        String before9Msg = pickRandomLess9TRE(startTime, endTime);
+                        if (!before9Msg.equals("")){
+                            Launcher.msgUtils.sendMessage(participantMap.get("number"), before9Msg);
+                        } 
                     }
                 } else if (validTRE == 1) {
-                    if (!this.pauseMessages){
+                    if (!this.pauseMessages && !this.isDayOff){
                         // update the success rate
-                        if (!this.isDayOff) {
-                            Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false);
-                            String after11Msg = pickRandomGreater11TRE();
-                            if (!after11Msg.equals("")){
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), after11Msg);
-                            }
+                        Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false);
+                        String after11Msg = pickRandomGreater11TRE();
+                        if (!after11Msg.equals("")){
+                            Launcher.msgUtils.sendMessage(participantMap.get("number"), after11Msg);
                         }
                     }
                 } else {
-                    if (!this.pauseMessages){
+                    if (!this.pauseMessages && !this.isDayOff){
                         // update the success rate
-                        if (!this.isDayOff) {
-                            if(TZHelper.isAfter8PM(endTime)){
-                                Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false);
-                            } else {
-                                Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), true);
-                            }
-                            String successMsg = pickRandomSuccessTRE();
-                            if(!successMsg.equals("")){
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), successMsg);
-                            }
+                        if(TZHelper.isAfter8PM(endTime)){
+                            Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false);
+                        } else {
+                            Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), true);
+                        }
+                        String successMsg = pickRandomSuccessTRE();
+                        if(!successMsg.equals("")){
+                            Launcher.msgUtils.sendMessage(participantMap.get("number"), successMsg);
                         }
                     }
                 }
 
                 // send message if endcal is after 8pm
-                if (TZHelper.isAfter8PM(endTime)) {
-                    if (!this.pauseMessages && !this.isDayOff){
-                        String after8PMMsg = randomAfter8PMMessage();
-                        Launcher.msgUtils.sendMessage(participantMap.get("number"), after8PMMsg);
-                    }
+                if (TZHelper.isAfter8PM(endTime) && !this.pauseMessages && !this.isDayOff) {
+                    String after8PMMsg = randomAfter8PMMessage();
+                    Launcher.msgUtils.sendMessage(participantMap.get("number"), after8PMMsg);
                 }
                 //save state info
                 stateJSON = saveStateJSON();
@@ -756,7 +731,8 @@ public class Restricted extends RestrictedBase {
             if (!saveStateJSON.equals("")){
                 Map<String, Map<String,Long>> saveStateMap = gson.fromJson(saveStateJSON,typeOfHashMap);
 
-                Map<String,Long> historyMap = saveStateMap.get("history");
+                // historyMap not needed currently, but available
+                //Map<String,Long> historyMap = saveStateMap.get("history");
                 Map<String,Long> timerMap = saveStateMap.get("timers");
 
                 int stateIndex = (int) timerMap.get("stateIndex").longValue();
@@ -934,7 +910,6 @@ public class Restricted extends RestrictedBase {
             add("Got it. Now put your tummy to sleep until the morning!");
             add("Muchas gracias. Now go put your feet up. You've earned it!");
         }});
-        Random rand = new Random();
         int rnd = new Random().nextInt(endCalMessages.size());
         String message = endCalMessages.get(rnd);
         if (message.contains("[NAME]")) {
@@ -955,7 +930,6 @@ public class Restricted extends RestrictedBase {
             add("Superb! Your overall success rate is now [SUCCESS]!");
             add("Great! Your overall success rate is now [SUCCESS]!");
         }});
-        Random rand = new Random();
         int rnd = new Random().nextInt(successMessages.size());
         String message = successMessages.get(rnd);
         if (message.contains("[NAME]")) {
@@ -980,7 +954,6 @@ public class Restricted extends RestrictedBase {
             add("[NAME], you ended your time-restricted eating too early! Your success rate is now [SUCCESS]. If you need help, get a family member to help you end your fasting time!");
             add("You ended your time-restricted eating too early. Your success rate is now [SUCCESS]. Try putting Post-Its on your fridge and cupboards to help you remember your target End Calories time!");
         }});
-        Random rand = new Random();
         int rnd = new Random().nextInt(successMessages.size());
         String message = successMessages.get(rnd);
         if (message.contains("[NAME]")) {
@@ -1009,7 +982,6 @@ public class Restricted extends RestrictedBase {
             add("[NAME], you exceeded the target eating window! Your success rate is now [SUCCESS]. If you need help, get a family member to help you end your calories on time!");
             add("You slipped up and consumed calories for too long. Your success rate is now [SUCCESS]. Let's get back on track tomorrow!");
         }});
-        Random rand = new Random();
         int rnd = new Random().nextInt(successMessages.size());
         String message = successMessages.get(rnd);
         if (message.contains("[NAME]")) {
@@ -1033,13 +1005,9 @@ public class Restricted extends RestrictedBase {
             add("You ended your time-restricted eating after 8pm. Try planning ahead for how you will end your daily calories earlier.");
             add("You ended your time-restricted eating after 8pm. Try using a recurring alarm or a family member to help you end calories earlier.");
         }});
-        Random rand = new Random();
         int rnd = new Random().nextInt(successMessages.size());
         String message = successMessages.get(rnd);
         return message;
     }
 
-    public void stopTimers(){
-        
-    }
-}
+} // class

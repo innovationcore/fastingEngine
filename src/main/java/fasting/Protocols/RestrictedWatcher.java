@@ -1,22 +1,17 @@
 package fasting.Protocols;
 
 import fasting.Launcher;
-import org.apache.logging.log4j.LogManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.nio.file.Paths;
 import java.util.*;
-import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class RestrictedWatcher {
     private Logger logger;
     private Timer checkTimer;
-    private Timer episodeResetTimer;
 
     private AtomicBoolean lockRestricted = new AtomicBoolean();
     private AtomicBoolean lockEpisodeReset = new AtomicBoolean();
