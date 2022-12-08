@@ -261,7 +261,7 @@ public class TimezoneHelper {
             return currentDateAndTime.toEpochSecond(userTZ.getRules().getOffset(currentDateAndTime));
         } catch (Exception e){
             // if fails to parse time, return the time now
-            e.printStackTrace();
+            //e.printStackTrace();
             return getUnixTimestampNow();
         }
     }

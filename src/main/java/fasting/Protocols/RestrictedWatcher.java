@@ -292,7 +292,6 @@ public class RestrictedWatcher {
                         previousMapList = participantMapList;
                     }
                     for (Map<String, String> participantMap : participantMapList) {
-
                         boolean isActive = false;
                         synchronized (lockRestricted) {
                             if(!restrictedMap.containsKey(participantMap.get("participant_uuid"))) {
