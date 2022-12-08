@@ -4,7 +4,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.time.*;
 import java.time.format.*;
-import java.time.temporal.*;
 import java.util.*;
 import java.text.*;
 
@@ -14,11 +13,7 @@ public class TimezoneHelper {
 
     private String userTimezone;
     private String machineTimezone;
-    private Integer startYear;
-    private Integer startMonth;
-    private Integer startDay;
     private Integer timezoneDifference;
-    private Boolean isUserAheadOfMachine;
     private Logger logger;
 
     /**
@@ -27,21 +22,7 @@ public class TimezoneHelper {
     public TimezoneHelper(String userTimezone, String machineTimezone) {
         this.userTimezone = userTimezone;
         this.machineTimezone = machineTimezone;
-
-        Instant nowUTC = Instant.now();
-        ZoneId userTZ = ZoneId.of(userTimezone);
-        ZonedDateTime nowUserTimezone = ZonedDateTime.ofInstant(nowUTC, userTZ);
-        LocalDateTime nowUserLocalTime = nowUserTimezone.toLocalDateTime();
-        this.startYear = nowUserLocalTime.getYear();
-        this.startMonth = nowUserLocalTime.getMonthValue();
-        this.startDay = nowUserLocalTime.getDayOfMonth();
-
         this.timezoneDifference = calculateTZOffset();
-        if (this.timezoneDifference > 0) {
-            this.isUserAheadOfMachine = true;
-        } else {
-            this.isUserAheadOfMachine = false;
-        }
         this.logger = LoggerFactory.getLogger(TimezoneHelper.class.getName());
         logger.info("TimezoneHelper initialized with user timezone: " + userTimezone + " and machine timezone: " + machineTimezone + " and timezone difference: " + timezoneDifference);
     }
@@ -113,7 +94,7 @@ public class TimezoneHelper {
         secondsUntil4am += SEC_IN_4_HOURS; 
         // doing it this way avoids months with 30 and 31 days, instead of adding a day to getDayofMonth() (which may fail), 
         //just add 4 hours of seconds onto a midnight time
-        return ((int) secondsUntil4am);
+        return (int) secondsUntil4am;
     }
 
     /**
@@ -137,7 +118,7 @@ public class TimezoneHelper {
             LocalDateTime userLocalTime4am = LocalDateTime.of(nowUserLocalTime.getYear(), nowUserLocalTime.getMonth(), nowUserLocalTime.getDayOfMonth(), 04, 00, 00);
             userLocalTime4am = userLocalTime4am.plusDays(1);
             long secondsUntil4am = Duration.between(nowUserLocalTime, userLocalTime4am).getSeconds();
-            return ((int) secondsUntil4am);
+            return (int) secondsUntil4am;
         }
     }
 

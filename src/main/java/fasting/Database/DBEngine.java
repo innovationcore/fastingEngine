@@ -1,26 +1,17 @@
 package fasting.Database;
 
 import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import fasting.Launcher;
 import org.apache.commons.dbcp2.*;
 import org.apache.commons.pool2.ObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPool;
 
 import javax.sql.DataSource;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.lang.reflect.Type;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import java.time.LocalTime;
-import java.text.SimpleDateFormat;
-import java.time.format.DateTimeFormatter;
 
 public class DBEngine {
 
@@ -115,7 +106,7 @@ public class DBEngine {
         // arguments.
         //
         ConnectionFactory connectionFactory = null;
-        if((login == null) && (password == null)) {
+        if(login == null && password == null) {
             connectionFactory = new DriverManagerConnectionFactory(connectURI, null);
         } else {
             connectionFactory = new DriverManagerConnectionFactory(connectURI,
@@ -338,8 +329,6 @@ public class DBEngine {
         return exist;
     }
 
-    //SELECT id, phone_number, participant_type FROM fasting.participants WHERE participant_type='other_participation_type'
-
 
     public List<Map<String,String>> getAccessLogs() {
         Connection conn = null;
@@ -348,7 +337,6 @@ public class DBEngine {
         List<Map<String,String>> accessMapList = null;
         try {
             accessMapList = new ArrayList<>();
-            Type type = new TypeToken<Map<String, String>>(){}.getType();
             String queryString = "SELECT * FROM accesslog";
 
             conn = ds.getConnection();

@@ -18,7 +18,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Paths;
-import java.time.ZoneId;
 import java.util.*;
 
 
@@ -77,14 +76,14 @@ public class Launcher {
         final ResourceConfig rc = new ResourceConfig()
                 .packages("fasting.Webapi");
 
-        System.out.println("Starting Web Server...");
+        logger.info("Starting Web Server...");
         int web_port = config.getIntegerParam("web_port",9000);
         URI BASE_URI = UriBuilder.fromUri("http://0.0.0.0/").port(web_port).build();
         HttpServer httpServer = GrizzlyHttpServerFactory.createHttpServer(BASE_URI, rc);
 
         try {
             httpServer.start();
-            System.out.println("Web Server Started...");
+            logger.info("Web Server Started...");
         } catch (IOException e) {
             e.printStackTrace();
         }
