@@ -935,5 +935,32 @@ public class DBEngine {
         }
         return timestamp;
     }
+
+    public String getProtocolFromParticipantId(String uuid) {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        String protocol = "";
+
+        try{
+            String query = "SELECT name FROM protocol_types WHERE protocol_type_uuid IN (SELECT protocol_type_uuid FROM enrollments WHERE participant_uuid = ?)";
+            conn = ds.getConnection();
+            stmt = conn.prepareStatement(query);
+            stmt.setString(1, uuid);
+            rs = stmt.executeQuery();
+
+            if(rs.next()){
+                protocol = rs.getString("name");
+            }
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        } finally {
+            try { rs.close(); }   catch (Exception e) { /* Null Ignored */ }
+            try { stmt.close(); } catch (Exception e) { /* Null Ignored */ }
+            try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
+        }
+        return protocol;
+    }
     
 }

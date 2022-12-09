@@ -138,7 +138,7 @@ public class ControlWatcher {
                         Launcher.dbEngine.removeTempEndCal(participantId);
                         newState = "endcal";
                     } else if (moveToState.equals("timeout24")) {
-                        participant.timeoutwaitStartTotimeout24();
+                        participant.timeoutstartcalTotimeout24();
                         newState = "timeout24";
                     } else if (moveToState.equals("endProtocol")) {
                         participant.receivedEndProtocol();
