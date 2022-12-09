@@ -389,4 +389,8 @@ public class TimezoneHelper {
     public void setTimezoneDifference(int timezoneDifference) {
         this.timezoneDifference = timezoneDifference;
     }
+
+    public int secondsIn24Hours() {
+        return SEC_IN_DAY;
+    }
 }
