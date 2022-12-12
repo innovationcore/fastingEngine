@@ -7,6 +7,7 @@ import fasting.MessagingUtils.MsgUtils;
 import fasting.Protocols.Testing;
 import fasting.Protocols.RestrictedWatcher;
 import fasting.Protocols.ControlWatcher;
+import fasting.Protocols.BaselineWatcher;
 import fasting.TimeUtils.TimezoneHelper;
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
@@ -30,6 +31,7 @@ public class Launcher {
     public static MsgUtils msgUtils;
     public static RestrictedWatcher restrictedWatcher;
     public static ControlWatcher controlWatcher;
+    public static BaselineWatcher baselineWatcher;
     public static Testing testing;
     public static TimezoneHelper TZHelper;
 
@@ -65,6 +67,7 @@ public class Launcher {
             //start protocols
             restrictedWatcher = new RestrictedWatcher();
             controlWatcher = new ControlWatcher();
+            baselineWatcher = new BaselineWatcher();
 
 
 

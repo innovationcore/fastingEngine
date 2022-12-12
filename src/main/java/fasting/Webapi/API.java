@@ -141,9 +141,9 @@ public class API {
                 else if (protocol.equals("Control")) {
                     validNextStates = Launcher.controlWatcher.getValidNextStates(participantId);
                 }
-//                else if (protocol.equals("Baseline")) {
-//                    validNextStates = Launcher.baselineWatcher.getValidNextStates(participantId);
-//                }
+                else if (protocol.equals("Baseline")) {
+                    validNextStates = Launcher.baselineWatcher.getValidNextStates(participantId);
+                }
 
                 Map<String,String> response = new HashMap<>();
                 response.put("status","ok");
@@ -189,9 +189,9 @@ public class API {
                 else if (protocol.equals("Control")) {
                     newState = Launcher.controlWatcher.moveToState(participantId, nextState, time);
                 }
-//                else if (protocol.equals("Baseline")) {
-//                    newState = Launcher.baselineWatcher.moveToState(participantId, nextState, time);
-//                }
+                else if (protocol.equals("Baseline")) {
+                    newState = Launcher.baselineWatcher.moveToState(participantId, nextState, time);
+                }
 
                 Map<String,String> response = new HashMap<>();
                 response.put("status","ok");
