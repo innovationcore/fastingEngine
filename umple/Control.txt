@@ -1,0 +1,79 @@
+// UML State diagram for a library loan, represented in Umple
+class ControlBase
+{
+  Integer timeout24Hours = 0;
+
+
+  state {
+
+    initial {
+      entry / {
+        // here we need to receive the message to start
+        // Possibly send missed fasts messages
+        stateNotify("initial");
+      };
+
+      //must be able to advance to any state
+      receivedWaitStart -> waitStart;
+      receivedStartCal -> startcal;
+    }
+
+    waitStart {
+      entry / {
+        // here we need to receive the message to start
+        // Possibly send missed fasts messages
+        stateNotify("waitStart");
+      };
+
+      receivedStartCal -> startcal;
+      after(timeout24Hours) -> timeout24;
+      receivedEndProtocol -> endProtocol;
+    }
+
+
+    startcal {
+      entry / {
+        // here we need to receive the message to start
+        // Possibly send missed fasts messages
+        stateNotify("startcal");
+      };
+      receivedEndCal -> endcal;
+      after(timeout24Hours) -> timeout24;
+      receivedEndProtocol -> endProtocol;
+    }
+
+    endcal {
+      entry / {
+        // here we need to receive the message to start
+        // Possibly send missed fasts messages
+        stateNotify("endcal");
+      } -> waitStart;
+    }
+
+    timeout24 {
+      entry / {
+        // here we need to receive the message to start
+        // Possibly send missed fasts messages
+        stateNotify("timeout24");
+      } -> waitStart;
+    }
+
+    endProtocol {
+      // if participant is moved off protocol, or removed then enter inescapable state
+      entry / {
+        stateNotify("endProtocol");
+      };
+    }
+
+  }
+
+  boolean stateNotify(String node) {return true;}
+  int currentTime() {return 1;}
+}
+
+namespace -;
+
+class ControlBase
+{
+  position 50 30 109 45;
+}

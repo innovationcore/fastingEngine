@@ -133,7 +133,17 @@ public class API {
 
             if (participantId != null) {
                 // this returns a comma delimited list as a string
-                String validNextStates = Launcher.restrictedWatcher.getValidNextStates(participantId);
+                String validNextStates = "";
+                String protocol = Launcher.dbEngine.getProtocolFromParticipantId(participantId);
+                if (protocol.equals("TRE")) {
+                    validNextStates = Launcher.restrictedWatcher.getValidNextStates(participantId);
+                }
+                else if (protocol.equals("Control")) {
+                    validNextStates = Launcher.controlWatcher.getValidNextStates(participantId);
+                }
+                else if (protocol.equals("Baseline")) {
+                    validNextStates = Launcher.baselineWatcher.getValidNextStates(participantId);
+                }
 
                 Map<String,String> response = new HashMap<>();
                 response.put("status","ok");
@@ -171,7 +181,17 @@ public class API {
 
             if (participantId != null) {
                 //send to state machine
-                String newState = Launcher.restrictedWatcher.moveToState(participantId, nextState, time);
+                String newState = "";
+                String protocol = Launcher.dbEngine.getProtocolFromParticipantId(participantId);
+                if (protocol.equals("TRE")) {
+                    newState = Launcher.restrictedWatcher.moveToState(participantId, nextState, time);
+                }
+                else if (protocol.equals("Control")) {
+                    newState = Launcher.controlWatcher.moveToState(participantId, nextState, time);
+                }
+                else if (protocol.equals("Baseline")) {
+                    newState = Launcher.baselineWatcher.moveToState(participantId, nextState, time);
+                }
 
                 Map<String,String> response = new HashMap<>();
                 response.put("status","ok");
