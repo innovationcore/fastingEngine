@@ -719,11 +719,6 @@ public class Restricted extends RestrictedBase {
         return true;
     }
 
-    public Map<String, Map<String,Long>> getSaveStateMap() {
-        Map<String, Map<String,Long>> saveStateMap = gson.fromJson(stateJSON,typeOfHashMap);
-        return saveStateMap;
-    }
-
     public void restoreSaveState() {
         try{
             String saveStateJSON = Launcher.dbEngine.getSaveState(participantMap.get("participant_uuid"));

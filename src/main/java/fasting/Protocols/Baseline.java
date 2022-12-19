@@ -270,11 +270,6 @@ public class Baseline extends BaselineBase {
         return true;
     }
 
-    public Map<String, Map<String,Long>> getSaveStateMap() {
-        Map<String, Map<String,Long>> saveStateMap = gson.fromJson(stateJSON,typeOfHashMap);
-        return saveStateMap;
-    }
-
     public void restoreSaveState() {
         try{
             String saveStateJSON = Launcher.dbEngine.getSaveState(participantMap.get("participant_uuid"));
@@ -287,7 +282,7 @@ public class Baseline extends BaselineBase {
                 Map<String,Long> timerMap = saveStateMap.get("timers");
 
                 int stateIndex = (int) timerMap.get("stateIndex").longValue();
-                String stateName = State.values()[stateIndex].toString();
+                String stateName = State.values()[stateIndex].toString(); // out of bounds
 
                 long saveCurrentTime = timerMap.get("currentTime");
 
@@ -346,6 +341,7 @@ public class Baseline extends BaselineBase {
         } catch (Exception ex) {
             logger.error("restoreSaveState");
             logger.error(ex.getMessage());
+            ex.printStackTrace();
         }
     }
 

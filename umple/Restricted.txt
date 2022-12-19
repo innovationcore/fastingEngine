@@ -152,7 +152,6 @@ class RestrictedBase
       entry / {
         stateNotify("endProtocol");
       };
-        receivedRestart -> waitStart;
     }
 
   }

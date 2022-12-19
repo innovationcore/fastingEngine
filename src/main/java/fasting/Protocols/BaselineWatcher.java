@@ -221,8 +221,6 @@ public class BaselineWatcher {
                     for (Map<String, String> participantMap : participantMapList) {
                         boolean isActive = false;
                         synchronized (lockBaseline) {
-                            System.out.println(baselineMap);
-                            System.out.println(participantMap);
                             if(!baselineMap.containsKey(participantMap.get("participant_uuid"))) {
                                 isActive = true;
                             } else if (!previousMapList.equals(participantMapList)) {
