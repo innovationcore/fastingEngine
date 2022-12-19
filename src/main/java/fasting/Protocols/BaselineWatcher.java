@@ -7,11 +7,15 @@ import org.slf4j.LoggerFactory;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class BaselineWatcher {
     private Logger logger;
-    private Timer checkTimer;
+    private ScheduledExecutorService checkTimer;
 
     private AtomicBoolean lockBaseline = new AtomicBoolean();
     private AtomicBoolean lockEpisodeReset = new AtomicBoolean();
@@ -27,9 +31,9 @@ public class BaselineWatcher {
         long checktimer = Launcher.config.getLongParam("checktimer",30000l);
 
         //create timer
-        checkTimer = new Timer();
+        checkTimer = Executors.newScheduledThreadPool(1);
         //set timer
-        checkTimer.scheduleAtFixedRate(new startBaseline(), checkdelay, checktimer);
+        checkTimer.scheduleAtFixedRate(new startBaseline(), checkdelay, checktimer, TimeUnit.MILLISECONDS);
     }
 
     public void incomingText(String participantId, Map<String,String> incomingMap) {
@@ -201,9 +205,24 @@ public class BaselineWatcher {
                         //first run
                         previousMapList = participantMapList;
                     }
+
+                    if (previousMapList.size() > 0 && participantMapList.size() == 0){
+                        // clear anyone in previousMapList
+                        for (Map<String,String> previousMap: previousMapList){
+                            Baseline toRemove = baselineMap.remove(previousMap.get("participant_uuid"));
+                            if(toRemove != null){
+                                toRemove.receivedEndProtocol();
+                                toRemove = null;
+                                System.gc();
+                            }
+                        }
+                    }
+
                     for (Map<String, String> participantMap : participantMapList) {
                         boolean isActive = false;
                         synchronized (lockBaseline) {
+                            System.out.println(baselineMap);
+                            System.out.println(participantMap);
                             if(!baselineMap.containsKey(participantMap.get("participant_uuid"))) {
                                 isActive = true;
                             } else if (!previousMapList.equals(participantMapList)) {

@@ -7,11 +7,15 @@ import org.slf4j.LoggerFactory;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ControlWatcher {
     private Logger logger;
-    private Timer checkTimer;
+    private ScheduledExecutorService checkTimer;
 
     private AtomicBoolean lockControl = new AtomicBoolean();
     private AtomicBoolean lockEpisodeReset = new AtomicBoolean();
@@ -27,9 +31,10 @@ public class ControlWatcher {
         long checktimer = Launcher.config.getLongParam("checktimer",30000l);
 
         //create timer
-        checkTimer = new Timer();
+        checkTimer = Executors.newScheduledThreadPool(1);
         //set timer
-        checkTimer.scheduleAtFixedRate(new startControl(), checkdelay, checktimer);
+        checkTimer.scheduleAtFixedRate(new startControl(), checkdelay, checktimer, TimeUnit.MILLISECONDS);
+        
     }
 
     public void incomingText(String participantId, Map<String,String> incomingMap) {
@@ -201,6 +206,18 @@ public class ControlWatcher {
                         //first run
                         previousMapList = participantMapList;
                     }
+                    if (previousMapList.size() > 0 && participantMapList.size() == 0){
+                        // clear anyone in previousMapList
+                        for (Map<String,String> previousMap: previousMapList){
+                            Control toRemove = controlMap.remove(previousMap.get("participant_uuid"));
+                            if(toRemove != null){
+                                toRemove.receivedEndProtocol();
+                                toRemove = null;
+                                System.gc();
+                            }
+                        }
+                    }
+                    // no one in list so not running
                     for (Map<String, String> participantMap : participantMapList) {
                         boolean isActive = false;
                         synchronized (lockControl) {
