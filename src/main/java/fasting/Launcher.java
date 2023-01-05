@@ -58,9 +58,10 @@ public class Launcher {
             startServer();
 
             //testing
-            // TimezoneHelper TZHelper = new TimezoneHelper("America/Phoenix","Etc/UTC");
-            // System.out.println(TZHelper.determineGoodFastTime(1670261100, 1670379900));
-            // System.out.println(TZHelper.isBetween12AMand4AM());
+//            TimezoneHelper TZHelper = new TimezoneHelper("America/Louisville","Etc/UTC");
+//            System.out.println(TZHelper.parseTime("12:00 Am"));
+//            System.out.println(TZHelper.determineGoodFastTime(1670261100, 1670379900));
+//            System.out.println(TZHelper.isBetween12AMand4AM());
             
 
     

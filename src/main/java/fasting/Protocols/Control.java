@@ -216,7 +216,7 @@ public class Control extends ControlBase {
                     String textBody = incomingMap.get("Body").trim(); // removes whitespace before and after
                     String[] startCalSplit = textBody.split(" ");
                     if (startCalSplit.length >= 2){
-                        unixTS = TZHelper.parseTime(startCalSplit[1], false);
+                        unixTS = TZHelper.parseTime(startCalSplit[1]);
                     } else {
                         unixTS = TZHelper.getUnixTimestampNow();
                     }
@@ -240,7 +240,7 @@ public class Control extends ControlBase {
                     String textBody = incomingMap.get("Body").trim(); // removes whitespace before and after
                     String[] endCalSplit = textBody.split(" ");
                     if (endCalSplit.length >= 2){
-                        unixTS = TZHelper.parseTime(endCalSplit[1], false);
+                        unixTS = TZHelper.parseTime(endCalSplit[1]);
                     } else {
                         unixTS = TZHelper.getUnixTimestampNow();
                     }

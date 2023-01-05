@@ -34,12 +34,11 @@ class RestrictedBase
       };
 
       receivedStartCal -> startcal;
-      receivedYesterdayEndCal -> yesterdayEndCalWait;
       receivedDayOff -> dayOffWait;
       after(startWarnDeadline) -> warnStartCal;
       receivedEndProtocol -> endProtocol;
     }
-    
+
     dayOffWait {
       entry / {
         stateNotify("dayOffWait");
@@ -52,28 +51,15 @@ class RestrictedBase
       };
 
       receivedStartCal -> startcal;
-      receivedYesterdayEndCal -> yesterdayEndCalWarn;
       receivedDayOff -> dayOffWarn;
       after(startDeadline) -> missedStartCal;
       receivedEndProtocol -> endProtocol;
 
     }
-    
+
     dayOffWarn {
       entry / {
         stateNotify("dayOffWarn");
-      } -> warnStartCal;
-    }
-    
-    yesterdayEndCalWait {
-      entry / {
-        stateNotify("yesterdayEndCalWait");
-      } -> waitStart;
-    }
-    
-    yesterdayEndCalWarn {
-      entry / {
-        stateNotify("yesterdayEndCalWarn");
       } -> warnStartCal;
     }
 
@@ -91,7 +77,7 @@ class RestrictedBase
       after(endWarnDeadline) -> warnEndCal;
       receivedEndProtocol -> endProtocol;
     }
-    
+
     dayOffStartCal {
       entry / {
         stateNotify("dayOffStartCal");
@@ -113,13 +99,13 @@ class RestrictedBase
       after(endDeadline) -> missedEndCal;
       receivedEndProtocol -> endProtocol;
     }
-    
+
     dayOffWarnEndCal {
       entry / {
         stateNotify("dayOffWarnEndCal");
       } -> warnEndCal;
     }
-    
+
 
     endcal {
       entry / {
@@ -143,10 +129,18 @@ class RestrictedBase
       entry / {
         stateNotify("endOfEpisode");
       };
-      after(endOfEpisodeDeadline) -> waitStart;
+
+      after(endOfEpisodeDeadline) -> resetEpisodeVariables;
+      receivedEndCal -> endcal;
       receivedEndProtocol -> endProtocol;
     }
-    
+
+    resetEpisodeVariables {
+      entry / {
+        stateNotify("resetEpisodeVariables");
+      } -> waitStart;
+    }
+
     endProtocol {
       // if participant is moved off protocol, or removed then enter inescapable state
       entry / {

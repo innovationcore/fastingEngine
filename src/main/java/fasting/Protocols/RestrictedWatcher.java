@@ -9,29 +9,27 @@ import java.io.StringWriter;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class RestrictedWatcher {
-    private Logger logger;
-    private ScheduledExecutorService checkTimer;
+    private final Logger logger;
 
-    private AtomicBoolean lockRestricted = new AtomicBoolean();
-    private AtomicBoolean lockEpisodeReset = new AtomicBoolean();
+    private final AtomicBoolean lockRestricted = new AtomicBoolean();
+    private final AtomicBoolean lockEpisodeReset = new AtomicBoolean();
 
-    private Map<String,Restricted> restrictedMap;
+    private final Map<String,Restricted> restrictedMap;
 
     public RestrictedWatcher() {
         this.logger = LoggerFactory.getLogger(RestrictedWatcher.class);
         this.restrictedMap = Collections.synchronizedMap(new HashMap<>());
 
         //how long to wait before checking protocols
-        long checkdelay = Launcher.config.getLongParam("checkdelay",5000l);
-        long checktimer = Launcher.config.getLongParam("checktimer",30000l);
+        long checkdelay = Launcher.config.getLongParam("checkdelay", 5000L);
+        long checktimer = Launcher.config.getLongParam("checktimer", 30000L);
 
         //create timer
-        checkTimer = Executors.newScheduledThreadPool(1);
+        ScheduledExecutorService checkTimer = Executors.newScheduledThreadPool(1);
         //set timer
         checkTimer.scheduleAtFixedRate(new startRestricted(), checkdelay, checktimer, TimeUnit.MILLISECONDS);
     }
@@ -70,28 +68,24 @@ public class RestrictedWatcher {
                     validNextStates = "waitStart,warnStartCal,startcal,warnEndCal,endProtocol";
                     break;
                 case "waitStart":
-                    validNextStates = "warnStartCal,startcal,yesterdayEndCalWait,dayOffWait,endProtocol";
+                    validNextStates = "warnStartCal,startcal,dayOffWait,endProtocol";
                     break;
                 case "warnStartCal":
-                    validNextStates = "startcal,missedStartCal,yesterdayEndCalWarn,dayOffWarn,endProtocol";
+                    validNextStates = "startcal,missedStartCal,dayOffWarn,endProtocol";
                     break;
                 case "startcal":
                     validNextStates = "startcal,endcal,warnEndCal,dayOffStartCal,endProtocol";
                     break;
                 case "missedStartCal":
+                case "endcal":
+                case "missedEndCal":
                     validNextStates = "endOfEpisode";
                     break;
                 case "warnEndCal":
                     validNextStates = "endcal,missedEndCal,dayOffWarnEndCal,endProtocol";
                     break;
-                case "endcal":
-                    validNextStates = "endOfEpisode";
-                    break;
-                case "missedEndCal":
-                    validNextStates = "endOfEpisode";
-                    break;
                 case "endOfEpisode":
-                    validNextStates = "waitStart,endProtocol";
+                    validNextStates = "resetEpisodeVariables,endcal,endProtocol";
                     break;
                 case "endProtocol":
                     validNextStates = "";
@@ -133,18 +127,12 @@ public class RestrictedWatcher {
                     } else {
                         // invalid state
                         newState = "initial invalid";
-                        break;
                     }
                     break;
                 case waitStart:
                     if (moveToState.equals("warnStartCal")){
                         participant.timeoutwaitStartTowarnStartCal();
                         newState = "warnStartCal";
-                    } else if (moveToState.equals("yesterdayEndCalWait")) {
-                        Launcher.dbEngine.saveEndCalTimeCreateTemp(participantId, timestamp);
-                        participant.receivedYesterdayEndCal();
-                        Launcher.dbEngine.removeTempEndCal(participantId);
-                        newState = "yesterdayEndCalWait";
                     } else if (moveToState.equals("startcal")) {
                         participant.receivedStartCal();
                         Launcher.dbEngine.saveStartCalTime(participantId, timestamp);
@@ -155,7 +143,6 @@ public class RestrictedWatcher {
                     } else {
                         // invalid state
                         newState = "waitstart invalid";
-                        break;
                     }
                     break;
                 case warnStartCal:
@@ -163,11 +150,6 @@ public class RestrictedWatcher {
                         participant.receivedStartCal();
                         Launcher.dbEngine.saveStartCalTime(participantId, timestamp);
                         newState = "startcal";
-                    } else if (moveToState.equals("yesterdayEndCalWarn")) {
-                        Launcher.dbEngine.saveEndCalTimeCreateTemp(participantId, timestamp);
-                        participant.receivedYesterdayEndCal();
-                        Launcher.dbEngine.removeTempEndCal(participantId);
-                        newState = "yesterdayEndCalWarn";
                     } else if (moveToState.equals("missedStartCal")) {
                         participant.timeoutwarnStartCalTomissedStartCal();
                         newState = "missedStartCal";
@@ -177,7 +159,6 @@ public class RestrictedWatcher {
                     } else {
                         newState = "warnstart invalid";
                         // invalid state
-                        break;
                     }
                     break;
                 case startcal:
@@ -199,7 +180,6 @@ public class RestrictedWatcher {
                     } else {
                         newState = "startcal invalid";
                         // invalid state
-                        break;
                     }
                     break;
                 case missedStartCal:
@@ -209,7 +189,6 @@ public class RestrictedWatcher {
                     } else {
                         // invalid state
                         newState = "missedstartcal invalid";
-                        break;
                     }
                     break;
                 case warnEndCal:
@@ -227,7 +206,6 @@ public class RestrictedWatcher {
                     } else {
                         // invalid state
                         newState = "warnEndCal invalid";
-                        break;
                     }
                     break;
                 case endcal:
@@ -237,7 +215,6 @@ public class RestrictedWatcher {
                     } else {
                         // invalid state
                         newState = "endcal invalid";
-                        break;
                     }
                     break;
                 case missedEndCal:
@@ -246,18 +223,31 @@ public class RestrictedWatcher {
                         newState = "endOfEpisode";
                     } else {
                         // invalid state
-                            newState = "missedEndCal invalid";
-                        break;
+                        newState = "missedEndCal invalid";
+
                     }
                     break;
                 case endOfEpisode:
-                    if (moveToState.equals("waitStart")){
-                        participant.timeoutendOfEpisodeTowaitStart();
-                        newState = "waitStart";
+                    if (moveToState.equals("resetEpisodeVariables")){
+                        participant.timeoutendOfEpisodeToresetEpisodeVariables();
+                        newState = "resetEpisodeVariables";
+                    } else if (moveToState.equals("endcal")){
+                        Launcher.dbEngine.saveEndCalTimeCreateTemp(participantId, timestamp);
+                        participant.receivedEndCal();
+                        Launcher.dbEngine.removeTempEndCal(participantId);
+                        newState = "endcal";
                     } else {
                         // invalid state
                         newState = "endOfEpisode invalid";
-                        break;
+                    }
+                    break;
+                case resetEpisodeVariables:
+                    if(moveToState.equals("waitStart")){
+                        // nothing needs to happen, moves immediately to waitstart
+                        newState = "waitStart";
+                    } else {
+                        // invalid state
+                        newState = "resetEpisodeVariables invalid";
                     }
                     break;
                 case endProtocol:
@@ -281,7 +271,7 @@ public class RestrictedWatcher {
     }
 
     class startRestricted extends TimerTask {
-        private Logger logger;
+        private final Logger logger;
         private List<Map<String,String>> previousMapList;
         public startRestricted() {
             logger = LoggerFactory.getLogger(startRestricted.class);
@@ -360,7 +350,7 @@ public class RestrictedWatcher {
     }
 
     class episodeReset extends TimerTask {
-        private Logger logger;
+        private final Logger logger;
         public episodeReset() {
             logger = LoggerFactory.getLogger(episodeReset.class);
         }
