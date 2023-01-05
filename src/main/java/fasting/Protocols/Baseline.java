@@ -101,6 +101,7 @@ public class Baseline extends BaselineBase {
                     Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Text 270-402-2214 if you need help.");
                     break;
                 case endProtocol:
+                    Launcher.dbEngine.addProtocolNameToLog("Baseline", participantMap.get("participant_uuid"));
                     logger.warn(participantMap.get("participant_uuid") + " endProtocol unexpected message");
                     break;
                 default:

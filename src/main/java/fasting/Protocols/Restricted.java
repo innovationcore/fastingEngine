@@ -7,6 +7,7 @@ import fasting.Launcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.validation.constraints.Null;
 import java.lang.reflect.Type;
 import java.util.*;
 
@@ -540,6 +541,7 @@ public class Restricted extends RestrictedBase {
                 this.pauseMessages = true;
                 break;
             case endProtocol:
+                Launcher.dbEngine.addProtocolNameToLog("TRE", participantMap.get("participant_uuid"));
                 logger.warn(participantMap.get("participant_uuid") + " is not longer in protocol.");
                 break;
             default:
@@ -583,7 +585,11 @@ public class Restricted extends RestrictedBase {
                     } else {
                         this.isDayOff = false;
                     }
-                    this.endcalRepeats = historyMap.get("endcalCount").intValue();
+                    try {
+                        this.endcalRepeats = historyMap.get("endcalCount").intValue();
+                    } catch (NullPointerException npex){
+                        this.endcalRepeats = 0;
+                    }
                 }
 
                 switch (State.valueOf(stateName)) {
@@ -673,7 +679,7 @@ public class Restricted extends RestrictedBase {
 
         } catch (Exception ex) {
             logger.error("restoreSaveState");
-            logger.error(ex.getMessage());
+            ex.printStackTrace();
         }
     }
 

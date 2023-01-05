@@ -426,7 +426,7 @@ public class DBEngine {
         ResultSet rs = null;
         String result = null;
         try {
-            String query = "SELECT enrollment_uuid FROM enrollments WHERE participant_uuid = ?";
+            String query = "SELECT enrollment_uuid FROM enrollments WHERE participant_uuid = ? AND status = 1";
             conn = ds.getConnection();
             stmt = conn.prepareStatement(query);
             stmt.setString(1, uuid);
@@ -993,6 +993,25 @@ public class DBEngine {
             try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
         }
         return protocol;
+    }
+
+    public void addProtocolNameToLog(String protocol, String participantUUID){
+        Connection conn = null;
+        PreparedStatement stmt = null;
+
+        try {
+            String query = "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.protocol', ?) WHERE TS IN (SELECT TOP 1 TS FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'endProtocol' ORDER BY TS DESC)";
+            conn = ds.getConnection();
+            stmt = conn.prepareStatement(query);
+            stmt.setString(1, protocol);
+            stmt.setString(2, participantUUID);
+            stmt.executeUpdate();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        } finally {
+            try { stmt.close(); } catch (Exception e) { /* Null Ignored */ }
+            try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
+        }
     }
     
 }
