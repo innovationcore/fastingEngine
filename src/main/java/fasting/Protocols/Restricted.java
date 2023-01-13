@@ -79,6 +79,11 @@ public class Restricted extends RestrictedBase {
                 case warnStartCal:
                     if (isDayoff(incomingMap.get("Body"))) {
                         receivedDayOff();
+                    } else if (isEndCal(incomingMap.get("Body"))){
+                        // send error to participant
+                        Launcher.msgUtils.sendMessage(participantMap.get("number"), "Cannot receive \"ENDCAL\" after 4am. Please note the time of \"ENDCAL\" and tell the study coordinator at your next communication.");
+                        // send message to study admin
+                        Launcher.msgUtils.sendMessage("+12704022214", "Participant " +participantMap.get("first_name")+ " " + participantMap.get("last_name") + " sent ENDCAL after 4am and before STARTCAL.");
                     } else if(isStartCal(incomingMap.get("Body"))) {
                         receivedStartCal();
                     } else {
