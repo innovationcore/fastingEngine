@@ -40,9 +40,12 @@ public class Launcher {
         logger = LoggerFactory.getLogger(Launcher.class);
 
         try {
-
+            if (argv.length == 0) {
+                System.out.println("Please specify config file path as first parameter.");
+                System.exit(-1);
+            }
             //get config info
-            String configPath = "config.ini";
+            String configPath = argv[0];
             Map<String, Object> fileConfigMap;
             fileConfigMap = initConfigMap(configPath);
             config = new Config(fileConfigMap);
