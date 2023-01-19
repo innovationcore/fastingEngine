@@ -83,7 +83,9 @@ public class Baseline extends BaselineBase {
                     }
                     break;
                 case startcal:
-                    if(isEndCal(incomingMap.get("Body"))) {
+                    if (isStartCal(incomingMap.get("Body"))){
+                        receivedStartCal();
+                    } else if(isEndCal(incomingMap.get("Body"))) {
                         receivedEndCal();
                     } else {
                         Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Please send \"STARTCAL\" when you begin calories for " +
@@ -91,9 +93,13 @@ public class Baseline extends BaselineBase {
                     }
                     break;
                 case endcal:
-                    String endCalMessage = participantMap.get("participant_uuid") + " endCal unexpected message";
-                    logger.warn(endCalMessage);
-                    Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Text 270-402-2214 if you need help.");
+                    if (isEndCal(incomingMap.get("Body"))){
+                        receivedEndCal();
+                    } else {
+                        String endCalMessage = participantMap.get("participant_uuid") + " endCal unexpected message";
+                        logger.warn(endCalMessage);
+                        Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Text 270-402-2214 if you need help.");
+                    }
                     break;
                 case timeout24:
                     String timeoutMessage = participantMap.get("participant_uuid") + " timeout unexpected message";
@@ -205,8 +211,9 @@ public class Baseline extends BaselineBase {
                 Launcher.dbEngine.uploadSaveState(stateJSON, participantMap.get("participant_uuid"));
                 break;
             case startcal:
-
-                String startCalMessage = participantMap.get("participant_uuid") + " thanks for sending startcal: timeout24 timeout " + TZHelper.getDateFromAddingSeconds(getTimeout24Hours());
+                int secondsStart = TZHelper.getSecondsTo359am();
+                setTimeout24Hours(secondsStart);
+                String startCalMessage = participantMap.get("participant_uuid") + " thanks for sending startcal: timeout24 timeout " + TZHelper.getDateFromAddingSeconds(secondsStart);
                 logger.info(startCalMessage);
                 
                 // update startcal time in state_log
@@ -233,6 +240,11 @@ public class Baseline extends BaselineBase {
                 break;
             case endcal:
                 resetNoEndCal();
+                int secondsEnd = TZHelper.getSecondsTo359am();
+                setTimeout24Hours(secondsEnd);
+                String endCalMessage = participantMap.get("participant_uuid") + " thanks for sending endcal: timeout24 timeout " + TZHelper.getDateFromAddingSeconds(secondsEnd);
+                logger.info(endCalMessage);
+
                 // update endcal time in state_log
                 if (incomingMap == null) {
                     unixTS = Launcher.dbEngine.getEndCalTime(participantMap.get("participant_uuid"));

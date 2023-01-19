@@ -202,8 +202,9 @@ public class Control extends ControlBase {
                 Launcher.dbEngine.uploadSaveState(stateJSON, participantMap.get("participant_uuid"));
                 break;
             case startcal:
-
-                String startCalMessage = participantMap.get("participant_uuid") + " thanks for sending startcal: timeout24 timeout " + TZHelper.getDateFromAddingSeconds(getTimeout24Hours());
+                int secondsStart = TZHelper.getSecondsTo359am();
+                setTimeout24Hours(secondsStart);
+                String startCalMessage = participantMap.get("participant_uuid") + " thanks for sending startcal: timeout24 timeout " + TZHelper.getDateFromAddingSeconds(secondsStart);
                 logger.info(startCalMessage);
                 
                 // update startcal time in state_log
@@ -230,6 +231,12 @@ public class Control extends ControlBase {
                 break;
             case endcal:
                 resetNoEndCal();
+
+                int secondsEnd = TZHelper.getSecondsTo359am();
+                setTimeout24Hours(secondsEnd);
+                String endCalMessage = participantMap.get("participant_uuid") + " thanks for sending endcal: timeout24 timeout " + TZHelper.getDateFromAddingSeconds(secondsEnd);
+                logger.info(endCalMessage);
+
                 // update endcal time in state_log
                 if (incomingMap == null) {
                     unixTS = Launcher.dbEngine.getEndCalTime(participantMap.get("participant_uuid"));

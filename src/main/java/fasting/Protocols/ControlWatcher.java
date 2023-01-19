@@ -74,10 +74,10 @@ public class ControlWatcher {
                     validNextStates = "startcal,timeout24,endProtocol";
                     break;
                 case "startcal":
-                    validNextStates = "endcal,timeout24,endProtocol";
+                    validNextStates = "startcal,endcal,timeout24,endProtocol";
                     break;
                 case "endcal":
-                    validNextStates = "waitStart";
+                    validNextStates = "endcal,waitStart,endProtocol";
                     break;
                 case "timeout24":
                     validNextStates = "waitStart";
@@ -137,7 +137,11 @@ public class ControlWatcher {
                     }
                     break;
                 case startcal:
-                    if (moveToState.equals("endcal")) {
+                    if (moveToState.equals("startcal")){
+                        participant.receivedStartCal();
+                        Launcher.dbEngine.saveStartCalTime(participantId, timestamp);
+                        newState = "startcal";
+                    } else if (moveToState.equals("endcal")) {
                         Launcher.dbEngine.saveEndCalTimeCreateTemp(participantId, timestamp);
                         participant.receivedEndCal();
                         Launcher.dbEngine.removeTempEndCal(participantId);
@@ -155,7 +159,12 @@ public class ControlWatcher {
                     }
                     break;
                 case endcal:
-                    if (moveToState.equals("waitStart")) {
+                    if (moveToState.equals("endcal")){
+                        Launcher.dbEngine.saveEndCalTimeCreateTemp(participantId, timestamp);
+                        participant.receivedEndCal();
+                        Launcher.dbEngine.removeTempEndCal(participantId);
+                        newState = "endcal";
+                    } else if (moveToState.equals("waitStart")) {
                         // nothing needs to happen here because it will move to next state immediately
                         newState = "waitStart";
                     } else {

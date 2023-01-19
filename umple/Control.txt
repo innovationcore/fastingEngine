@@ -37,9 +37,10 @@ class ControlBase
         // Possibly send missed fasts messages
         stateNotify("startcal");
       };
-      receivedEndCal -> endcal;
-      after(timeout24Hours) -> timeout24;
-      receivedEndProtocol -> endProtocol;
+        receivedStartCal -> startcal;
+        receivedEndCal -> endcal;
+        after(timeout24Hours) -> timeout24;
+        receivedEndProtocol -> endProtocol;
     }
 
     endcal {
@@ -47,7 +48,10 @@ class ControlBase
         // here we need to receive the message to start
         // Possibly send missed fasts messages
         stateNotify("endcal");
-      } -> waitStart;
+      };
+        receivedEndCal -> endcal;
+        after(timeout24Hours) -> waitStart;
+        receivedEndProtocol -> endProtocol;
     }
 
     timeout24 {

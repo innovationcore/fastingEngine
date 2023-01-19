@@ -2,17 +2,16 @@ package fasting.Protocols;
 //%% NEW FILE BaselineBase BEGINS HERE %%
 
 /*PLEASE DO NOT EDIT THIS CODE*/
-/*This code was generated using the UMPLE 1.32.0.6441.414d09714 modeling language!*/
+/*This code was generated using the UMPLE 1.32.1.6535.66c005ced modeling language!*/
 
 
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 
 /**
  * UML State diagram for a library loan, represented in Umple
  */
 // line 3 "model.ump"
-// line 77 "model.ump"
+// line 82 "model.ump"
 public class BaselineBase
 {
 
@@ -30,6 +29,7 @@ public class BaselineBase
   //Helper Variables
   private TimedEventHandler timeoutwaitStartTotimeout24Handler;
   private TimedEventHandler timeoutstartcalTotimeout24Handler;
+  private TimedEventHandler timeoutendcalTowaitStartHandler;
 
   //------------------------
   // CONSTRUCTOR
@@ -103,6 +103,11 @@ public class BaselineBase
         setState(State.startcal);
         wasEventProcessed = true;
         break;
+      case startcal:
+        exitState();
+        setState(State.startcal);
+        wasEventProcessed = true;
+        break;
       default:
         // Other states do respond to this event
     }
@@ -146,6 +151,11 @@ public class BaselineBase
         setState(State.endProtocol);
         wasEventProcessed = true;
         break;
+      case endcal:
+        exitState();
+        setState(State.endProtocol);
+        wasEventProcessed = true;
+        break;
       default:
         // Other states do respond to this event
     }
@@ -161,6 +171,11 @@ public class BaselineBase
     switch (aState)
     {
       case startcal:
+        exitState();
+        setState(State.endcal);
+        wasEventProcessed = true;
+        break;
+      case endcal:
         exitState();
         setState(State.endcal);
         wasEventProcessed = true;
@@ -191,7 +206,7 @@ public class BaselineBase
     return wasEventProcessed;
   }
 
-  private boolean __autotransition421__()
+  public boolean timeoutendcalTowaitStart()
   {
     boolean wasEventProcessed = false;
 
@@ -199,6 +214,7 @@ public class BaselineBase
     switch (aState)
     {
       case endcal:
+        exitState();
         setState(State.waitStart);
         wasEventProcessed = true;
         break;
@@ -209,7 +225,7 @@ public class BaselineBase
     return wasEventProcessed;
   }
 
-  private boolean __autotransition422__()
+  private boolean __autotransition60__()
   {
     boolean wasEventProcessed = false;
 
@@ -236,6 +252,9 @@ public class BaselineBase
         break;
       case startcal:
         stopTimeoutstartcalTotimeout24Handler();
+        break;
+      case endcal:
+        stopTimeoutendcalTowaitStartHandler();
         break;
     }
   }
@@ -268,21 +287,21 @@ public class BaselineBase
         startTimeoutstartcalTotimeout24Handler();
         break;
       case endcal:
-        // line 47 "model.ump"
+        // line 49 "model.ump"
         // here we need to receive the message to start
         // Possibly send missed fasts messages
         stateNotify("endcal");
-        __autotransition421__();
+        startTimeoutendcalTowaitStartHandler();
         break;
       case timeout24:
-        // line 55 "model.ump"
+        // line 60 "model.ump"
         // here we need to receive the message to start
         // Possibly send missed fasts messages
         stateNotify("timeout24");
-        __autotransition422__();
+        __autotransition60__();
         break;
       case endProtocol:
-        // line 64 "model.ump"
+        // line 69 "model.ump"
         stateNotify("endProtocol");
         break;
     }
@@ -306,6 +325,16 @@ public class BaselineBase
   private void stopTimeoutstartcalTotimeout24Handler()
   {
     timeoutstartcalTotimeout24Handler.stop();
+  }
+
+  private void startTimeoutendcalTowaitStartHandler()
+  {
+    timeoutendcalTowaitStartHandler = new TimedEventHandler(this,"timeoutendcalTowaitStart",timeout24Hours);
+  }
+
+  private void stopTimeoutendcalTowaitStartHandler()
+  {
+    timeoutendcalTowaitStartHandler.stop();
   }
 
   public static class TimedEventHandler extends TimerTask
@@ -349,18 +378,27 @@ public class BaselineBase
         }
         return;
       }
+      if ("timeoutendcalTowaitStart".equals(timeoutMethodName))
+      {
+        boolean shouldRestart = !controller.timeoutendcalTowaitStart();
+        if (shouldRestart)
+        {
+          controller.startTimeoutendcalTowaitStartHandler();
+        }
+        return;
+      }
     }
   }
 
   public void delete()
   {}
 
-  // line 71 "model.ump"
+  // line 76 "model.ump"
   public boolean stateNotify(String node){
     return true;
   }
 
-  // line 72 "model.ump"
+  // line 77 "model.ump"
   public int currentTime(){
     return 1;
   }
