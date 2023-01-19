@@ -63,7 +63,17 @@ public class API {
                 Launcher.dbEngine.executeUpdate(insertQuery);
 
                 //send to state machine
-                Launcher.restrictedWatcher.incomingText(participantId, formsMap);
+                String enrollment = Launcher.dbEngine.getEnrollmentUUID(participantId);
+                String enrollmentName = Launcher.dbEngine.getEnrollmentName(enrollment);
+                if (enrollmentName.equals("TRE")) {
+                    Launcher.restrictedWatcher.incomingText(participantId, formsMap);
+                } else if (enrollmentName.equals("Baseline")) {
+                    Launcher.baselineWatcher.incomingText(participantId, formsMap);
+                } else if (enrollmentName.equals("Control")) {
+                    Launcher.controlWatcher.incomingText(participantId, formsMap);
+                } else {
+                    logger.error("Text from participant not enrolled in any protocol");
+                }
 
                 Map<String,String> responce = new HashMap<>();
                 responce.put("status","ok");

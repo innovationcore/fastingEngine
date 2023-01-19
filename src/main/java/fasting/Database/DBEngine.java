@@ -420,7 +420,7 @@ public class DBEngine {
         }
     }
 
-    String getEnrollmentUUID(String uuid){
+    public String getEnrollmentUUID(String uuid){
         Connection conn = null;
         PreparedStatement stmt = null;
         ResultSet rs = null;
@@ -435,6 +435,32 @@ public class DBEngine {
             if (rs.next()) {
                 result = rs.getString(1);
             }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        } finally {
+            try { stmt.close(); } catch (Exception e) { /* Null Ignored */ }
+            try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
+            try { rs.close();   } catch (Exception e) { /* Null Ignored */ }
+        }
+        return result;
+    }
+
+    public String getEnrollmentName(String enrollUUID) {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        String result = "";
+
+        try {
+            String query = "SELECT name FROM protocol_types WHERE protocol_type_uuid IN (SELECT protocol_type_uuid FROM enrollments WHERE enrollment_uuid = ?)";
+            conn = ds.getConnection();
+            stmt = conn.prepareStatement(query);
+            stmt.setString(1, enrollUUID);
+            rs = stmt.executeQuery();
+            if (rs.next()) {
+                result = rs.getString(1);
+            }
+
         } catch (Exception ex) {
             ex.printStackTrace();
         } finally {
