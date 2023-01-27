@@ -1039,5 +1039,9 @@ public class DBEngine {
             try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
         }
     }
-    
+
+    public boolean checkIfInProtocol(String participantUUID, String protocol) {
+        String protocolFromDB = getProtocolFromParticipantId(participantUUID);
+        return (protocolFromDB.equals(protocol));
+    }
 }

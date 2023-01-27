@@ -220,12 +220,16 @@ public class BaselineWatcher {
 
                     if (previousMapList.size() > 0 && participantMapList.size() == 0){
                         // clear anyone in previousMapList
-                        for (Map<String,String> previousMap: previousMapList){
-                            Baseline toRemove = baselineMap.remove(previousMap.get("participant_uuid"));
-                            if(toRemove != null){
-                                toRemove.receivedEndProtocol();
-                                toRemove = null;
-                                System.gc();
+                        for (Map<String,String> previousMap: previousMapList) {
+                            String participantUUID = previousMap.get("participant_uuid");
+                            String protocolNameDB = Launcher.dbEngine.getProtocolFromParticipantId(participantUUID);
+                            if (!protocolNameDB.equals("Baseline")) {
+                                Baseline toRemove = baselineMap.remove(participantUUID);
+                                if (toRemove != null) {
+                                    toRemove.receivedEndProtocol();
+                                    toRemove = null;
+                                    System.gc();
+                                }
                             }
                         }
                     }
@@ -240,12 +244,17 @@ public class BaselineWatcher {
                                 // find which participant is in previousMapList but not in participantMapList
                                 for (Map<String, String> previousMap : previousMapList) {
                                     if (!participantMapList.contains(previousMap)) {
-                                        // removing participant
-                                        Baseline toRemove = baselineMap.remove(previousMap.get("participant_uuid"));
-                                        if(toRemove != null){
-                                            toRemove.receivedEndProtocol();
-                                            toRemove = null;
-                                            System.gc();
+                                        //check if participant is still enrolled in protocol
+                                        String participantUUID = previousMap.get("participant_uuid");
+                                        String protocolNameDB = Launcher.dbEngine.getProtocolFromParticipantId(participantUUID);
+                                        if (!protocolNameDB.equals("Baseline")) {
+                                            // removing participant
+                                            Baseline toRemove = baselineMap.remove(participantUUID);
+                                            if (toRemove != null) {
+                                                toRemove.receivedEndProtocol();
+                                                toRemove = null;
+                                                System.gc();
+                                            }
                                         }
                                     }
                                 }

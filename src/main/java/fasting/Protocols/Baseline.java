@@ -369,6 +369,9 @@ public class Baseline extends BaselineBase {
             if (this.pauseMessages) {
                 messageMap.put("restored","true");
             }
+            if (state.equals("endProtocol")){
+                messageMap.put("protocol", "Baseline");
+            }
             String json_string = gson.toJson(messageMap);
 
             String insertQuery = "INSERT INTO state_log " +

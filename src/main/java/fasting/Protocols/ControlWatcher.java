@@ -218,11 +218,15 @@ public class ControlWatcher {
                     if (previousMapList.size() > 0 && participantMapList.size() == 0){
                         // clear anyone in previousMapList
                         for (Map<String,String> previousMap: previousMapList){
-                            Control toRemove = controlMap.remove(previousMap.get("participant_uuid"));
-                            if(toRemove != null){
-                                toRemove.receivedEndProtocol();
-                                toRemove = null;
-                                System.gc();
+                            String participantUUID = previousMap.get("participant_uuid");
+                            String protocolNameDB = Launcher.dbEngine.getProtocolFromParticipantId(participantUUID);
+                            if (!protocolNameDB.equals("Control")) {
+                                Control toRemove = controlMap.remove(participantUUID);
+                                if (toRemove != null) {
+                                    toRemove.receivedEndProtocol();
+                                    toRemove = null;
+                                    System.gc();
+                                }
                             }
                         }
                     }
@@ -237,12 +241,16 @@ public class ControlWatcher {
                                 // find which participant is in previousMapList but not in participantMapList
                                 for (Map<String, String> previousMap : previousMapList) {
                                     if (!participantMapList.contains(previousMap)) {
-                                        // removing participant
-                                        Control toRemove = controlMap.remove(previousMap.get("participant_uuid"));
-                                        if(toRemove != null){
-                                            toRemove.receivedEndProtocol();
-                                            toRemove = null;
-                                            System.gc();
+                                        String participantUUID = previousMap.get("participant_uuid");
+                                        String protocolNameDB = Launcher.dbEngine.getProtocolFromParticipantId(participantUUID);
+                                        if (!protocolNameDB.equals("Control")) {
+                                            // removing participant
+                                            Control toRemove = controlMap.remove(participantUUID);
+                                            if (toRemove != null) {
+                                                toRemove.receivedEndProtocol();
+                                                toRemove = null;
+                                                System.gc();
+                                            }
                                         }
                                     }
                                 }

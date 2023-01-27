@@ -366,6 +366,9 @@ public class Control extends ControlBase {
             if (this.pauseMessages) {
                 messageMap.put("restored","true");
             }
+            if (state.equals("endProtocol")){
+                messageMap.put("protocol", "Control");
+            }
             String json_string = gson.toJson(messageMap);
 
             String insertQuery = "INSERT INTO state_log " +
