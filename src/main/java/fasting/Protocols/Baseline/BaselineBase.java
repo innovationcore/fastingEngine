@@ -1,4 +1,4 @@
-package fasting.Protocols;
+package fasting.Protocols.Baseline;
 //%% NEW FILE BaselineBase BEGINS HERE %%
 
 /*PLEASE DO NOT EDIT THIS CODE*/

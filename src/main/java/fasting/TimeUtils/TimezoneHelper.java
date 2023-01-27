@@ -287,6 +287,25 @@ public class TimezoneHelper {
     }
 
     /**
+     * return the seconds until 4am for user timezone (This should only be used in resetting the episode)
+     */
+    public int getSecondsToFridayNoon() {
+        Instant nowUTC = Instant.now();
+        ZoneId userTZ = ZoneId.of(this.userTimezone);
+        ZonedDateTime nowUserTimezone = ZonedDateTime.ofInstant(nowUTC, userTZ);
+        LocalDateTime nowUserLocalTime = nowUserTimezone.toLocalDateTime();
+
+
+        LocalDateTime userLocalTimeNoon = nowUserLocalTime.with(DayOfWeek.FRIDAY).withHour(12).withMinute(0).withSecond(0).withNano(0);
+        if (nowUserLocalTime.isAfter(userLocalTimeNoon)) {
+            userLocalTimeNoon = userLocalTimeNoon.plusWeeks(1);
+        }
+        long secondsUntilNoon = Duration.between(nowUserLocalTime, userLocalTimeNoon).getSeconds();
+        return (int) secondsUntilNoon;
+
+    }
+
+    /**
     * gets the user's timezone
     */
     public String getUserTimezone() {

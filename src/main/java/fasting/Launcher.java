@@ -5,9 +5,10 @@ import fasting.Configs.FileConfig;
 import fasting.Database.DBEngine;
 import fasting.MessagingUtils.MsgUtils;
 import fasting.Protocols.Testing;
-import fasting.Protocols.RestrictedWatcher;
-import fasting.Protocols.ControlWatcher;
-import fasting.Protocols.BaselineWatcher;
+import fasting.Protocols.Restricted.RestrictedWatcher;
+import fasting.Protocols.Control.ControlWatcher;
+import fasting.Protocols.Baseline.BaselineWatcher;
+import fasting.Protocols.WeeklyMessage.WeeklyMessageWatcher;
 import fasting.TimeUtils.TimezoneHelper;
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
@@ -32,6 +33,7 @@ public class Launcher {
     public static RestrictedWatcher restrictedWatcher;
     public static ControlWatcher controlWatcher;
     public static BaselineWatcher baselineWatcher;
+    public static WeeklyMessageWatcher weeklyMessageWatcher;
     public static Testing testing;
     public static TimezoneHelper TZHelper;
 
@@ -62,9 +64,7 @@ public class Launcher {
 
             //testing
 //            TimezoneHelper TZHelper = new TimezoneHelper("America/Louisville","Etc/UTC");
-//            System.out.println(TZHelper.parseTime("12:00 Am"));
-//            System.out.println(TZHelper.determineGoodFastTime(1670261100, 1670379900));
-//            System.out.println(TZHelper.isBetween12AMand4AM());
+//            System.out.println(TZHelper.getSecondsToFridayNoon());
             
 
     
@@ -72,6 +72,7 @@ public class Launcher {
             restrictedWatcher = new RestrictedWatcher();
             controlWatcher = new ControlWatcher();
             baselineWatcher = new BaselineWatcher();
+            weeklyMessageWatcher = new WeeklyMessageWatcher();
 
 
 

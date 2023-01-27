@@ -1,4 +1,4 @@
-package fasting.Protocols;
+package fasting.Protocols.Control;
 //%% NEW FILE ControlBase BEGINS HERE %%
 
 /*PLEASE DO NOT EDIT THIS CODE*/

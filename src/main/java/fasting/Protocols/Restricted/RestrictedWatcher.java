@@ -1,4 +1,4 @@
-package fasting.Protocols;
+package fasting.Protocols.Restricted;
 
 import fasting.Launcher;
 import org.slf4j.Logger;

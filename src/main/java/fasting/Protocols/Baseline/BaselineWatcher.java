@@ -1,6 +1,7 @@
-package fasting.Protocols;
+package fasting.Protocols.Baseline;
 
 import fasting.Launcher;
+import org.glassfish.grizzly.compression.lzma.impl.Base;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -9,7 +10,6 @@ import java.io.StringWriter;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -316,6 +316,10 @@ public class BaselineWatcher {
 
         }
 
+    }
+
+    public Map<String,Baseline> getBaselineMap(){
+        return this.baselineMap;
     }
 
 } //class 

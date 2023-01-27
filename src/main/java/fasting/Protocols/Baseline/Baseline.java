@@ -1,4 +1,4 @@
-package fasting.Protocols;
+package fasting.Protocols.Baseline;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -20,7 +20,7 @@ public class Baseline extends BaselineBase {
     private Map<String,Long> stateMap;
     private long startTimestamp = 0;
     private TimezoneHelper TZHelper;
-    private boolean pauseMessages;
+    private boolean isRestoring;
     private boolean isDayOff;
     private boolean isFromYesterday = false;
     private Map<String,String> incomingMap;
@@ -34,7 +34,7 @@ public class Baseline extends BaselineBase {
         this.gson = new Gson();
         this.participantMap = participantMap;
         this.stateMap = new HashMap<>();
-        this.pauseMessages = false;
+        this.isRestoring = false;
         this.isDayOff = false;
 
         // this initializes the user's and machine's timezone
@@ -52,6 +52,12 @@ public class Baseline extends BaselineBase {
                             if(!didUpload){
                                 break;
                             }
+                        }
+
+                        String currentTimezone = Launcher.dbEngine.getParticipantTimezone(participantMap.get("participant_uuid"));
+                        if (!participantMap.get("time_zone").equals(currentTimezone) && !currentTimezone.equals("")){
+                            participantMap.put("time_zone", currentTimezone);
+                            TZHelper.setUserTimezone(currentTimezone);
                         }
 
                         Thread.sleep(900000); // 900000 = 15 mins
@@ -317,20 +323,23 @@ public class Baseline extends BaselineBase {
                         //no timers
                         break;
                     case waitStart:
+                        this.isRestoring = true;
                         //resetting warn timer
                         int timeout24 =  TZHelper.getSecondsTo359am();  //timeToD1T1159am();
                         setTimeout24Hours(timeout24);
                         receivedWaitStart(); // initial to waitStart
+                        this.isRestoring = false;
                         break;
                     case startcal:
+                        this.isRestoring = true;
                         //reset endWarnDeadline
-
                         long unixTS = Launcher.dbEngine.getStartCalTime(participantMap.get("participant_uuid"));
                         if (unixTS == 0) {
                             unixTS = TZHelper.getUnixTimestampNow();
                         }
                         Launcher.dbEngine.saveStartCalTime(participantMap.get("participant_uuid"), unixTS);
                         receivedStartCal();
+                        this.isRestoring = false;
                         break;
                     case endcal:
                         //no timers
@@ -366,11 +375,9 @@ public class Baseline extends BaselineBase {
         if(gson != null) {
             Map<String,String> messageMap = new HashMap<>();
             messageMap.put("state",state);
-            if (this.pauseMessages) {
-                messageMap.put("restored","true");
-            }
-            if (state.equals("endProtocol")){
-                messageMap.put("protocol", "Baseline");
+            messageMap.put("protocol", "Baseline");
+            if (this.isRestoring) {
+                messageMap.put("restored", "true");
             }
             String json_string = gson.toJson(messageMap);
 

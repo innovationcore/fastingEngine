@@ -1,4 +1,4 @@
-package fasting.Protocols;
+package fasting.Protocols.Restricted;
 
 import fasting.TimeUtils.TimezoneHelper;
 import com.google.gson.Gson;
@@ -7,7 +7,6 @@ import fasting.Launcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.validation.constraints.Null;
 import java.lang.reflect.Type;
 import java.util.*;
 
@@ -53,6 +52,12 @@ public class Restricted extends RestrictedBase {
                             if(!didUpload){
                                 break;
                             }
+                        }
+
+                        String currentTimezone = Launcher.dbEngine.getParticipantTimezone(participantMap.get("participant_uuid"));
+                        if (!participantMap.get("time_zone").equals(currentTimezone) && !currentTimezone.equals("")){
+                            participantMap.put("time_zone", currentTimezone);
+                            TZHelper.setUserTimezone(currentTimezone);
                         }
 
                         Thread.sleep(900000); // 900000 = 15 mins
@@ -704,11 +709,9 @@ public class Restricted extends RestrictedBase {
         if(gson != null) {
             Map<String,String> messageMap = new HashMap<>();
             messageMap.put("state",state);
+            messageMap.put("protocol", "TRE");
             if (this.pauseMessages) {
-                messageMap.put("restored","true");
-            }
-            if (state.equals("endProtocol")){
-                messageMap.put("protocol", "TRE");
+                messageMap.put("restored", "true");
             }
             String json_string = gson.toJson(messageMap);
 

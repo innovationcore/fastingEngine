@@ -1,4 +1,6 @@
 package fasting.Protocols;
+import fasting.Protocols.Restricted.Restricted;
+import fasting.Protocols.Restricted.RestrictedBase;
 import fasting.TimeUtils.TimezoneHelper;
 import fasting.MessagingUtils.MsgUtils;
 

@@ -1,4 +1,4 @@
-package fasting.Protocols;
+package fasting.Protocols.Restricted;
 //%% NEW FILE RestrictedBase BEGINS HERE %%
 
 /*PLEASE DO NOT EDIT THIS CODE*/

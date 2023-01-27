@@ -1,6 +1,7 @@
-package fasting.Protocols;
+package fasting.Protocols.Control;
 
 import fasting.Launcher;
+import fasting.Protocols.Baseline.Baseline;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -9,7 +10,6 @@ import java.io.StringWriter;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -312,6 +312,10 @@ public class ControlWatcher {
 
         }
 
+    }
+
+    public Map<String, Control> getControlMap(){
+        return this.controlMap;
     }
 
 } //class 
