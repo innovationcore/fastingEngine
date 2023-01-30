@@ -80,6 +80,15 @@ public class Control extends ControlBase {
                     break;
                 case waitStart:
                     if(isStartCal(incomingMap.get("Body"))) {
+                        String textBody = incomingMap.get("Body").trim(); // removes whitespace before and after
+                        String[] startCalSplit = textBody.split(" ");
+                        if (startCalSplit.length >= 2) {
+                            long parsedTime = TZHelper.parseTime(startCalSplit[1]);
+                            if (parsedTime == -1L) {
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your STARTCAL time was not understood. Please send \"STARTCAL\" again with your starting time. For example, \"STARTCAL 7:30 am\".");
+                                break;
+                            }
+                        }
                         receivedStartCal();
                     } else {
                         Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Please send \"STARTCAL\" when you begin calories for " +
@@ -87,17 +96,50 @@ public class Control extends ControlBase {
                     }
                     break;
                 case startcal:
-                    if(isEndCal(incomingMap.get("Body"))) {
+                    if (isStartCal(incomingMap.get("Body"))){
+                        String textBody = incomingMap.get("Body").trim(); // removes whitespace before and after
+                        String[] startCalSplit = textBody.split(" ");
+                        if (startCalSplit.length >= 2) {
+                            long parsedTime = TZHelper.parseTime(startCalSplit[1]);
+                            if (parsedTime == -1L) {
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your STARTCAL time was not understood. Please send \"STARTCAL\" again with your starting time. For example, \"STARTCAL 7:30 am\".");
+                                break;
+                            }
+                        }
+                        receivedStartCal();
+                    } else if(isEndCal(incomingMap.get("Body"))) {
+                        String textBody = incomingMap.get("Body").trim(); // removes whitespace before and after
+                        String[] endCalSplit = textBody.split(" ");
+                        if (endCalSplit.length >= 2) {
+                            long parsedTime = TZHelper.parseTime(endCalSplit[1]);
+                            if (parsedTime == -1L) {
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".");
+                                break;
+                            }
+                        }
                         receivedEndCal();
                     } else {
                         Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Please send \"STARTCAL\" when you begin calories for " +
-                                                                                    "the day; \"ENDCAL\" when you are done with calories for the day.");
+                                "the day; \"ENDCAL\" when you are done with calories for the day.");
                     }
                     break;
                 case endcal:
-                    String endCalMessage = participantMap.get("participant_uuid") + " endCal unexpected message";
-                    logger.warn(endCalMessage);
-                    Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Text 270-402-2214 if you need help.");
+                    if (isEndCal(incomingMap.get("Body"))){
+                        String textBody = incomingMap.get("Body").trim(); // removes whitespace before and after
+                        String[] endCalSplit = textBody.split(" ");
+                        if (endCalSplit.length >= 2) {
+                            long parsedTime = TZHelper.parseTime(endCalSplit[1]);
+                            if (parsedTime == -1L) {
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".");
+                                break;
+                            }
+                        }
+                        receivedEndCal();
+                    } else {
+                        String endCalMessage = participantMap.get("participant_uuid") + " endCal unexpected message";
+                        logger.warn(endCalMessage);
+                        Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Text 270-402-2214 if you need help.");
+                    }
                     break;
                 case timeout24:
                     String timeoutMessage = participantMap.get("participant_uuid") + " timeout unexpected message";
@@ -236,8 +278,6 @@ public class Control extends ControlBase {
                 Launcher.dbEngine.uploadSaveState(stateJSON, participantMap.get("participant_uuid"));
                 break;
             case endcal:
-                resetNoEndCal();
-
                 int secondsEnd = TZHelper.getSecondsTo359am();
                 setTimeout24Hours(secondsEnd);
                 String endCalMessage = participantMap.get("participant_uuid") + " thanks for sending endcal: timeout24 timeout " + TZHelper.getDateFromAddingSeconds(secondsEnd);
@@ -282,11 +322,6 @@ public class Control extends ControlBase {
         return true;
     }
 
-    public Map<String, Map<String,Long>> getSaveStateMap() {
-        Map<String, Map<String,Long>> saveStateMap = gson.fromJson(stateJSON,typeOfHashMap);
-        return saveStateMap;
-    }
-
     public void restoreSaveState() {
         try{
             String saveStateJSON = Launcher.dbEngine.getSaveState(participantMap.get("participant_uuid"));
@@ -318,7 +353,10 @@ public class Control extends ControlBase {
 
                 switch (State.valueOf(stateName)) {
                     case initial:
-                        //no timers
+                    case endcal:
+                    case timeout24:
+                    case endProtocol:
+                        // no timers
                         break;
                     case waitStart:
                         this.isRestoring = true;
@@ -339,14 +377,6 @@ public class Control extends ControlBase {
                         receivedStartCal();
                         this.isRestoring = false;
                         break;
-                    case endcal:
-                        //no timers
-                        break;
-                    case timeout24:
-                        break;
-                    case endProtocol:
-                        //no timers
-                        break;
                     default:
                         logger.error("restoreSaveState: Invalid state: " + stateName);
                 }
@@ -362,10 +392,6 @@ public class Control extends ControlBase {
             logger.error("restoreSaveState");
             logger.error(ex.getMessage());
         }
-    }
-
-    private void resetNoEndCal(){
-        Launcher.dbEngine.resetDaysWithoutEndCal(participantMap.get("participant_uuid"));
     }
 
     public void logState(String state) {

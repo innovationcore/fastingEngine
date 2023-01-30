@@ -195,10 +195,32 @@ public class TimezoneHelper {
         // time string should be in format HH:MM:SS
         boolean forYesterday = false;
         try {
-            String[] timeArray = time.split(":");
-            int hours = Integer.parseInt(timeArray[0]);
-            int minutes = Integer.parseInt(timeArray[1].substring(0,2));
-            String ampm = time.toLowerCase().contains("am") ? "am" : "pm";
+            int hours = -1;
+            int minutes = -1;
+            String ampm = "";
+            if (time.contains(":")) {
+                // 00:00
+                String[] timeArray = time.split(":");
+                hours = Integer.parseInt(timeArray[0].trim());
+                minutes = Integer.parseInt(timeArray[1].trim().substring(0, 2));
+            } else {
+                // 5pm
+                if (time.contains("p")) {
+                    String[] timeArray = time.split("p");
+                    hours = Integer.parseInt(timeArray[0].trim());
+                    minutes = 0;
+                } else if (time.contains("a")){
+                    String[] timeArray = time.split("a");
+                    hours = Integer.parseInt(timeArray[0].trim());
+                    minutes = 0;
+                }
+            }
+
+            if (time.toLowerCase().contains("am")){
+                ampm = "am";
+            } else if (time.toLowerCase().contains("pm")){
+                ampm = "pm";
+            }
 
             // if the hour is 12 and its PM, don't do anything. Else add 12 hours
             if (ampm.equals("pm") && hours != 12){
@@ -228,7 +250,7 @@ public class TimezoneHelper {
             return currentDateAndTime.toEpochSecond(userTZ.getRules().getOffset(currentDateAndTime));
         } catch (Exception e){
             // if fails to parse time, return the time now
-            return getUnixTimestampNow();
+            return -1L;
         }
     }
 

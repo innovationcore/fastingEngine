@@ -90,6 +90,15 @@ public class Restricted extends RestrictedBase {
                         // send message to study admin
                         Launcher.msgUtils.sendMessage("+12704022214", "Participant " +participantMap.get("first_name")+ " " + participantMap.get("last_name") + " sent ENDCAL after 4am and before STARTCAL.");
                     } else if(isStartCal(incomingMap.get("Body"))) {
+                        String textBody = incomingMap.get("Body").trim(); // removes whitespace before and after
+                        String[] startCalSplit = textBody.split(" ");
+                        if (startCalSplit.length >= 2) {
+                            long parsedTime = TZHelper.parseTime(startCalSplit[1]);
+                            if (parsedTime == -1L) {
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your STARTCAL time was not understood. Please send \"STARTCAL\" again with your starting time. For example, \"STARTCAL 7:30 am\".");
+                                break;
+                            }
+                        }
                         receivedStartCal();
                     } else {
                         Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Please send \"STARTCAL\" when you begin calories for " +
@@ -106,7 +115,12 @@ public class Restricted extends RestrictedBase {
                         String[] endCalSplit = textBody.split(" ");
                         boolean isBetween3AMand3PM;
                         if (endCalSplit.length >= 2){
-                            isBetween3AMand3PM = TZHelper.isBetween3AMand3PM(TZHelper.parseTime(endCalSplit[1]));
+                            long parsedTime = TZHelper.parseTime(endCalSplit[1]);
+                            if (parsedTime == -1L) {
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".");
+                                break;
+                            }
+                            isBetween3AMand3PM = TZHelper.isBetween3AMand3PM(parsedTime);
                         } else {
                             isBetween3AMand3PM = TZHelper.isBetween3AMand3PM(); // gets time now
                         }
@@ -134,7 +148,12 @@ public class Restricted extends RestrictedBase {
                         String[] endCalSplit = textBody.split(" ");
                         boolean isBetween3AMand3PM;
                         if (endCalSplit.length >= 2){
-                            isBetween3AMand3PM = TZHelper.isBetween3AMand3PM(TZHelper.parseTime(endCalSplit[1]));
+                            long parsedTime = TZHelper.parseTime(endCalSplit[1]);
+                            if (parsedTime == -1L) {
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".");
+                                break;
+                            }
+                            isBetween3AMand3PM = TZHelper.isBetween3AMand3PM(parsedTime);
                         } else {
                             isBetween3AMand3PM = TZHelper.isBetween3AMand3PM(); // gets time now
                         }
@@ -158,7 +177,12 @@ public class Restricted extends RestrictedBase {
                         String[] endCalSplit = textBody.split(" ");
                         boolean isBetween3AMand3PM;
                         if (endCalSplit.length >= 2){
-                            isBetween3AMand3PM = TZHelper.isBetween3AMand3PM(TZHelper.parseTime(endCalSplit[1]));
+                            long parsedTime = TZHelper.parseTime(endCalSplit[1]);
+                            if (parsedTime == -1L) {
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".");
+                                break;
+                            }
+                            isBetween3AMand3PM = TZHelper.isBetween3AMand3PM(parsedTime);
                         } else {
                             isBetween3AMand3PM = TZHelper.isBetween3AMand3PM(); // gets time now
                         }

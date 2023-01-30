@@ -77,6 +77,15 @@ public class Baseline extends BaselineBase {
                     break;
                 case waitStart:
                     if(isStartCal(incomingMap.get("Body"))) {
+                        String textBody = incomingMap.get("Body").trim(); // removes whitespace before and after
+                        String[] startCalSplit = textBody.split(" ");
+                        if (startCalSplit.length >= 2) {
+                            long parsedTime = TZHelper.parseTime(startCalSplit[1]);
+                            if (parsedTime == -1L) {
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your STARTCAL time was not understood. Please send \"STARTCAL\" again with your starting time. For example, \"STARTCAL 7:30 am\".");
+                                break;
+                            }
+                        }
                         receivedStartCal();
                     } else {
                         Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Please send \"STARTCAL\" when you begin calories for " +
@@ -85,8 +94,26 @@ public class Baseline extends BaselineBase {
                     break;
                 case startcal:
                     if (isStartCal(incomingMap.get("Body"))){
+                        String textBody = incomingMap.get("Body").trim(); // removes whitespace before and after
+                        String[] startCalSplit = textBody.split(" ");
+                        if (startCalSplit.length >= 2) {
+                            long parsedTime = TZHelper.parseTime(startCalSplit[1]);
+                            if (parsedTime == -1L) {
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your STARTCAL time was not understood. Please send \"STARTCAL\" again with your starting time. For example, \"STARTCAL 7:30 am\".");
+                                break;
+                            }
+                        }
                         receivedStartCal();
                     } else if(isEndCal(incomingMap.get("Body"))) {
+                        String textBody = incomingMap.get("Body").trim(); // removes whitespace before and after
+                        String[] endCalSplit = textBody.split(" ");
+                        if (endCalSplit.length >= 2) {
+                            long parsedTime = TZHelper.parseTime(endCalSplit[1]);
+                            if (parsedTime == -1L) {
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".");
+                                break;
+                            }
+                        }
                         receivedEndCal();
                     } else {
                         Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Please send \"STARTCAL\" when you begin calories for " +
@@ -95,6 +122,15 @@ public class Baseline extends BaselineBase {
                     break;
                 case endcal:
                     if (isEndCal(incomingMap.get("Body"))){
+                        String textBody = incomingMap.get("Body").trim(); // removes whitespace before and after
+                        String[] endCalSplit = textBody.split(" ");
+                        if (endCalSplit.length >= 2) {
+                            long parsedTime = TZHelper.parseTime(endCalSplit[1]);
+                            if (parsedTime == -1L) {
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".");
+                                break;
+                            }
+                        }
                         receivedEndCal();
                     } else {
                         String endCalMessage = participantMap.get("participant_uuid") + " endCal unexpected message";
@@ -274,6 +310,7 @@ public class Baseline extends BaselineBase {
                         "when your calories finish at night! Let us know if you need help.");
                 break;
             case endProtocol:
+                Launcher.dbEngine.addProtocolNameToLog("Baseline", participantMap.get("participant_uuid"));
                 logger.warn(participantMap.get("participant_uuid") + " is not longer in protocol.");
                 break;
             default:
@@ -316,7 +353,7 @@ public class Baseline extends BaselineBase {
                     case endcal:
                     case timeout24:
                     case endProtocol:
-                        //no timers
+                        // no timers
                         break;
                     case waitStart:
                         this.isRestoring = true;
