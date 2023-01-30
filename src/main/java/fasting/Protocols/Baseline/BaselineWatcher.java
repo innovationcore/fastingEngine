@@ -1,7 +1,6 @@
 package fasting.Protocols.Baseline;
 
 import fasting.Launcher;
-import org.glassfish.grizzly.compression.lzma.impl.Base;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,21 +13,20 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class BaselineWatcher {
-    private Logger logger;
-    private ScheduledExecutorService checkTimer;
+    private final Logger logger;
+    private final ScheduledExecutorService checkTimer;
+    private final AtomicBoolean lockBaseline = new AtomicBoolean();
+    private final AtomicBoolean lockEpisodeReset = new AtomicBoolean();
 
-    private AtomicBoolean lockBaseline = new AtomicBoolean();
-    private AtomicBoolean lockEpisodeReset = new AtomicBoolean();
-
-    private Map<String,Baseline> baselineMap;
+    private final Map<String,Baseline> baselineMap;
 
     public BaselineWatcher() {
         this.logger = LoggerFactory.getLogger(BaselineWatcher.class);
         this.baselineMap = Collections.synchronizedMap(new HashMap<>());
 
         //how long to wait before checking protocols
-        long checkdelay = Launcher.config.getLongParam("checkdelay",5000l);
-        long checktimer = Launcher.config.getLongParam("checktimer",30000l);
+        long checkdelay = Launcher.config.getLongParam("checkdelay", 5000L);
+        long checktimer = Launcher.config.getLongParam("checktimer", 30000L);
 
         //create timer
         checkTimer = Executors.newScheduledThreadPool(1);
@@ -203,8 +201,7 @@ public class BaselineWatcher {
     }
 
     class startBaseline extends TimerTask {
-        private Logger logger;
-        private List<Map<String,String>> previousMapList;
+        private final Logger logger;
         public startBaseline() {
             logger = LoggerFactory.getLogger(startBaseline.class);
         }
@@ -213,68 +210,57 @@ public class BaselineWatcher {
             try {
                 synchronized (lockEpisodeReset) {
                     List<Map<String,String>> participantMapList = Launcher.dbEngine.getParticipantMapByGroup("Baseline");
-                    if (previousMapList == null){
-                        //first run
-                        previousMapList = participantMapList;
-                    }
-
-                    if (previousMapList.size() > 0 && participantMapList.size() == 0){
-                        // clear anyone in previousMapList
-                        for (Map<String,String> previousMap: previousMapList) {
-                            String participantUUID = previousMap.get("participant_uuid");
-                            String protocolNameDB = Launcher.dbEngine.getProtocolFromParticipantId(participantUUID);
-                            if (!protocolNameDB.equals("Baseline")) {
-                                Baseline toRemove = baselineMap.remove(participantUUID);
-                                if (toRemove != null) {
-                                    toRemove.receivedEndProtocol();
-                                    toRemove = null;
-                                    System.gc();
-                                }
-                            }
-                        }
-                    }
+                    Map<String, String> baselineUUIDs = new HashMap<>(); // this only stores the uuids from partMapList
+                    List<String> participantsToAdd = new ArrayList<>();
+                    List<String> participantsToRemove = new ArrayList<>();
 
                     for (Map<String, String> participantMap : participantMapList) {
-                        boolean isActive = false;
-                        synchronized (lockBaseline) {
-                            if(!baselineMap.containsKey(participantMap.get("participant_uuid"))) {
-                                isActive = true;
-                            } else if (!previousMapList.equals(participantMapList)) {
-                                // figure out who go removed
-                                // find which participant is in previousMapList but not in participantMapList
-                                for (Map<String, String> previousMap : previousMapList) {
-                                    if (!participantMapList.contains(previousMap)) {
-                                        //check if participant is still enrolled in protocol
-                                        String participantUUID = previousMap.get("participant_uuid");
-                                        String protocolNameDB = Launcher.dbEngine.getProtocolFromParticipantId(participantUUID);
-                                        if (!protocolNameDB.equals("Baseline")) {
-                                            // removing participant
-                                            Baseline toRemove = baselineMap.remove(participantUUID);
-                                            if (toRemove != null) {
-                                                toRemove.receivedEndProtocol();
-                                                toRemove = null;
-                                                System.gc();
-                                            }
-                                        }
-                                    }
+                        baselineUUIDs.put(participantMap.get("participant_uuid"), "participant_uuid");
+                    }
+
+                    if (baselineUUIDs.size() > baselineMap.size()) {
+                        participantsToAdd = getMissingKeys(baselineMap, baselineUUIDs);
+                    } else if (baselineUUIDs.size() < baselineMap.size()) {
+                        participantsToRemove = getMissingKeys(baselineMap, baselineUUIDs);
+                    } else {
+                        // otherwise check if participant needs to be added
+                        if (!baselineUUIDs.keySet().equals(baselineMap.keySet())){
+                            for (String key: baselineMap.keySet()){
+                                if (!baselineUUIDs.containsKey(key)){
+                                    participantsToRemove.add(key);
+                                }
+                            }
+                            for (String key: baselineUUIDs.keySet()) {
+                                if (!baselineMap.containsKey(key)) {
+                                    participantsToAdd.add(key);
                                 }
                             }
                         }
+                    }
 
-                        if(isActive) {
-                            logger.info("Creating state machine for participant_uuid=" + participantMap.get("participant_uuid"));
-                            //Create person
-                            Baseline p0 = new Baseline(participantMap);
-
-                            logger.info("Restoring State for participant_uuid=" + participantMap.get("participant_uuid"));
-                            p0.restoreSaveState();
-
-                            synchronized (lockBaseline) {
-                                baselineMap.put(participantMap.get("participant_uuid"), p0);
-                            }
+                    for (String toRemove: participantsToRemove) {
+                        Baseline removed = baselineMap.remove(toRemove);
+                        if (removed != null) {
+                            removed.receivedEndProtocol();
+                            removed = null;
+                            System.gc();
                         }
                     }
-                    previousMapList = participantMapList;
+
+                    for (String toAdd: participantsToAdd) {
+                        logger.info("Creating state machine for participant_uuid=" + toAdd);
+                        //Create person
+                        Map<String, String> addMap = getHashMapByParticipantUUID(participantMapList, toAdd);
+                        if (addMap.isEmpty()) { continue; }
+                        Baseline p0 = new Baseline(addMap);
+
+                        logger.info("Restoring State for participant_uuid=" + toAdd);
+                        p0.restoreSaveState();
+
+                        synchronized (lockBaseline) {
+                            baselineMap.put(toAdd, p0);
+                        }
+                    }
                 }
 
             } catch (Exception ex) {
@@ -291,7 +277,7 @@ public class BaselineWatcher {
     }
 
     class episodeReset extends TimerTask {
-        private Logger logger;
+        private final Logger logger;
         public episodeReset() {
             logger = LoggerFactory.getLogger(episodeReset.class);
         }
@@ -320,6 +306,30 @@ public class BaselineWatcher {
 
     public Map<String,Baseline> getBaselineMap(){
         return this.baselineMap;
+    }
+
+    public List<String> getMissingKeys(Map<String, Baseline> map1, Map<String, String> map2) {
+        List<String> keysNotInBoth = new ArrayList<>();
+        for (String key : map1.keySet()) {
+            if (!map2.containsKey(key)) {
+                keysNotInBoth.add(key);
+            }
+        }
+        for (String key : map2.keySet()) {
+            if (!map1.containsKey(key)) {
+                keysNotInBoth.add(key);
+            }
+        }
+        return keysNotInBoth;
+    }
+
+    public Map<String, String> getHashMapByParticipantUUID(List<Map<String, String>> list, String participantUUID) {
+        for (Map<String, String> map : list) {
+            if (map.containsKey("participant_uuid") && map.get("participant_uuid").equals(participantUUID)) {
+                return map;
+            }
+        }
+        return new HashMap<>();
     }
 
 } //class 

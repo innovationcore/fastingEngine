@@ -519,10 +519,11 @@ public class DBEngine {
         ResultSet rs = null;
         String result = "";
         try {
-            String query = "SELECT TOP 1 JSON_VALUE(log_json, '$.state') FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.protocol') != 'WeeklyMessage' AND JSON_VALUE(log_json, '$.protocol') != 'DailyMessage' ORDER BY TS DESC";
+            String query = "SELECT TOP 1 JSON_VALUE(log_json,'$.state') AS state FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.protocol') != 'WeeklyMessage' AND JSON_VALUE(log_json, '$.protocol') != 'DailyMessage' AND JSON_VALUE(log_json, '$.protocol') IN (SELECT name FROM protocol_types WHERE protocol_type_uuid IN (SELECT protocol_type_uuid FROM enrollments WHERE participant_uuid = ? AND status = 1)) ORDER BY TS DESC";
             conn = ds.getConnection();
             stmt = conn.prepareStatement(query);
             stmt.setString(1, partUUID);
+            stmt.setString(2, partUUID);
             rs = stmt.executeQuery();
 
             if (rs.next()) {
@@ -544,10 +545,12 @@ public class DBEngine {
         ResultSet rs = null;
         String json = "";
         try {
-            String query = "SELECT TOP 1 state_json FROM save_state WHERE enrollment_uuid = ? ORDER BY TS DESC";
+            String query = "SELECT TOP 1 state_json FROM save_state WHERE enrollment_uuid = ? AND enrollment_uuid IN (SELECT enrollment_uuid FROM enrollments WHERE enrollment_uuid = ? AND status=1) ORDER BY TS DESC";
             conn = ds.getConnection();
             stmt = conn.prepareStatement(query);
-            stmt.setString(1, getEnrollmentUUID(participantUUID));
+            String enrollment_uuid = getEnrollmentUUID(participantUUID);
+            stmt.setString(1, enrollment_uuid);
+            stmt.setString(2, enrollment_uuid);
             rs = stmt.executeQuery();
 
             if (rs.next()) {

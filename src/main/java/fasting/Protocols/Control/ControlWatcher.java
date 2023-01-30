@@ -1,7 +1,6 @@
 package fasting.Protocols.Control;
 
 import fasting.Launcher;
-import fasting.Protocols.Baseline.Baseline;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,21 +13,21 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ControlWatcher {
-    private Logger logger;
-    private ScheduledExecutorService checkTimer;
+    private final Logger logger;
+    private final ScheduledExecutorService checkTimer;
 
-    private AtomicBoolean lockControl = new AtomicBoolean();
-    private AtomicBoolean lockEpisodeReset = new AtomicBoolean();
+    private final AtomicBoolean lockControl = new AtomicBoolean();
+    private final AtomicBoolean lockEpisodeReset = new AtomicBoolean();
 
-    private Map<String,Control> controlMap;
+    private final Map<String,Control> controlMap;
 
     public ControlWatcher() {
         this.logger = LoggerFactory.getLogger(ControlWatcher.class);
         this.controlMap = Collections.synchronizedMap(new HashMap<>());
 
         //how long to wait before checking protocols
-        long checkdelay = Launcher.config.getLongParam("checkdelay",5000l);
-        long checktimer = Launcher.config.getLongParam("checktimer",30000l);
+        long checkdelay = Launcher.config.getLongParam("checkdelay", 5000L);
+        long checktimer = Launcher.config.getLongParam("checktimer", 30000L);
 
         //create timer
         checkTimer = Executors.newScheduledThreadPool(1);
@@ -201,8 +200,7 @@ public class ControlWatcher {
     }
 
     class startControl extends TimerTask {
-        private Logger logger;
-        private List<Map<String,String>> previousMapList;
+        private final Logger logger;
         public startControl() {
             logger = LoggerFactory.getLogger(startControl.class);
         }
@@ -211,66 +209,57 @@ public class ControlWatcher {
             try {
                 synchronized (lockEpisodeReset) {
                     List<Map<String,String>> participantMapList = Launcher.dbEngine.getParticipantMapByGroup("Control");
-                    if (previousMapList == null){
-                        //first run
-                        previousMapList = participantMapList;
-                    }
-                    if (previousMapList.size() > 0 && participantMapList.size() == 0){
-                        // clear anyone in previousMapList
-                        for (Map<String,String> previousMap: previousMapList){
-                            String participantUUID = previousMap.get("participant_uuid");
-                            String protocolNameDB = Launcher.dbEngine.getProtocolFromParticipantId(participantUUID);
-                            if (!protocolNameDB.equals("Control")) {
-                                Control toRemove = controlMap.remove(participantUUID);
-                                if (toRemove != null) {
-                                    toRemove.receivedEndProtocol();
-                                    toRemove = null;
-                                    System.gc();
-                                }
-                            }
-                        }
-                    }
-                    // no one in list so not running
+                    Map<String, String> controlUUIDs = new HashMap<>(); // this only stores the uuids from partMapList
+                    List<String> participantsToAdd = new ArrayList<>();
+                    List<String> participantsToRemove = new ArrayList<>();
+
                     for (Map<String, String> participantMap : participantMapList) {
-                        boolean isActive = false;
-                        synchronized (lockControl) {
-                            if(!controlMap.containsKey(participantMap.get("participant_uuid"))) {
-                                isActive = true;
-                            } else if (!previousMapList.equals(participantMapList)) {
-                                // figure out who go removed
-                                // find which participant is in previousMapList but not in participantMapList
-                                for (Map<String, String> previousMap : previousMapList) {
-                                    if (!participantMapList.contains(previousMap)) {
-                                        String participantUUID = previousMap.get("participant_uuid");
-                                        String protocolNameDB = Launcher.dbEngine.getProtocolFromParticipantId(participantUUID);
-                                        if (!protocolNameDB.equals("Control")) {
-                                            // removing participant
-                                            Control toRemove = controlMap.remove(participantUUID);
-                                            if (toRemove != null) {
-                                                toRemove.receivedEndProtocol();
-                                                toRemove = null;
-                                                System.gc();
-                                            }
-                                        }
-                                    }
+                        controlUUIDs.put(participantMap.get("participant_uuid"), "participant_uuid");
+                    }
+
+                    if (controlUUIDs.size() > controlMap.size()) {
+                        participantsToAdd = getMissingKeys(controlMap, controlUUIDs);
+                    } else if (controlUUIDs.size() < controlMap.size()) {
+                        participantsToRemove = getMissingKeys(controlMap, controlUUIDs);
+                    } else {
+                        // otherwise check if participant needs to be added
+                        if (!controlUUIDs.keySet().equals(controlMap.keySet())){
+                            for (String key: controlMap.keySet()){
+                                if (!controlUUIDs.containsKey(key)){
+                                    participantsToRemove.add(key);
+                                }
+                            }
+                            for (String key: controlUUIDs.keySet()) {
+                                if (!controlMap.containsKey(key)) {
+                                    participantsToAdd.add(key);
                                 }
                             }
                         }
+                    }
 
-                        if(isActive) {
-                            logger.info("Creating state machine for participant_uuid=" + participantMap.get("participant_uuid"));
-                            //Create person
-                            Control p0 = new Control(participantMap);
-
-                            logger.info("Restoring State for participant_uuid=" + participantMap.get("participant_uuid"));
-                            p0.restoreSaveState();
-
-                            synchronized (lockControl) {
-                                controlMap.put(participantMap.get("participant_uuid"), p0);
-                            }
+                    for (String toRemove: participantsToRemove) {
+                        Control removed = controlMap.remove(toRemove);
+                        if (removed != null) {
+                            removed.receivedEndProtocol();
+                            removed = null;
+                            System.gc();
                         }
                     }
-                    previousMapList = participantMapList;
+
+                    for (String toAdd: participantsToAdd) {
+                        logger.info("Creating state machine for participant_uuid=" + toAdd);
+                        //Create person
+                        Map<String, String> addMap = getHashMapByParticipantUUID(participantMapList, toAdd);
+                        if (addMap.isEmpty()) { continue; }
+                        Control p0 = new Control(addMap);
+
+                        logger.info("Restoring State for participant_uuid=" + toAdd);
+                        p0.restoreSaveState();
+
+                        synchronized (lockControl) {
+                            controlMap.put(toAdd, p0);
+                        }
+                    }
                 }
 
             } catch (Exception ex) {
@@ -287,7 +276,7 @@ public class ControlWatcher {
     }
 
     class episodeReset extends TimerTask {
-        private Logger logger;
+        private final Logger logger;
         public episodeReset() {
             logger = LoggerFactory.getLogger(episodeReset.class);
         }
@@ -318,4 +307,28 @@ public class ControlWatcher {
         return this.controlMap;
     }
 
+
+    public List<String> getMissingKeys(Map<String, Control> map1, Map<String, String> map2) {
+        List<String> keysNotInBoth = new ArrayList<>();
+        for (String key : map1.keySet()) {
+            if (!map2.containsKey(key)) {
+                keysNotInBoth.add(key);
+            }
+        }
+        for (String key : map2.keySet()) {
+            if (!map1.containsKey(key)) {
+                keysNotInBoth.add(key);
+            }
+        }
+        return keysNotInBoth;
+    }
+
+    public Map<String, String> getHashMapByParticipantUUID(List<Map<String, String>> list, String participantUUID) {
+        for (Map<String, String> map : list) {
+            if (map.containsKey("participant_uuid") && map.get("participant_uuid").equals(participantUUID)) {
+                return map;
+            }
+        }
+        return new HashMap<>();
+    }
 } //class 

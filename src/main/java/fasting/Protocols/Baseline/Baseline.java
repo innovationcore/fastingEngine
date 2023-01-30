@@ -21,12 +21,8 @@ public class Baseline extends BaselineBase {
     private long startTimestamp = 0;
     private TimezoneHelper TZHelper;
     private boolean isRestoring;
-    private boolean isDayOff;
-    private boolean isFromYesterday = false;
     private Map<String,String> incomingMap;
-
     public String stateJSON;
-
     private Gson gson;
     private static final Logger logger = LoggerFactory.getLogger(Baseline.class.getName());
 
@@ -35,7 +31,6 @@ public class Baseline extends BaselineBase {
         this.participantMap = participantMap;
         this.stateMap = new HashMap<>();
         this.isRestoring = false;
-        this.isDayOff = false;
 
         // this initializes the user's and machine's timezone
         this.TZHelper = new TimezoneHelper(participantMap.get("time_zone"), TimeZone.getDefault().getID());
@@ -245,7 +240,6 @@ public class Baseline extends BaselineBase {
                 Launcher.dbEngine.uploadSaveState(stateJSON, participantMap.get("participant_uuid"));
                 break;
             case endcal:
-                resetNoEndCal();
                 int secondsEnd = TZHelper.getSecondsTo359am();
                 setTimeout24Hours(secondsEnd);
                 String endCalMessage = participantMap.get("participant_uuid") + " thanks for sending endcal: timeout24 timeout " + TZHelper.getDateFromAddingSeconds(secondsEnd);
@@ -315,11 +309,13 @@ public class Baseline extends BaselineBase {
                     if(!stateName.equals("endProtocol")) {
                         stateName = "waitStart";
                     }
-                    this.isDayOff = false;
                 }
 
                 switch (State.valueOf(stateName)) {
                     case initial:
+                    case endcal:
+                    case timeout24:
+                    case endProtocol:
                         //no timers
                         break;
                     case waitStart:
@@ -341,14 +337,6 @@ public class Baseline extends BaselineBase {
                         receivedStartCal();
                         this.isRestoring = false;
                         break;
-                    case endcal:
-                        //no timers
-                        break;
-                    case timeout24:
-                        break;
-                    case endProtocol:
-                        //no timers
-                        break;
                     default:
                         logger.error("restoreSaveState: Invalid state: " + stateName);
                 }
@@ -365,10 +353,6 @@ public class Baseline extends BaselineBase {
             logger.error(ex.getMessage());
             ex.printStackTrace();
         }
-    }
-
-    private void resetNoEndCal(){
-        Launcher.dbEngine.resetDaysWithoutEndCal(participantMap.get("participant_uuid"));
     }
 
     public void logState(String state) {

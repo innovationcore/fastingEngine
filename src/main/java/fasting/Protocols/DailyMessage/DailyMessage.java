@@ -91,10 +91,11 @@ public class DailyMessage extends DailyMessageBase {
 
             if (protocolNameDB.equals("TRE")) {
                 Map<String, Restricted> restrictedMap = Launcher.restrictedWatcher.getRestrictedMap();
-                while (restrictedMap.isEmpty()) {
+                while (!restrictedMap.containsKey(participantMap.get("participant_uuid"))) {
                     Thread.sleep(500);
                     restrictedMap = Launcher.restrictedWatcher.getRestrictedMap();
                 }
+
                 String currentState = restrictedMap.get(participantMap.get("participant_uuid")).getState().toString();
                 if (!currentState.equals("endProtocol")) {
                     int seconds = TZHelper.getSecondsToFridayNoon();
@@ -102,10 +103,6 @@ public class DailyMessage extends DailyMessageBase {
                     receivedWaitDay();
                 }
 
-            } else {
-                // move to endProtocol
-                receivedWaitDay();
-                receivedEndProtocol();
             }
             this.isRestoring = false;
 

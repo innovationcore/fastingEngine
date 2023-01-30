@@ -1,7 +1,6 @@
 package fasting.Protocols.Restricted;
 
 import fasting.Launcher;
-import fasting.Protocols.Baseline.Baseline;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,10 +14,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class RestrictedWatcher {
     private final Logger logger;
-
     private final AtomicBoolean lockRestricted = new AtomicBoolean();
     private final AtomicBoolean lockEpisodeReset = new AtomicBoolean();
-
     private final Map<String,Restricted> restrictedMap;
 
     public RestrictedWatcher() {
@@ -273,7 +270,6 @@ public class RestrictedWatcher {
 
     class startRestricted extends TimerTask {
         private final Logger logger;
-        private List<Map<String,String>> previousMapList;
         public startRestricted() {
             logger = LoggerFactory.getLogger(startRestricted.class);
         }
@@ -282,67 +278,57 @@ public class RestrictedWatcher {
             try {
                 synchronized (lockEpisodeReset) {
                     List<Map<String,String>> participantMapList = Launcher.dbEngine.getParticipantMapByGroup("TRE");
-                    if (previousMapList == null){
-                        //first run
-                        previousMapList = participantMapList;
-                    }
-
-                    if (previousMapList.size() > 0 && participantMapList.size() == 0){
-                        // clear anyone in previousMapList
-                        for (Map<String,String> previousMap: previousMapList){
-                            String participantUUID = previousMap.get("participant_uuid");
-                            String protocolNameDB = Launcher.dbEngine.getProtocolFromParticipantId(participantUUID);
-                            if (!protocolNameDB.equals("TRE")) {
-                                Restricted toRemove = restrictedMap.remove(participantUUID);
-                                if (toRemove != null) {
-                                    toRemove.receivedEndProtocol();
-                                    toRemove = null;
-                                    System.gc();
-                                }
-                            }
-                        }
-                    }
+                    Map<String, String> restrictedUUIDs = new HashMap<>(); // this only stores the uuids from partMapList
+                    List<String> participantsToAdd = new ArrayList<>();
+                    List<String> participantsToRemove = new ArrayList<>();
 
                     for (Map<String, String> participantMap : participantMapList) {
-                        boolean isActive = false;
-                        synchronized (lockRestricted) {
-                            if(!restrictedMap.containsKey(participantMap.get("participant_uuid"))) {
-                                isActive = true;
-                            } else if (!previousMapList.equals(participantMapList)) {
-                                // figure out who go removed
-                                // find which participant is in previousMapList but not in participantMapList
-                                for (Map<String, String> previousMap : previousMapList) {
-                                    if (!participantMapList.contains(previousMap)) {
-                                        String participantUUID = previousMap.get("participant_uuid");
-                                        String protocolNameDB = Launcher.dbEngine.getProtocolFromParticipantId(participantUUID);
-                                        if (!protocolNameDB.equals("TRE")) {
-                                            // removing participant
-                                            Restricted toRemove = restrictedMap.remove(participantUUID);
-                                            if (toRemove != null) {
-                                                toRemove.receivedEndProtocol();
-                                                toRemove = null;
-                                                System.gc();
-                                            }
-                                        }
-                                    }
+                        restrictedUUIDs.put(participantMap.get("participant_uuid"), "participant_uuid");
+                    }
+
+                    if (restrictedUUIDs.size() > restrictedMap.size()) {
+                        participantsToAdd = getMissingKeys(restrictedMap, restrictedUUIDs);
+                    } else if (restrictedUUIDs.size() < restrictedMap.size()) {
+                        participantsToRemove = getMissingKeys(restrictedMap, restrictedUUIDs);
+                    } else {
+                        // otherwise check if participant needs to be added
+                        if (!restrictedUUIDs.keySet().equals(restrictedMap.keySet())){
+                            for (String key: restrictedMap.keySet()){
+                                if (!restrictedUUIDs.containsKey(key)){
+                                    participantsToRemove.add(key);
+                                }
+                            }
+                            for (String key: restrictedUUIDs.keySet()) {
+                                if (!restrictedMap.containsKey(key)) {
+                                    participantsToAdd.add(key);
                                 }
                             }
                         }
+                    }
 
-                        if(isActive) {
-                            logger.info("Creating state machine for participant_uuid=" + participantMap.get("participant_uuid"));
-                            //Create person
-                            Restricted p0 = new Restricted(participantMap);
-
-                            logger.info("Restoring State for participant_uuid=" + participantMap.get("participant_uuid"));
-                            p0.restoreSaveState();
-
-                            synchronized (lockRestricted) {
-                                restrictedMap.put(participantMap.get("participant_uuid"), p0);
-                            }
+                    for (String toRemove: participantsToRemove) {
+                        Restricted removed = restrictedMap.remove(toRemove);
+                        if (removed != null) {
+                            removed.receivedEndProtocol();
+                            removed = null;
+                            System.gc();
                         }
                     }
-                    previousMapList = participantMapList;
+
+                    for (String toAdd: participantsToAdd) {
+                        logger.info("Creating state machine for participant_uuid=" + toAdd);
+                        //Create person
+                        Map<String, String> addMap = getHashMapByParticipantUUID(participantMapList, toAdd);
+                        if (addMap.isEmpty()) { continue; }
+                        Restricted p0 = new Restricted(addMap);
+
+                        logger.info("Restoring State for participant_uuid=" + toAdd);
+                        p0.restoreSaveState();
+
+                        synchronized (lockRestricted) {
+                            restrictedMap.put(toAdd, p0);
+                        }
+                    }
                 }
 
             } catch (Exception ex) {
@@ -388,6 +374,30 @@ public class RestrictedWatcher {
 
     public Map<String, Restricted> getRestrictedMap(){
         return this.restrictedMap;
+    }
+
+    public List<String> getMissingKeys(Map<String, Restricted> map1, Map<String, String> map2) {
+        List<String> keysNotInBoth = new ArrayList<>();
+        for (String key : map1.keySet()) {
+            if (!map2.containsKey(key)) {
+                keysNotInBoth.add(key);
+            }
+        }
+        for (String key : map2.keySet()) {
+            if (!map1.containsKey(key)) {
+                keysNotInBoth.add(key);
+            }
+        }
+        return keysNotInBoth;
+    }
+
+    public Map<String, String> getHashMapByParticipantUUID(List<Map<String, String>> list, String participantUUID) {
+        for (Map<String, String> map : list) {
+            if (map.containsKey("participant_uuid") && map.get("participant_uuid").equals(participantUUID)) {
+                return map;
+            }
+        }
+        return new HashMap<>();
     }
 
 } //class 

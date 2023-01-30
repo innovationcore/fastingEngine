@@ -88,9 +88,6 @@ public class WeeklyMessage extends WeeklyMessageBase {
     @Override
     public boolean stateNotify(String state){
 
-        long unixTS;
-        long recentStartCalTime;
-
         logState(state);
     
         if(stateMap != null) {
@@ -134,10 +131,11 @@ public class WeeklyMessage extends WeeklyMessageBase {
 
             if (protocolNameDB.equals("Baseline")) {
                 Map<String, Baseline> baselineMap = Launcher.baselineWatcher.getBaselineMap();
-                while (baselineMap.isEmpty()) {
+                while (!baselineMap.containsKey(participantMap.get("participant_uuid"))) {
                     Thread.sleep(500);
                     baselineMap = Launcher.baselineWatcher.getBaselineMap();
                 }
+
                 String currentState = baselineMap.get(participantMap.get("participant_uuid")).getState().toString();
                 if (!currentState.equals("endProtocol")) {
                     int seconds = TZHelper.getSecondsToFridayNoon();
@@ -147,7 +145,7 @@ public class WeeklyMessage extends WeeklyMessageBase {
 
             } else if (protocolNameDB.equals("Control")){
                 Map<String, Control> controlMap = Launcher.controlWatcher.getControlMap();
-                while (controlMap.isEmpty()) {
+                while (!controlMap.containsKey(participantMap.get("participant_uuid"))) {
                     Thread.sleep(500);
                     controlMap = Launcher.controlWatcher.getControlMap();
                 }
@@ -159,10 +157,6 @@ public class WeeklyMessage extends WeeklyMessageBase {
                     receivedWaitWeek();
                 }
 
-            } else {
-                // move to endProtocol
-                receivedWaitWeek();
-                receivedEndProtocol();
             }
             this.isRestoring = false;
 
