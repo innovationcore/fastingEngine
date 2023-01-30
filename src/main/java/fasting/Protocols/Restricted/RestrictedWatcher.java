@@ -1,6 +1,7 @@
 package fasting.Protocols.Restricted;
 
 import fasting.Launcher;
+import fasting.Protocols.Baseline.Baseline;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -383,6 +384,10 @@ public class RestrictedWatcher {
 
         }
 
+    }
+
+    public Map<String, Restricted> getRestrictedMap(){
+        return this.restrictedMap;
     }
 
 } //class 

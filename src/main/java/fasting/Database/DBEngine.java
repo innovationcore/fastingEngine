@@ -519,7 +519,7 @@ public class DBEngine {
         ResultSet rs = null;
         String result = "";
         try {
-            String query = "SELECT TOP 1 JSON_VALUE(log_json, '$.state') FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.protocol') != 'WeeklyMessage' ORDER BY TS DESC";
+            String query = "SELECT TOP 1 JSON_VALUE(log_json, '$.state') FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.protocol') != 'WeeklyMessage' AND JSON_VALUE(log_json, '$.protocol') != 'DailyMessage' ORDER BY TS DESC";
             conn = ds.getConnection();
             stmt = conn.prepareStatement(query);
             stmt.setString(1, partUUID);

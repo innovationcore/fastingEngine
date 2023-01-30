@@ -4,6 +4,7 @@ import fasting.Configs.Config;
 import fasting.Configs.FileConfig;
 import fasting.Database.DBEngine;
 import fasting.MessagingUtils.MsgUtils;
+import fasting.Protocols.DailyMessage.DailyMessageWatcher;
 import fasting.Protocols.Testing;
 import fasting.Protocols.Restricted.RestrictedWatcher;
 import fasting.Protocols.Control.ControlWatcher;
@@ -34,6 +35,7 @@ public class Launcher {
     public static ControlWatcher controlWatcher;
     public static BaselineWatcher baselineWatcher;
     public static WeeklyMessageWatcher weeklyMessageWatcher;
+    public static DailyMessageWatcher dailyMessageWatcher;
     public static Testing testing;
     public static TimezoneHelper TZHelper;
 
@@ -63,8 +65,8 @@ public class Launcher {
             startServer();
 
             //testing
-//            TimezoneHelper TZHelper = new TimezoneHelper("America/Louisville","Etc/UTC");
-//            System.out.println(TZHelper.getSecondsToFridayNoon());
+//            TimezoneHelper TZHelper = new TimezoneHelper("Australia/Perth","Etc/UTC");
+//            System.out.println(TZHelper.getSecondsTo5pm());
             
 
     
@@ -72,9 +74,8 @@ public class Launcher {
             restrictedWatcher = new RestrictedWatcher();
             controlWatcher = new ControlWatcher();
             baselineWatcher = new BaselineWatcher();
-            weeklyMessageWatcher = new WeeklyMessageWatcher();
-
-
+            weeklyMessageWatcher = new WeeklyMessageWatcher(); // only for Baseline/Control
+            dailyMessageWatcher = new DailyMessageWatcher(); // only for TRE
 
         } catch (Exception ex) {
             ex.printStackTrace();

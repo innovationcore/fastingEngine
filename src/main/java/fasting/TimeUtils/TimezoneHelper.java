@@ -8,7 +8,8 @@ import java.util.*;
 import java.text.*;
 
 public class TimezoneHelper {
-    final int SEC_IN_4_HOURS = 14400;
+    private static final long SEC_IN_DAY = 86400;
+    private final int SEC_IN_4_HOURS = 14400;
 
     private String userTimezone;
     private String machineTimezone;
@@ -287,7 +288,7 @@ public class TimezoneHelper {
     }
 
     /**
-     * return the seconds until 4am for user timezone (This should only be used in resetting the episode)
+     * return the seconds until Friday at Noon in the users timezone
      */
     public int getSecondsToFridayNoon() {
         Instant nowUTC = Instant.now();
@@ -302,6 +303,23 @@ public class TimezoneHelper {
         }
         long secondsUntilNoon = Duration.between(nowUserLocalTime, userLocalTimeNoon).getSeconds();
         return (int) secondsUntilNoon;
+
+    }
+
+    /**
+     * return the seconds until 5pm in user's timezone
+     */
+    public int getSecondsTo5pm() {
+        Instant nowUTC = Instant.now();
+        ZoneId userTZ = ZoneId.of(this.userTimezone);
+        ZonedDateTime nowUserTimezone = ZonedDateTime.ofInstant(nowUTC, userTZ);
+        LocalDateTime nowUserLocalTime = nowUserTimezone.toLocalDateTime();
+        LocalDateTime userLocalTime5pm = LocalDateTime.of(nowUserLocalTime.getYear(), nowUserLocalTime.getMonth(), nowUserLocalTime.getDayOfMonth(), 17, 00, 00);
+        long secondsUntil5pm = Duration.between(nowUserLocalTime, userLocalTime5pm).getSeconds();
+        if (secondsUntil5pm < 0) {
+            secondsUntil5pm += SEC_IN_DAY;
+        }
+        return (int) secondsUntil5pm;
 
     }
 
