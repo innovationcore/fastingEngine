@@ -74,6 +74,8 @@ public class Launcher {
 //            System.out.println(TZHelper.parseTime(" 5:00    pm")); // good
 //            System.out.println(TZHelper.parseTime("00:00 am")); // good
 //            System.out.println(TZHelper.parseTime("00:00am")); // good
+//            System.out.println(TZHelper.parseTime("8")); // good
+//            System.out.println(TZHelper.parseTime(" 23 ")); // good
             
 
     

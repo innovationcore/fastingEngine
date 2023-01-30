@@ -91,7 +91,7 @@ public class Restricted extends RestrictedBase {
                         Launcher.msgUtils.sendMessage("+12704022214", "Participant " +participantMap.get("first_name")+ " " + participantMap.get("last_name") + " sent ENDCAL after 4am and before STARTCAL.");
                     } else if(isStartCal(incomingMap.get("Body"))) {
                         String textBody = incomingMap.get("Body").trim(); // removes whitespace before and after
-                        String[] startCalSplit = textBody.split(" ");
+                        String[] startCalSplit = textBody.split(" ", 2);
                         if (startCalSplit.length >= 2) {
                             long parsedTime = TZHelper.parseTime(startCalSplit[1]);
                             if (parsedTime == -1L) {
@@ -112,7 +112,7 @@ public class Restricted extends RestrictedBase {
                         Launcher.msgUtils.sendMessage(participantMap.get("number"), "You've already started consuming calories for the day. Text \"ENDCAL\" when you finish your TRE today.");
                     } else if(isEndCal(incomingMap.get("Body"))) {
                         String textBody = incomingMap.get("Body").trim(); // removes whitespace before and after
-                        String[] endCalSplit = textBody.split(" ");
+                        String[] endCalSplit = textBody.split(" ", 2);
                         boolean isBetween3AMand3PM;
                         if (endCalSplit.length >= 2){
                             long parsedTime = TZHelper.parseTime(endCalSplit[1]);
@@ -145,7 +145,7 @@ public class Restricted extends RestrictedBase {
                         receivedDayOff();
                     } else if (isEndCal(incomingMap.get("Body"))) {
                         String textBody = incomingMap.get("Body").trim(); // removes whitespace before and after
-                        String[] endCalSplit = textBody.split(" ");
+                        String[] endCalSplit = textBody.split(" ", 2);
                         boolean isBetween3AMand3PM;
                         if (endCalSplit.length >= 2){
                             long parsedTime = TZHelper.parseTime(endCalSplit[1]);
@@ -174,7 +174,7 @@ public class Restricted extends RestrictedBase {
                 case endcal:
                     if(isEndCal(incomingMap.get("Body"))) {
                         String textBody = incomingMap.get("Body").trim(); // removes whitespace before and after
-                        String[] endCalSplit = textBody.split(" ");
+                        String[] endCalSplit = textBody.split(" ", 2);
                         boolean isBetween3AMand3PM;
                         if (endCalSplit.length >= 2){
                             long parsedTime = TZHelper.parseTime(endCalSplit[1]);
@@ -383,7 +383,7 @@ public class Restricted extends RestrictedBase {
                     }
                 } else {
                     String textBody = incomingMap.get("Body").trim(); // removes whitespace before and after
-                    String[] startCalSplit = textBody.split(" ");
+                    String[] startCalSplit = textBody.split(" ", 2);
                     if (startCalSplit.length >= 2){
                         unixTS = TZHelper.parseTime(startCalSplit[1]);
                     } else {
@@ -454,7 +454,7 @@ public class Restricted extends RestrictedBase {
                     }
                 } else {
                     String textBody = incomingMap.get("Body").trim(); // removes whitespace before and after
-                    String[] endCalSplit = textBody.split(" ");
+                    String[] endCalSplit = textBody.split(" ", 2);
                     if (endCalSplit.length >= 2){
                         unixTS = TZHelper.parseTime(endCalSplit[1]);
                     } else {

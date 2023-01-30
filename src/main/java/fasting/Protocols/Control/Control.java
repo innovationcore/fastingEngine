@@ -81,7 +81,7 @@ public class Control extends ControlBase {
                 case waitStart:
                     if(isStartCal(incomingMap.get("Body"))) {
                         String textBody = incomingMap.get("Body").trim(); // removes whitespace before and after
-                        String[] startCalSplit = textBody.split(" ");
+                        String[] startCalSplit = textBody.split(" ", 2);
                         if (startCalSplit.length >= 2) {
                             long parsedTime = TZHelper.parseTime(startCalSplit[1]);
                             if (parsedTime == -1L) {
@@ -98,7 +98,7 @@ public class Control extends ControlBase {
                 case startcal:
                     if (isStartCal(incomingMap.get("Body"))){
                         String textBody = incomingMap.get("Body").trim(); // removes whitespace before and after
-                        String[] startCalSplit = textBody.split(" ");
+                        String[] startCalSplit = textBody.split(" ", 2);
                         if (startCalSplit.length >= 2) {
                             long parsedTime = TZHelper.parseTime(startCalSplit[1]);
                             if (parsedTime == -1L) {
@@ -109,7 +109,7 @@ public class Control extends ControlBase {
                         receivedStartCal();
                     } else if(isEndCal(incomingMap.get("Body"))) {
                         String textBody = incomingMap.get("Body").trim(); // removes whitespace before and after
-                        String[] endCalSplit = textBody.split(" ");
+                        String[] endCalSplit = textBody.split(" ", 2);
                         if (endCalSplit.length >= 2) {
                             long parsedTime = TZHelper.parseTime(endCalSplit[1]);
                             if (parsedTime == -1L) {
@@ -126,7 +126,7 @@ public class Control extends ControlBase {
                 case endcal:
                     if (isEndCal(incomingMap.get("Body"))){
                         String textBody = incomingMap.get("Body").trim(); // removes whitespace before and after
-                        String[] endCalSplit = textBody.split(" ");
+                        String[] endCalSplit = textBody.split(" ", 2);
                         if (endCalSplit.length >= 2) {
                             long parsedTime = TZHelper.parseTime(endCalSplit[1]);
                             if (parsedTime == -1L) {
@@ -263,7 +263,7 @@ public class Control extends ControlBase {
                     }
                 } else {
                     String textBody = incomingMap.get("Body").trim(); // removes whitespace before and after
-                    String[] startCalSplit = textBody.split(" ");
+                    String[] startCalSplit = textBody.split(" ", 2);
                     if (startCalSplit.length >= 2){
                         unixTS = TZHelper.parseTime(startCalSplit[1]);
                     } else {
@@ -291,7 +291,7 @@ public class Control extends ControlBase {
                     }
                 } else {
                     String textBody = incomingMap.get("Body").trim(); // removes whitespace before and after
-                    String[] endCalSplit = textBody.split(" ");
+                    String[] endCalSplit = textBody.split(" ", 2);
                     if (endCalSplit.length >= 2){
                         unixTS = TZHelper.parseTime(endCalSplit[1]);
                     } else {

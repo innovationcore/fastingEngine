@@ -213,6 +213,13 @@ public class TimezoneHelper {
                     String[] timeArray = time.split("a");
                     hours = Integer.parseInt(timeArray[0].trim());
                     minutes = 0;
+                } else {
+                    try {
+                        hours = Integer.parseInt(time.trim());
+                        minutes = 0;
+                    } catch (Exception e) {
+                        return -1L;
+                    }
                 }
             }
 
@@ -249,6 +256,7 @@ public class TimezoneHelper {
 
             return currentDateAndTime.toEpochSecond(userTZ.getRules().getOffset(currentDateAndTime));
         } catch (Exception e){
+            e.printStackTrace();
             // if fails to parse time, return the time now
             return -1L;
         }

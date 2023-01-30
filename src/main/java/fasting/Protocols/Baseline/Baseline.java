@@ -78,7 +78,7 @@ public class Baseline extends BaselineBase {
                 case waitStart:
                     if(isStartCal(incomingMap.get("Body"))) {
                         String textBody = incomingMap.get("Body").trim(); // removes whitespace before and after
-                        String[] startCalSplit = textBody.split(" ");
+                        String[] startCalSplit = textBody.split(" ", 2);
                         if (startCalSplit.length >= 2) {
                             long parsedTime = TZHelper.parseTime(startCalSplit[1]);
                             if (parsedTime == -1L) {
@@ -95,7 +95,7 @@ public class Baseline extends BaselineBase {
                 case startcal:
                     if (isStartCal(incomingMap.get("Body"))){
                         String textBody = incomingMap.get("Body").trim(); // removes whitespace before and after
-                        String[] startCalSplit = textBody.split(" ");
+                        String[] startCalSplit = textBody.split(" ", 2);
                         if (startCalSplit.length >= 2) {
                             long parsedTime = TZHelper.parseTime(startCalSplit[1]);
                             if (parsedTime == -1L) {
@@ -106,7 +106,7 @@ public class Baseline extends BaselineBase {
                         receivedStartCal();
                     } else if(isEndCal(incomingMap.get("Body"))) {
                         String textBody = incomingMap.get("Body").trim(); // removes whitespace before and after
-                        String[] endCalSplit = textBody.split(" ");
+                        String[] endCalSplit = textBody.split(" ", 2);
                         if (endCalSplit.length >= 2) {
                             long parsedTime = TZHelper.parseTime(endCalSplit[1]);
                             if (parsedTime == -1L) {
@@ -123,7 +123,7 @@ public class Baseline extends BaselineBase {
                 case endcal:
                     if (isEndCal(incomingMap.get("Body"))){
                         String textBody = incomingMap.get("Body").trim(); // removes whitespace before and after
-                        String[] endCalSplit = textBody.split(" ");
+                        String[] endCalSplit = textBody.split(" ", 2);
                         if (endCalSplit.length >= 2) {
                             long parsedTime = TZHelper.parseTime(endCalSplit[1]);
                             if (parsedTime == -1L) {
@@ -261,7 +261,7 @@ public class Baseline extends BaselineBase {
                     }
                 } else {
                     String textBody = incomingMap.get("Body").trim(); // removes whitespace before and after
-                    String[] startCalSplit = textBody.split(" ");
+                    String[] startCalSplit = textBody.split(" ", 2);
                     if (startCalSplit.length >= 2){
                         unixTS = TZHelper.parseTime(startCalSplit[1]);
                     } else {
@@ -289,7 +289,7 @@ public class Baseline extends BaselineBase {
                     }
                 } else {
                     String textBody = incomingMap.get("Body").trim(); // removes whitespace before and after
-                    String[] endCalSplit = textBody.split(" ");
+                    String[] endCalSplit = textBody.split(" ", 2);
                     if (endCalSplit.length >= 2){
                         unixTS = TZHelper.parseTime(endCalSplit[1]);
                     } else {
