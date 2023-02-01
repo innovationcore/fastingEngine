@@ -112,6 +112,8 @@ public class WeeklyMessage extends WeeklyMessageBase {
                 String weeklyMessage = "Thank you for continuing to send us your STARTCAL and ENDCAL each day. Keep up the great work!";
                 logger.info(weeklyMessage);
                 Launcher.msgUtils.sendMessage(participantMap.get("number"), weeklyMessage);
+                // wait 5 seconds, so multiple messages don't get sent at the same time
+                try { Thread.sleep(5000); } catch (InterruptedException e) { /* do nothing */ }
                 break;
             case endProtocol:
                 logger.warn(participantMap.get("participant_uuid") + " is not longer in protocol.");

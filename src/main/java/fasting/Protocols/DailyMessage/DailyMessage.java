@@ -72,6 +72,8 @@ public class DailyMessage extends DailyMessageBase {
                 String dailyMessage = getRandomDailyMessage();
                 logger.info(dailyMessage);
                 Launcher.msgUtils.sendMessage(participantMap.get("number"), dailyMessage);
+                // wait 5 seconds, so multiple messages don't get sent at the same time
+                try { Thread.sleep(5000); } catch (InterruptedException e) { /* do nothing */ }
                 break;
             case endProtocol:
                 logger.warn(participantMap.get("participant_uuid") + " is not longer in protocol.");
