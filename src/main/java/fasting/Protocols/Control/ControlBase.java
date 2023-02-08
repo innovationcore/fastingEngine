@@ -11,7 +11,7 @@ import java.util.*;
  * UML State diagram for a library loan, represented in Umple
  */
 // line 3 "model.ump"
-// line 81 "model.ump"
+// line 94 "model.ump"
 public class ControlBase
 {
 
@@ -21,14 +21,16 @@ public class ControlBase
 
   //ControlBase Attributes
   private int timeout24Hours;
+  private int endWarnDeadline;
 
   //ControlBase State Machines
-  public enum State { initial, waitStart, startcal, endcal, timeout24, endProtocol }
+  public enum State { initial, waitStart, startcal, warnEndCal, endcal, timeout24, endProtocol }
   private State state;
 
   //Helper Variables
   private TimedEventHandler timeoutwaitStartTotimeout24Handler;
-  private TimedEventHandler timeoutstartcalTotimeout24Handler;
+  private TimedEventHandler timeoutstartcalTowarnEndCalHandler;
+  private TimedEventHandler timeoutwarnEndCalTowaitStartHandler;
   private TimedEventHandler timeoutendcalTowaitStartHandler;
 
   //------------------------
@@ -38,6 +40,7 @@ public class ControlBase
   public ControlBase()
   {
     timeout24Hours = 0;
+    endWarnDeadline = 0;
     setState(State.initial);
   }
 
@@ -53,9 +56,22 @@ public class ControlBase
     return wasSet;
   }
 
+  public boolean setEndWarnDeadline(int aEndWarnDeadline)
+  {
+    boolean wasSet = false;
+    endWarnDeadline = aEndWarnDeadline;
+    wasSet = true;
+    return wasSet;
+  }
+
   public int getTimeout24Hours()
   {
     return timeout24Hours;
+  }
+
+  public int getEndWarnDeadline()
+  {
+    return endWarnDeadline;
   }
 
   public String getStateFullName()
@@ -115,6 +131,24 @@ public class ControlBase
     return wasEventProcessed;
   }
 
+  public boolean recievedWarnEndCal()
+  {
+    boolean wasEventProcessed = false;
+
+    State aState = state;
+    switch (aState)
+    {
+      case initial:
+        setState(State.warnEndCal);
+        wasEventProcessed = true;
+        break;
+      default:
+        // Other states do respond to this event
+    }
+
+    return wasEventProcessed;
+  }
+
   public boolean timeoutwaitStartTotimeout24()
   {
     boolean wasEventProcessed = false;
@@ -151,6 +185,11 @@ public class ControlBase
         setState(State.endProtocol);
         wasEventProcessed = true;
         break;
+      case warnEndCal:
+        exitState();
+        setState(State.endProtocol);
+        wasEventProcessed = true;
+        break;
       case endcal:
         exitState();
         setState(State.endProtocol);
@@ -175,6 +214,11 @@ public class ControlBase
         setState(State.endcal);
         wasEventProcessed = true;
         break;
+      case warnEndCal:
+        exitState();
+        setState(State.endcal);
+        wasEventProcessed = true;
+        break;
       case endcal:
         exitState();
         setState(State.endcal);
@@ -187,7 +231,7 @@ public class ControlBase
     return wasEventProcessed;
   }
 
-  public boolean timeoutstartcalTotimeout24()
+  public boolean timeoutstartcalTowarnEndCal()
   {
     boolean wasEventProcessed = false;
 
@@ -196,7 +240,26 @@ public class ControlBase
     {
       case startcal:
         exitState();
-        setState(State.timeout24);
+        setState(State.warnEndCal);
+        wasEventProcessed = true;
+        break;
+      default:
+        // Other states do respond to this event
+    }
+
+    return wasEventProcessed;
+  }
+
+  public boolean timeoutwarnEndCalTowaitStart()
+  {
+    boolean wasEventProcessed = false;
+
+    State aState = state;
+    switch (aState)
+    {
+      case warnEndCal:
+        exitState();
+        setState(State.waitStart);
         wasEventProcessed = true;
         break;
       default:
@@ -225,7 +288,7 @@ public class ControlBase
     return wasEventProcessed;
   }
 
-  private boolean __autotransition83__()
+  private boolean __autotransition1191__()
   {
     boolean wasEventProcessed = false;
 
@@ -251,7 +314,10 @@ public class ControlBase
         stopTimeoutwaitStartTotimeout24Handler();
         break;
       case startcal:
-        stopTimeoutstartcalTotimeout24Handler();
+        stopTimeoutstartcalTowarnEndCalHandler();
+        break;
+      case warnEndCal:
+        stopTimeoutwarnEndCalTowaitStartHandler();
         break;
       case endcal:
         stopTimeoutendcalTowaitStartHandler();
@@ -267,41 +333,46 @@ public class ControlBase
     switch(state)
     {
       case initial:
-        // line 11 "model.ump"
+        // line 12 "model.ump"
         // here we need to receive the message to start
         // Possibly send missed fasts messages
         stateNotify("initial");
         break;
       case waitStart:
-        // line 23 "model.ump"
+        // line 25 "model.ump"
         // here we need to receive the message to start
         // Possibly send missed fasts messages
         stateNotify("waitStart");
         startTimeoutwaitStartTotimeout24Handler();
         break;
       case startcal:
-        // line 36 "model.ump"
+        // line 38 "model.ump"
         // here we need to receive the message to start
         // Possibly send missed fasts messages
         stateNotify("startcal");
-        startTimeoutstartcalTotimeout24Handler();
+        startTimeoutstartcalTowarnEndCalHandler();
+        break;
+      case warnEndCal:
+        // line 52 "model.ump"
+        stateNotify("warnEndCal");
+        startTimeoutwarnEndCalTowaitStartHandler();
         break;
       case endcal:
-        // line 48 "model.ump"
+        // line 61 "model.ump"
         // here we need to receive the message to start
         // Possibly send missed fasts messages
         stateNotify("endcal");
         startTimeoutendcalTowaitStartHandler();
         break;
       case timeout24:
-        // line 59 "model.ump"
+        // line 72 "model.ump"
         // here we need to receive the message to start
         // Possibly send missed fasts messages
         stateNotify("timeout24");
-        __autotransition83__();
+        __autotransition1191__();
         break;
       case endProtocol:
-        // line 68 "model.ump"
+        // line 81 "model.ump"
         stateNotify("endProtocol");
         break;
     }
@@ -317,14 +388,24 @@ public class ControlBase
     timeoutwaitStartTotimeout24Handler.stop();
   }
 
-  private void startTimeoutstartcalTotimeout24Handler()
+  private void startTimeoutstartcalTowarnEndCalHandler()
   {
-    timeoutstartcalTotimeout24Handler = new TimedEventHandler(this,"timeoutstartcalTotimeout24",timeout24Hours);
+    timeoutstartcalTowarnEndCalHandler = new TimedEventHandler(this,"timeoutstartcalTowarnEndCal",endWarnDeadline);
   }
 
-  private void stopTimeoutstartcalTotimeout24Handler()
+  private void stopTimeoutstartcalTowarnEndCalHandler()
   {
-    timeoutstartcalTotimeout24Handler.stop();
+    timeoutstartcalTowarnEndCalHandler.stop();
+  }
+
+  private void startTimeoutwarnEndCalTowaitStartHandler()
+  {
+    timeoutwarnEndCalTowaitStartHandler = new TimedEventHandler(this,"timeoutwarnEndCalTowaitStart",timeout24Hours);
+  }
+
+  private void stopTimeoutwarnEndCalTowaitStartHandler()
+  {
+    timeoutwarnEndCalTowaitStartHandler.stop();
   }
 
   private void startTimeoutendcalTowaitStartHandler()
@@ -369,12 +450,21 @@ public class ControlBase
         }
         return;
       }
-      if ("timeoutstartcalTotimeout24".equals(timeoutMethodName))
+      if ("timeoutstartcalTowarnEndCal".equals(timeoutMethodName))
       {
-        boolean shouldRestart = !controller.timeoutstartcalTotimeout24();
+        boolean shouldRestart = !controller.timeoutstartcalTowarnEndCal();
         if (shouldRestart)
         {
-          controller.startTimeoutstartcalTotimeout24Handler();
+          controller.startTimeoutstartcalTowarnEndCalHandler();
+        }
+        return;
+      }
+      if ("timeoutwarnEndCalTowaitStart".equals(timeoutMethodName))
+      {
+        boolean shouldRestart = !controller.timeoutwarnEndCalTowaitStart();
+        if (shouldRestart)
+        {
+          controller.startTimeoutwarnEndCalTowaitStartHandler();
         }
         return;
       }
@@ -393,12 +483,12 @@ public class ControlBase
   public void delete()
   {}
 
-  // line 75 "model.ump"
+  // line 88 "model.ump"
   public boolean stateNotify(String node){
     return true;
   }
 
-  // line 76 "model.ump"
+  // line 89 "model.ump"
   public int currentTime(){
     return 1;
   }
@@ -407,6 +497,7 @@ public class ControlBase
   public String toString()
   {
     return super.toString() + "["+
-            "timeout24Hours" + ":" + getTimeout24Hours()+ "]";
+            "timeout24Hours" + ":" + getTimeout24Hours()+ "," +
+            "endWarnDeadline" + ":" + getEndWarnDeadline()+ "]";
   }
 }

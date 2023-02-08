@@ -2,6 +2,7 @@
 class ControlBase
 {
   Integer timeout24Hours = 0;
+  Integer endWarnDeadline = 0;
 
 
   state {
@@ -16,6 +17,7 @@ class ControlBase
       //must be able to advance to any state
       receivedWaitStart -> waitStart;
       receivedStartCal -> startcal;
+      recievedWarnEndCal -> warnEndCal;
     }
 
     waitStart {
@@ -37,10 +39,21 @@ class ControlBase
         // Possibly send missed fasts messages
         stateNotify("startcal");
       };
+
         receivedStartCal -> startcal;
         receivedEndCal -> endcal;
-        after(timeout24Hours) -> timeout24;
+        //after(timeout24Hours) -> timeout24;
+        after(endWarnDeadline) -> warnEndCal;
         receivedEndProtocol -> endProtocol;
+    }
+
+    warnEndCal {
+      entry / {
+        stateNotify("warnEndCal");
+      };
+      receivedEndCal -> endcal;
+      after(timeout24Hours) -> waitStart;
+      receivedEndProtocol -> endProtocol;
     }
 
     endcal {

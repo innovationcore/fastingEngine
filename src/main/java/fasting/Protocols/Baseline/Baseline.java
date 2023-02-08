@@ -120,6 +120,24 @@ public class Baseline extends BaselineBase {
                                                                                     "the day; \"ENDCAL\" when you are done with calories for the day.");
                     }
                     break;
+                case warnEndCal:
+                    if (isEndCal(incomingMap.get("Body"))){
+                        String textBody = incomingMap.get("Body").trim(); // removes whitespace before and after
+                        String[] endCalSplit = textBody.split(" ", 2);
+                        if (endCalSplit.length >= 2) {
+                            long parsedTime = TZHelper.parseTime(endCalSplit[1]);
+                            if (parsedTime == -1L) {
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".");
+                                break;
+                            }
+                        }
+                        receivedEndCal();
+                    } else {
+                        String endCalMessage = participantMap.get("participant_uuid") + " warnEndCal unexpected message";
+                        logger.warn(endCalMessage);
+                        Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Text 270-402-2214 if you need help.");
+                    }
+                    break;
                 case endcal:
                     if (isEndCal(incomingMap.get("Body"))){
                         String textBody = incomingMap.get("Body").trim(); // removes whitespace before and after
@@ -220,7 +238,6 @@ public class Baseline extends BaselineBase {
     public boolean stateNotify(String state){
 
         long unixTS;
-        long recentStartCalTime;
 
         logState(state);
     
@@ -248,9 +265,9 @@ public class Baseline extends BaselineBase {
                 Launcher.dbEngine.uploadSaveState(stateJSON, participantMap.get("participant_uuid"));
                 break;
             case startcal:
-                int secondsStart = TZHelper.getSecondsTo359am();
-                setTimeout24Hours(secondsStart);
-                String startCalMessage = participantMap.get("participant_uuid") + " thanks for sending startcal: timeout24 timeout " + TZHelper.getDateFromAddingSeconds(secondsStart);
+                int secondsStart = TZHelper.getSecondsTo2059pm();
+                setEndWarnDeadline(secondsStart);
+                String startCalMessage = participantMap.get("participant_uuid") + " thanks for sending startcal: warnEndCal timeout " + TZHelper.getDateFromAddingSeconds(secondsStart);
                 logger.info(startCalMessage);
                 
                 // update startcal time in state_log
@@ -271,6 +288,18 @@ public class Baseline extends BaselineBase {
 
                 Launcher.dbEngine.saveStartCalTime(participantMap.get("participant_uuid"), unixTS);
                 
+                //save state info
+                stateJSON = saveStateJSON();
+                Launcher.dbEngine.uploadSaveState(stateJSON, participantMap.get("participant_uuid"));
+                break;
+            case warnEndCal:
+                //set end for endcal
+                setTimeout24Hours(TZHelper.getSecondsTo359am());
+                String warnEndCalMessage = "Remember to enter your \"ENDCAL\" tonight after your last calories. Thank you!";
+                if (!this.isRestoring){
+                    Launcher.msgUtils.sendMessage(participantMap.get("number"), warnEndCalMessage);
+                }
+                logger.warn(warnEndCalMessage);
                 //save state info
                 stateJSON = saveStateJSON();
                 Launcher.dbEngine.uploadSaveState(stateJSON, participantMap.get("participant_uuid"));
@@ -358,20 +387,25 @@ public class Baseline extends BaselineBase {
                     case waitStart:
                         this.isRestoring = true;
                         //resetting warn timer
-                        int timeout24 =  TZHelper.getSecondsTo359am();  //timeToD1T1159am();
-                        setTimeout24Hours(timeout24);
+                        setTimeout24Hours(TZHelper.getSecondsTo359am());
                         receivedWaitStart(); // initial to waitStart
                         this.isRestoring = false;
                         break;
                     case startcal:
                         this.isRestoring = true;
-                        //reset endWarnDeadline
                         long unixTS = Launcher.dbEngine.getStartCalTime(participantMap.get("participant_uuid"));
                         if (unixTS == 0) {
                             unixTS = TZHelper.getUnixTimestampNow();
                         }
                         Launcher.dbEngine.saveStartCalTime(participantMap.get("participant_uuid"), unixTS);
                         receivedStartCal();
+                        this.isRestoring = false;
+                        break;
+                    case warnEndCal:
+                        this.isRestoring = true;
+                        //resetting warnEnd time
+                        setTimeout24Hours(TZHelper.getSecondsTo359am());
+                        recievedWarnEndCal(); // initial to warnEndCal
                         this.isRestoring = false;
                         break;
                     default:

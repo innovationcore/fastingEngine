@@ -19,12 +19,8 @@ public class Control extends ControlBase {
     private long startTimestamp = 0;
     private TimezoneHelper TZHelper;
     private boolean isRestoring;
-    private boolean isDayOff;
-    private boolean isFromYesterday = false;
     private Map<String,String> incomingMap;
-
     public String stateJSON;
-
     private Gson gson;
     private static final Logger logger = LoggerFactory.getLogger(Control.class.getName());
 
@@ -33,7 +29,6 @@ public class Control extends ControlBase {
         this.participantMap = participantMap;
         this.stateMap = new HashMap<>();
         this.isRestoring = false;
-        this.isDayOff = false;
 
         // this initializes the user's and machine's timezone
         this.TZHelper = new TimezoneHelper(participantMap.get("time_zone"), TimeZone.getDefault().getID());
@@ -121,6 +116,24 @@ public class Control extends ControlBase {
                     } else {
                         Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Please send \"STARTCAL\" when you begin calories for " +
                                 "the day; \"ENDCAL\" when you are done with calories for the day.");
+                    }
+                    break;
+                case warnEndCal:
+                    if (isEndCal(incomingMap.get("Body"))){
+                        String textBody = incomingMap.get("Body").trim(); // removes whitespace before and after
+                        String[] endCalSplit = textBody.split(" ", 2);
+                        if (endCalSplit.length >= 2) {
+                            long parsedTime = TZHelper.parseTime(endCalSplit[1]);
+                            if (parsedTime == -1L) {
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".");
+                                break;
+                            }
+                        }
+                        receivedEndCal();
+                    } else {
+                        String endCalMessage = participantMap.get("participant_uuid") + " warnEndCal unexpected message";
+                        logger.warn(endCalMessage);
+                        Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Text 270-402-2214 if you need help.");
                     }
                     break;
                 case endcal:
@@ -222,7 +235,6 @@ public class Control extends ControlBase {
     public boolean stateNotify(String state){
 
         long unixTS;
-        long recentStartCalTime;
 
         logState(state);
     
@@ -250,9 +262,9 @@ public class Control extends ControlBase {
                 Launcher.dbEngine.uploadSaveState(stateJSON, participantMap.get("participant_uuid"));
                 break;
             case startcal:
-                int secondsStart = TZHelper.getSecondsTo359am();
-                setTimeout24Hours(secondsStart);
-                String startCalMessage = participantMap.get("participant_uuid") + " thanks for sending startcal: timeout24 timeout " + TZHelper.getDateFromAddingSeconds(secondsStart);
+                int secondsStart = TZHelper.getSecondsTo2059pm();
+                setEndWarnDeadline(secondsStart);
+                String startCalMessage = participantMap.get("participant_uuid") + " thanks for sending startcal: warnEndCal timeout " + TZHelper.getDateFromAddingSeconds(secondsStart);
                 logger.info(startCalMessage);
                 
                 // update startcal time in state_log
@@ -273,6 +285,18 @@ public class Control extends ControlBase {
 
                 Launcher.dbEngine.saveStartCalTime(participantMap.get("participant_uuid"), unixTS);
                 
+                //save state info
+                stateJSON = saveStateJSON();
+                Launcher.dbEngine.uploadSaveState(stateJSON, participantMap.get("participant_uuid"));
+                break;
+            case warnEndCal:
+                //set end for endcal
+                setTimeout24Hours(TZHelper.getSecondsTo359am());
+                String warnEndCalMessage = "Remember to enter your \"ENDCAL\" tonight after your last calories. Thank you!";
+                if (!this.isRestoring){
+                    Launcher.msgUtils.sendMessage(participantMap.get("number"), warnEndCalMessage);
+                }
+                logger.warn(warnEndCalMessage);
                 //save state info
                 stateJSON = saveStateJSON();
                 Launcher.dbEngine.uploadSaveState(stateJSON, participantMap.get("participant_uuid"));
@@ -348,7 +372,6 @@ public class Control extends ControlBase {
                     if(!stateName.equals("endProtocol")) {
                         stateName = "waitStart";
                     }
-                    this.isDayOff = false;
                 }
 
                 switch (State.valueOf(stateName)) {
@@ -375,6 +398,13 @@ public class Control extends ControlBase {
                         }
                         Launcher.dbEngine.saveStartCalTime(participantMap.get("participant_uuid"), unixTS);
                         receivedStartCal();
+                        this.isRestoring = false;
+                        break;
+                    case warnEndCal:
+                        this.isRestoring = true;
+                        //resetting warnEnd time
+                        setTimeout24Hours(TZHelper.getSecondsTo359am());
+                        recievedWarnEndCal(); // initial to warnEndCal
                         this.isRestoring = false;
                         break;
                     default:

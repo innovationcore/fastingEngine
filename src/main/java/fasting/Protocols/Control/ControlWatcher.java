@@ -67,13 +67,16 @@ public class ControlWatcher {
 
             switch (currentState){
                 case "initial":
-                    validNextStates = "waitStart,startcal";
+                    validNextStates = "waitStart,startcal,warnEndCal";
                     break;
                 case "waitStart":
                     validNextStates = "startcal,timeout24,endProtocol";
                     break;
                 case "startcal":
-                    validNextStates = "startcal,endcal,timeout24,endProtocol";
+                    validNextStates = "startcal,endcal,warnEndCal,endProtocol";
+                    break;
+                case "warnEndCal":
+                    validNextStates = "waitStart,endcal,endProtocol";
                     break;
                 case "endcal":
                     validNextStates = "endcal,waitStart,endProtocol";
@@ -145,9 +148,9 @@ public class ControlWatcher {
                         participant.receivedEndCal();
                         Launcher.dbEngine.removeTempEndCal(participantId);
                         newState = "endcal";
-                    } else if (moveToState.equals("timeout24")) {
-                        participant.timeoutstartcalTotimeout24();
-                        newState = "timeout24";
+                    } else if (moveToState.equals("warnEndCal")) {
+                        participant.timeoutstartcalTowarnEndCal();
+                        newState = "warnEndCal";
                     } else if (moveToState.equals("endProtocol")) {
                         participant.receivedEndProtocol();
                         newState = "endProtocol";
@@ -157,6 +160,21 @@ public class ControlWatcher {
                         break;
                     }
                     break;
+                case warnEndCal:
+                    if (moveToState.equals("waitStart")){
+                        participant.timeoutwarnEndCalTowaitStart();
+                        newState = "waitStart";
+                    } else if (moveToState.equals("endcal")){
+                        participant.receivedEndCal();
+                        newState = "endcal";
+                    } else if (moveToState.equals("endProtocol")){
+                        participant.receivedEndProtocol();
+                        newState = "endProtocol";
+                    } else {
+                        // invalid state
+                        newState = "warnEndCal invalid";
+                        break;
+                    }
                 case endcal:
                     if (moveToState.equals("endcal")){
                         Launcher.dbEngine.saveEndCalTimeCreateTemp(participantId, timestamp);
