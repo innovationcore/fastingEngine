@@ -368,7 +368,7 @@ public class Restricted extends RestrictedBase {
                 int secondsTo2059pm = TZHelper.getSecondsTo2059pm();
                 // if after 9pm, don't immediately send warnEndCal message. Wait some time so user has time to respond
                 if (secondsTo2059pm < 0) {
-                    secondsTo2059pm += 300; // add 5 minutes
+                    secondsTo2059pm = 300; // add 5 minutes
                 }
                 setEndWarnDeadline(secondsTo2059pm); //timeToD19pm());
                 String startCalMessage = participantMap.get("participant_uuid") + " thanks for sending startcal: endwarndeadline timeout " + TZHelper.getDateFromAddingSeconds(secondsTo2059pm);

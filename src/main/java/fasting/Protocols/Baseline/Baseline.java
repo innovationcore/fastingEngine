@@ -259,6 +259,9 @@ public class Baseline extends BaselineBase {
                 break;
             case startcal:
                 int secondsStart = TZHelper.getSecondsTo2059pm();
+                if (secondsStart < 0){
+                    secondsStart = 300;
+                }
                 setEndWarnDeadline(secondsStart);
                 String startCalMessage = participantMap.get("participant_uuid") + " thanks for sending startcal: warnEndCal timeout " + TZHelper.getDateFromAddingSeconds(secondsStart);
                 logger.info(startCalMessage);
