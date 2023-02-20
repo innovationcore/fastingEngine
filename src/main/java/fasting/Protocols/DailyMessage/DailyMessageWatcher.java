@@ -23,8 +23,8 @@ public class DailyMessageWatcher {
         this.dailyMessageMap = Collections.synchronizedMap(new HashMap<>());
 
         //how long to wait before checking protocols
-        long checkdelay = Launcher.config.getLongParam("checkdelay",5000l);
-        long checktimer = Launcher.config.getLongParam("checktimer",30000l);
+        long checkdelay = Launcher.config.getLongParam("checkdelay", 5000L);
+        long checktimer = Launcher.config.getLongParam("checktimer", 30000L);
 
         //create timer
         ScheduledExecutorService checkTimer = Executors.newScheduledThreadPool(1);
@@ -33,8 +33,7 @@ public class DailyMessageWatcher {
     }
 
     class startDailyMessage extends TimerTask {
-        private Logger logger;
-        private List<Map<String,String>> previousMapList;
+        private final Logger logger;
         public startDailyMessage() {
             logger = LoggerFactory.getLogger(startDailyMessage.class);
         }
@@ -42,71 +41,62 @@ public class DailyMessageWatcher {
         public void run() {
             try {
                 synchronized (lockEpisodeReset) {
-                    List<Map<String,String>> participantMapList = Launcher.dbEngine.getParticipantMapByGroup("TRE");
-                    if (previousMapList == null){
-                        //first run
-                        previousMapList = participantMapList;
-                    }
-
-                    if (previousMapList.size() > 0 && participantMapList.size() == 0){
-                        // clear anyone in previousMapList
-                        for (Map<String,String> previousMap: previousMapList) {
-                            String participantUUID = previousMap.get("participant_uuid");
-                            String protocolNameDB = Launcher.dbEngine.getProtocolFromParticipantId(participantUUID);
-                            if (!protocolNameDB.equals("TRE")) {
-                                DailyMessage toRemove = dailyMessageMap.remove(participantUUID);
-                                if (toRemove != null) {
-                                    toRemove.receivedEndProtocol();
-                                    toRemove = null;
-                                    System.gc();
-                                }
-                            }
-                        }
-                    }
+                    List<Map<String, String>> participantMapList = Launcher.dbEngine.getParticipantMapByGroup("TRE");
+                    Map<String, String> dailyUUIDs = new HashMap<>(); // this only stores the uuids from partMapList
+                    List<String> participantsToAdd = new ArrayList<>();
+                    List<String> participantsToRemove = new ArrayList<>();
 
                     for (Map<String, String> participantMap : participantMapList) {
-                        boolean isActive = false;
-                        synchronized (lockDailyMessage) {
-                            if(!dailyMessageMap.containsKey(participantMap.get("participant_uuid"))) {
-                                isActive = true;
-                            } else if (!previousMapList.equals(participantMapList)) {
-                                // figure out who go removed
-                                // find which participant is in previousMapList but not in participantMapList
-                                for (Map<String, String> previousMap : previousMapList) {
-                                    if (!participantMapList.contains(previousMap)) {
-                                        //check if participant is still enrolled in protocol
-                                        String participantUUID = previousMap.get("participant_uuid");
-                                        String protocolNameDB = Launcher.dbEngine.getProtocolFromParticipantId(participantUUID);
-                                        if (!protocolNameDB.equals("TRE")) {
-                                            // removing participant
-                                            DailyMessage toRemove = dailyMessageMap.remove(participantUUID);
-                                            if (toRemove != null) {
-                                                toRemove.receivedEndProtocol();
-                                                toRemove = null;
-                                                System.gc();
-                                            }
-                                        }
-                                    }
+                        dailyUUIDs.put(participantMap.get("participant_uuid"), "participant_uuid");
+                    }
+
+                    if (dailyUUIDs.size() > dailyMessageMap.size()) {
+                        participantsToAdd = getMissingKeys(dailyMessageMap, dailyUUIDs);
+                    } else if (dailyUUIDs.size() < dailyMessageMap.size()) {
+                        participantsToRemove = getMissingKeys(dailyMessageMap, dailyUUIDs);
+                    } else {
+                        // otherwise check if participant needs to be added
+                        if (!dailyUUIDs.keySet().equals(dailyMessageMap.keySet())) {
+                            for (String key : dailyMessageMap.keySet()) {
+                                if (!dailyUUIDs.containsKey(key)) {
+                                    participantsToRemove.add(key);
+                                }
+                            }
+                            for (String key : dailyUUIDs.keySet()) {
+                                if (!dailyMessageMap.containsKey(key)) {
+                                    participantsToAdd.add(key);
                                 }
                             }
                         }
+                    }
 
-                        if(isActive) {
-                            logger.info("Creating state machine for participant_uuid=" + participantMap.get("participant_uuid"));
-                            //Create person
-                            DailyMessage p0 = new DailyMessage(participantMap);
-
-                            logger.info("Restoring State for participant_uuid=" + participantMap.get("participant_uuid"));
-                            p0.restoreSaveState();
-
-                            synchronized (lockDailyMessage) {
-                                dailyMessageMap.put(participantMap.get("participant_uuid"), p0);
-                            }
+                    for (String toRemove : participantsToRemove) {
+                        DailyMessage removed = dailyMessageMap.remove(toRemove);
+                        if (removed != null) {
+                            removed.receivedEndProtocol();
+                            removed.uploadSave.shutdownNow();
+                            removed = null;
+                            System.gc();
                         }
                     }
-                    previousMapList = participantMapList;
-                }
 
+                    for (String toAdd : participantsToAdd) {
+                        logger.info("Creating state machine for participant_uuid=" + toAdd);
+                        //Create person
+                        Map<String, String> addMap = getHashMapByParticipantUUID(participantMapList, toAdd);
+                        if (addMap.isEmpty()) {
+                            continue;
+                        }
+                        DailyMessage p0 = new DailyMessage(addMap);
+
+                        logger.info("Restoring State for participant_uuid=" + toAdd);
+                        p0.restoreSaveState();
+
+                        synchronized (lockDailyMessage) {
+                            dailyMessageMap.put(toAdd, p0);
+                        }
+                    }
+                }
             } catch (Exception ex) {
                 StringWriter sw = new StringWriter();
                 ex.printStackTrace(new PrintWriter(sw));
@@ -146,6 +136,30 @@ public class DailyMessageWatcher {
 
         }
 
+    }
+
+    public List<String> getMissingKeys(Map<String, DailyMessage> map1, Map<String, String> map2) {
+        List<String> keysNotInBoth = new ArrayList<>();
+        for (String key : map1.keySet()) {
+            if (!map2.containsKey(key)) {
+                keysNotInBoth.add(key);
+            }
+        }
+        for (String key : map2.keySet()) {
+            if (!map1.containsKey(key)) {
+                keysNotInBoth.add(key);
+            }
+        }
+        return keysNotInBoth;
+    }
+
+    public Map<String, String> getHashMapByParticipantUUID(List<Map<String, String>> list, String participantUUID) {
+        for (Map<String, String> map : list) {
+            if (map.containsKey("participant_uuid") && map.get("participant_uuid").equals(participantUUID)) {
+                return map;
+            }
+        }
+        return new HashMap<>();
     }
 
 } //class 

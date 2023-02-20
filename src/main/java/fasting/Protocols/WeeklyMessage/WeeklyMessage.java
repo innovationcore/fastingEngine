@@ -11,6 +11,9 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Type;
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class WeeklyMessage extends WeeklyMessageBase {
     private Type typeOfHashMap = new TypeToken<Map<String, Map<String,Long>>>() { }.getType();
@@ -20,12 +23,11 @@ public class WeeklyMessage extends WeeklyMessageBase {
     private long startTimestamp = 0;
     private TimezoneHelper TZHelper;
     private boolean isRestoring;
-    private boolean isDayOff;
-    private boolean isFromYesterday = false;
 
     public String stateJSON;
 
     private Gson gson;
+    public ScheduledExecutorService uploadSave;
     private static final Logger logger = LoggerFactory.getLogger(WeeklyMessage.class.getName());
 
     public WeeklyMessage(Map<String, String> participantMap) {
@@ -33,32 +35,32 @@ public class WeeklyMessage extends WeeklyMessageBase {
         this.participantMap = participantMap;
         this.stateMap = new HashMap<>();
         this.isRestoring = false;
-        this.isDayOff = false;
 
         // this initializes the user's and machine's timezone
         this.TZHelper = new TimezoneHelper(participantMap.get("time_zone"), TimeZone.getDefault().getID());
-        // restoreSaveState();
 
-        new Thread(){
-            public void run(){
-                try {
-                    while (!getState().toString().equals("endProtocol")) {
 
-                        String currentTimezone = Launcher.dbEngine.getParticipantTimezone(participantMap.get("participant_uuid"));
-                        if (!participantMap.get("time_zone").equals(currentTimezone) && !currentTimezone.equals("")){
-                            participantMap.put("time_zone", currentTimezone);
-                            TZHelper.setUserTimezone(currentTimezone);
-                        }
+        //create timer
+        this.uploadSave = Executors.newScheduledThreadPool(1);
+        //set timer
+        this.uploadSave.scheduleAtFixedRate(() -> {
+            try {
+                if (!getState().toString().equals("endProtocol")) {
 
-                        Thread.sleep(900000); // 900000 = 15 mins
-
+                    String currentTimezone = Launcher.dbEngine.getParticipantTimezone(participantMap.get("participant_uuid"));
+                    if (!participantMap.get("time_zone").equals(currentTimezone) && !currentTimezone.equals("")){
+                        participantMap.put("time_zone", currentTimezone);
+                        TZHelper.setUserTimezone(currentTimezone);
                     }
-                } catch (Exception ex) {
-                    logger.error("protocols.Baseline Thread");
-                    logger.error(ex.getMessage());
+
+                    Thread.sleep(900000); // 900000 = 15 mins
+
                 }
+            } catch (Exception ex) {
+                logger.error("protocols.Baseline Thread");
+                logger.error(ex.getMessage());
             }
-        }.start();
+        }, 30, 900, TimeUnit.SECONDS); //900 sec is 15 mins
 
     }
 

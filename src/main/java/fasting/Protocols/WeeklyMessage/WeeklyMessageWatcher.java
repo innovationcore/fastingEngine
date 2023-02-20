@@ -16,7 +16,6 @@ public class WeeklyMessageWatcher {
 
     private final AtomicBoolean lockWeeklyMessage = new AtomicBoolean();
     private final AtomicBoolean lockEpisodeReset = new AtomicBoolean();
-
     private final Map<String, WeeklyMessage> weeklyMessageMap;
 
     public WeeklyMessageWatcher() {
@@ -35,7 +34,6 @@ public class WeeklyMessageWatcher {
 
     class startWeeklyMessage extends TimerTask {
         private Logger logger;
-        private List<Map<String,String>> previousMapList;
         public startWeeklyMessage() {
             logger = LoggerFactory.getLogger(startWeeklyMessage.class);
         }
@@ -43,70 +41,59 @@ public class WeeklyMessageWatcher {
         public void run() {
             try {
                 synchronized (lockEpisodeReset) {
-                    List<Map<String,String>> participantMapList = Launcher.dbEngine.getParticipantMapByGroup("Baseline");
-                    participantMapList.addAll(Launcher.dbEngine.getParticipantMapByGroup("Control")); // if baseline or control
-                    if (previousMapList == null){
-                        //first run
-                        previousMapList = participantMapList;
-                    }
-
-                    if (previousMapList.size() > 0 && participantMapList.size() == 0){
-                        // clear anyone in previousMapList
-                        for (Map<String,String> previousMap: previousMapList) {
-                            String participantUUID = previousMap.get("participant_uuid");
-                            String protocolNameDB = Launcher.dbEngine.getProtocolFromParticipantId(participantUUID);
-                            if (!protocolNameDB.equals("Baseline") || !protocolNameDB.equals("Control")) {
-                                WeeklyMessage toRemove = weeklyMessageMap.remove(participantUUID);
-                                if (toRemove != null) {
-                                    toRemove.receivedEndProtocol();
-                                    toRemove = null;
-                                    System.gc();
-                                }
-                            }
-                        }
-                    }
+                    List<Map<String,String>> participantMapList = Launcher.dbEngine.getParticipantMapByGroup("Control");
+                    Map<String, String> weeklyUUIDs = new HashMap<>(); // this only stores the uuids from partMapList
+                    List<String> participantsToAdd = new ArrayList<>();
+                    List<String> participantsToRemove = new ArrayList<>();
 
                     for (Map<String, String> participantMap : participantMapList) {
-                        boolean isActive = false;
-                        synchronized (lockWeeklyMessage) {
-                            if(!weeklyMessageMap.containsKey(participantMap.get("participant_uuid"))) {
-                                isActive = true;
-                            } else if (!previousMapList.equals(participantMapList)) {
-                                // figure out who go removed
-                                // find which participant is in previousMapList but not in participantMapList
-                                for (Map<String, String> previousMap : previousMapList) {
-                                    if (!participantMapList.contains(previousMap)) {
-                                        //check if participant is still enrolled in protocol
-                                        String participantUUID = previousMap.get("participant_uuid");
-                                        String protocolNameDB = Launcher.dbEngine.getProtocolFromParticipantId(participantUUID);
-                                        if (!protocolNameDB.equals("Baseline") || !protocolNameDB.equals("Control")) {
-                                            // removing participant
-                                            WeeklyMessage toRemove = weeklyMessageMap.remove(participantUUID);
-                                            if (toRemove != null) {
-                                                toRemove.receivedEndProtocol();
-                                                toRemove = null;
-                                                System.gc();
-                                            }
-                                        }
-                                    }
+                        weeklyUUIDs.put(participantMap.get("participant_uuid"), "participant_uuid");
+                    }
+
+                    if (weeklyUUIDs.size() > weeklyMessageMap.size()) {
+                        participantsToAdd = getMissingKeys(weeklyMessageMap, weeklyUUIDs);
+                    } else if (weeklyUUIDs.size() < weeklyMessageMap.size()) {
+                        participantsToRemove = getMissingKeys(weeklyMessageMap, weeklyUUIDs);
+                    } else {
+                        // otherwise check if participant needs to be added
+                        if (!weeklyUUIDs.keySet().equals(weeklyMessageMap.keySet())){
+                            for (String key: weeklyMessageMap.keySet()){
+                                if (!weeklyUUIDs.containsKey(key)){
+                                    participantsToRemove.add(key);
+                                }
+                            }
+                            for (String key: weeklyUUIDs.keySet()) {
+                                if (!weeklyMessageMap.containsKey(key)) {
+                                    participantsToAdd.add(key);
                                 }
                             }
                         }
+                    }
 
-                        if(isActive) {
-                            logger.info("Creating state machine for participant_uuid=" + participantMap.get("participant_uuid"));
-                            //Create person
-                            WeeklyMessage p0 = new WeeklyMessage(participantMap);
-
-                            logger.info("Restoring State for participant_uuid=" + participantMap.get("participant_uuid"));
-                            p0.restoreSaveState();
-
-                            synchronized (lockWeeklyMessage) {
-                                weeklyMessageMap.put(participantMap.get("participant_uuid"), p0);
-                            }
+                    for (String toRemove: participantsToRemove) {
+                        WeeklyMessage removed = weeklyMessageMap.remove(toRemove);
+                        if (removed != null) {
+                            removed.receivedEndProtocol();
+                            removed.uploadSave.shutdownNow();
+                            removed = null;
+                            System.gc();
                         }
                     }
-                    previousMapList = participantMapList;
+
+                    for (String toAdd: participantsToAdd) {
+                        logger.info("Creating state machine for participant_uuid=" + toAdd);
+                        //Create person
+                        Map<String, String> addMap = getHashMapByParticipantUUID(participantMapList, toAdd);
+                        if (addMap.isEmpty()) { continue; }
+                        WeeklyMessage p0 = new WeeklyMessage(addMap);
+
+                        logger.info("Restoring State for participant_uuid=" + toAdd);
+                        p0.restoreSaveState();
+
+                        synchronized (lockWeeklyMessage) {
+                            weeklyMessageMap.put(toAdd, p0);
+                        }
+                    }
                 }
 
             } catch (Exception ex) {
@@ -148,6 +135,30 @@ public class WeeklyMessageWatcher {
 
         }
 
+    }
+
+    public List<String> getMissingKeys(Map<String, WeeklyMessage> map1, Map<String, String> map2) {
+        List<String> keysNotInBoth = new ArrayList<>();
+        for (String key : map1.keySet()) {
+            if (!map2.containsKey(key)) {
+                keysNotInBoth.add(key);
+            }
+        }
+        for (String key : map2.keySet()) {
+            if (!map1.containsKey(key)) {
+                keysNotInBoth.add(key);
+            }
+        }
+        return keysNotInBoth;
+    }
+
+    public Map<String, String> getHashMapByParticipantUUID(List<Map<String, String>> list, String participantUUID) {
+        for (Map<String, String> map : list) {
+            if (map.containsKey("participant_uuid") && map.get("participant_uuid").equals(participantUUID)) {
+                return map;
+            }
+        }
+        return new HashMap<>();
     }
 
 } //class 
