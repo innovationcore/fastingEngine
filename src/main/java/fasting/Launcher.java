@@ -92,7 +92,7 @@ public class Launcher {
 
     }
 
-    private static void startServer() throws IOException {
+    private static void startServer() {
 
         final ResourceConfig rc = new ResourceConfig()
                 .packages("fasting.Webapi");
@@ -116,10 +116,8 @@ public class Launcher {
 
             configParams = new HashMap<>();
 
-            String configFileString = configName;
-
-            File configFile = Paths.get(configFileString).toFile();
-            FileConfig config = null;
+            File configFile = Paths.get(configName).toFile();
+            FileConfig config;
             if (configFile.isFile()) {
                 //config.fasting.Config
                 config = new FileConfig(configFile.getAbsolutePath());

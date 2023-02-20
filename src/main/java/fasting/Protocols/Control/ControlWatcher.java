@@ -182,7 +182,7 @@ public class ControlWatcher {
                         Launcher.dbEngine.removeTempEndCal(participantId);
                         newState = "endcal";
                     } else if (moveToState.equals("waitStart")) {
-                        // nothing needs to happen here because it will move to next state immediately
+                        participant.timeoutendcalTowaitStart();
                         newState = "waitStart";
                     } else {
                         // invalid state
@@ -259,6 +259,7 @@ public class ControlWatcher {
                         Control removed = controlMap.remove(toRemove);
                         if (removed != null) {
                             removed.receivedEndProtocol();
+                            removed.uploadSave.shutdownNow();
                             removed = null;
                             System.gc();
                         }

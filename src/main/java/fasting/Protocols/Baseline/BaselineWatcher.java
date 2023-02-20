@@ -180,7 +180,7 @@ public class BaselineWatcher {
                         Launcher.dbEngine.removeTempEndCal(participantId);
                         newState = "endcal";
                     } else if (moveToState.equals("waitStart")) {
-                        // nothing needs to happen here because it will move to next state immediately
+                        participant.timeoutendcalTowaitStart();
                         newState = "waitStart";
                     } else if (moveToState.equals("endProtocol")) {
                         participant.receivedEndProtocol();
@@ -260,6 +260,7 @@ public class BaselineWatcher {
                         Baseline removed = baselineMap.remove(toRemove);
                         if (removed != null) {
                             removed.receivedEndProtocol();
+                            removed.uploadSave.shutdownNow();
                             removed = null;
                             System.gc();
                         }

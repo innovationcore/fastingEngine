@@ -310,6 +310,7 @@ public class RestrictedWatcher {
                         Restricted removed = restrictedMap.remove(toRemove);
                         if (removed != null) {
                             removed.receivedEndProtocol();
+                            removed.uploadSave.shutdownNow();
                             removed = null;
                             System.gc();
                         }

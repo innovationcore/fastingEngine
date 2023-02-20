@@ -9,6 +9,9 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Type;
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class Restricted extends RestrictedBase {
     private final Type typeOfHashMap = new TypeToken<Map<String, Map<String,Long>>>() { }.getType();
@@ -23,10 +26,9 @@ public class Restricted extends RestrictedBase {
     private boolean isFromYesterday = false;
     private Map<String,String> incomingMap;
     private int endcalRepeats;
-
     public String stateJSON;
-
     private final Gson gson;
+    public ScheduledExecutorService uploadSave;
     private static final Logger logger = LoggerFactory.getLogger(Restricted.class.getName());
 
     public Restricted(Map<String, String> participantMap) {
@@ -39,38 +41,35 @@ public class Restricted extends RestrictedBase {
 
         // this initializes the user's and machine's timezone
         this.TZHelper = new TimezoneHelper(participantMap.get("time_zone"), TimeZone.getDefault().getID());
-        // restoreSaveState();
 
-        new Thread(){
-            public void run(){
-                try {
-                    while (!getState().toString().equals("endOfEpisode") || !getState().toString().equals("endProtocol")) {
+        //create timer
+        this.uploadSave = Executors.newScheduledThreadPool(1);
+        //set timer
+        this.uploadSave.scheduleAtFixedRate(() -> {
+            try {
+                if (!getState().toString().equals("endOfEpisode") || !getState().toString().equals("endProtocol")) {
 
-                        if(startTimestamp > 0) {
-                            stateJSON = saveStateJSON();
-                            boolean didUpload = Launcher.dbEngine.uploadSaveState(stateJSON, participantMap.get("participant_uuid"));
-                            if(!didUpload){
-                                break;
-                            }
+                    if (startTimestamp > 0) {
+                        stateJSON = saveStateJSON();
+                        boolean didUpload = Launcher.dbEngine.uploadSaveState(stateJSON, participantMap.get("participant_uuid"));
+                        if (!didUpload) {
+                            logger.error("saveState failed to upload for participant: " + participantMap.get("participant_uuid"));
                         }
-
-                        String currentTimezone = Launcher.dbEngine.getParticipantTimezone(participantMap.get("participant_uuid"));
-                        if (!participantMap.get("time_zone").equals(currentTimezone) && !currentTimezone.equals("")){
-                            participantMap.put("time_zone", currentTimezone);
-                            TZHelper.setUserTimezone(currentTimezone);
-                        }
-
-                        Thread.sleep(900000); // 900000 = 15 mins
-
                     }
-                } catch (Exception ex) {
-                    logger.error("protocols.Restricted Thread");
-                    logger.error(ex.getMessage());
-                }
-            }
-        }.start();
 
-    }
+                    String currentTimezone = Launcher.dbEngine.getParticipantTimezone(participantMap.get("participant_uuid"));
+                    if (!participantMap.get("time_zone").equals(currentTimezone) && !currentTimezone.equals("")) {
+                        participantMap.put("time_zone", currentTimezone);
+                        TZHelper.setUserTimezone(currentTimezone);
+                    }
+                }
+            } catch (Exception ex) {
+                logger.error("protocols.Restricted Thread");
+                logger.error(ex.getMessage());
+            }
+        }, 30, 900, TimeUnit.SECONDS); //900 sec is 15 mins
+
+    } // restricted
 
     public void incomingText(Map<String,String> incomingMap) {
         this.incomingMap = incomingMap;
@@ -633,6 +632,10 @@ public class Restricted extends RestrictedBase {
                     case endProtocol:
                     case missedEndCal:
                     case resetEpisodeVariables:
+                    case dayOffStartCal:
+                    case dayOffWait:
+                    case dayOffWarn:
+                    case dayOffWarnEndCal:
                         //no timers
                         break;
                     case waitStart:

@@ -9,19 +9,23 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Type;
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class Control extends ControlBase {
-    private Type typeOfHashMap = new TypeToken<Map<String, Map<String,Long>>>() { }.getType();
+    private final Type typeOfHashMap = new TypeToken<Map<String, Map<String,Long>>>() { }.getType();
 
     //id, participant_uuid, phone_number, participant_type
-    private Map<String, String> participantMap;
-    private Map<String,Long> stateMap;
+    private final Map<String, String> participantMap;
+    private final Map<String,Long> stateMap;
     private long startTimestamp = 0;
-    private TimezoneHelper TZHelper;
+    private final TimezoneHelper TZHelper;
     private boolean isRestoring;
     private Map<String,String> incomingMap;
     public String stateJSON;
-    private Gson gson;
+    private final Gson gson;
+    public ScheduledExecutorService uploadSave;
     private static final Logger logger = LoggerFactory.getLogger(Control.class.getName());
 
     public Control(Map<String, String> participantMap) {
@@ -32,38 +36,35 @@ public class Control extends ControlBase {
 
         // this initializes the user's and machine's timezone
         this.TZHelper = new TimezoneHelper(participantMap.get("time_zone"), TimeZone.getDefault().getID());
-        // restoreSaveState();
 
-        new Thread(){
-            public void run(){
-                try {
-                    while (!getState().toString().equals("endProtocol")) {
+        //create timer
+        this.uploadSave = Executors.newScheduledThreadPool(1);
+        //set timer
+        this.uploadSave.scheduleAtFixedRate(() -> {
+            try {
+                if (!getState().toString().equals("endProtocol")) {
 
-                        if(startTimestamp > 0) {
-                            stateJSON = saveStateJSON();
-                            boolean didUpload = Launcher.dbEngine.uploadSaveState(stateJSON, participantMap.get("participant_uuid"));
-                            if(!didUpload){
-                                break;
-                            }
+                    if(startTimestamp > 0) {
+                        stateJSON = saveStateJSON();
+                        boolean didUpload = Launcher.dbEngine.uploadSaveState(stateJSON, participantMap.get("participant_uuid"));
+                        if(!didUpload){
+                            logger.error("saveState failed to upload for participant: " + participantMap.get("participant_uuid"));
                         }
-
-                        String currentTimezone = Launcher.dbEngine.getParticipantTimezone(participantMap.get("participant_uuid"));
-                        if (!participantMap.get("time_zone").equals(currentTimezone) && !currentTimezone.equals("")){
-                            participantMap.put("time_zone", currentTimezone);
-                            TZHelper.setUserTimezone(currentTimezone);
-                        }
-
-                        Thread.sleep(900000); // 900000 = 15 mins
-
                     }
-                } catch (Exception ex) {
-                    logger.error("protocols.Control Thread");
-                    logger.error(ex.getMessage());
-                }
-            }
-        }.start();
 
-    }
+                    String currentTimezone = Launcher.dbEngine.getParticipantTimezone(participantMap.get("participant_uuid"));
+                    if (!participantMap.get("time_zone").equals(currentTimezone) && !currentTimezone.equals("")){
+                        participantMap.put("time_zone", currentTimezone);
+                        TZHelper.setUserTimezone(currentTimezone);
+                    }
+                }
+            } catch (Exception ex) {
+                logger.error("protocols.Baseline Thread");
+                logger.error(ex.getMessage());
+            }
+        }, 30, 900, TimeUnit.SECONDS); //900 sec is 15 mins
+
+    } // Control
 
     public void incomingText(Map<String,String> incomingMap) {
         this.incomingMap = incomingMap;
@@ -178,11 +179,7 @@ public class Control extends ControlBase {
         boolean isStart = false;
         try {
 
-            if(messageBody.toLowerCase().contains("startcal")) {
-                isStart = true;
-            } else {
-                isStart = false;
-            }
+            isStart = messageBody.toLowerCase().contains("startcal");
 
         } catch (Exception ex) {
             logger.error("isStartCal()");
@@ -195,11 +192,7 @@ public class Control extends ControlBase {
         boolean isEnd = false;
         try {
 
-            if(messageBody.toLowerCase().contains("endcal")) {
-                isEnd = true;
-            } else {
-                isEnd = false;
-            }
+            isEnd = messageBody.toLowerCase().contains("endcal");
 
         } catch (Exception ex) {
             logger.error("isStartCal()");
@@ -212,10 +205,10 @@ public class Control extends ControlBase {
         String stateJSON = null;
         try {
             Map<String,Long> timerMap = new HashMap<>();
-            timerMap.put("stateIndex", Long.valueOf(getState().ordinal()));
+            timerMap.put("stateIndex", (long) getState().ordinal());
             timerMap.put("startTime", startTimestamp);
             timerMap.put("currentTime", System.currentTimeMillis() / 1000); //unix seconds
-            timerMap.put("timeout24Hours", Long.valueOf(getTimeout24Hours()));
+            timerMap.put("timeout24Hours", (long) getTimeout24Hours());
 
             Map<String,Map<String,Long>> stateSaveMap = new HashMap<>();
             stateSaveMap.put("history",stateMap);
@@ -376,7 +369,6 @@ public class Control extends ControlBase {
 
                 switch (State.valueOf(stateName)) {
                     case initial:
-                    case endcal:
                     case timeout24:
                     case endProtocol:
                         // no timers
@@ -405,6 +397,14 @@ public class Control extends ControlBase {
                         //resetting warnEnd time
                         setTimeout24Hours(TZHelper.getSecondsTo359am());
                         recievedWarnEndCal(); // initial to warnEndCal
+                        this.isRestoring = false;
+                        break;
+                    case endcal:
+                        this.isRestoring = true;
+                        // setting timeout24
+                        setTimeout24Hours(TZHelper.getSecondsTo359am());
+                        receivedStartCal();
+                        receivedEndCal();
                         this.isRestoring = false;
                         break;
                     default:
