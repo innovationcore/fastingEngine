@@ -103,7 +103,7 @@ public class ControlWatcher {
         return validNextStates;
     }
 
-    public String moveToState(String participantId, String moveToState, long timestamp) {
+    public String moveToState(String participantId, String moveToState, String time) {
         String newState = "";
         try {
             Control participant = controlMap.get(participantId);
@@ -124,6 +124,7 @@ public class ControlWatcher {
                 case waitStart:
                     if (moveToState.equals("startcal")) {
                         participant.receivedStartCal();
+                        long timestamp = participant.TZHelper.parseTime(time);
                         Launcher.dbEngine.saveStartCalTime(participantId, timestamp);
                         newState = "startcal";
                     } else if (moveToState.equals("timeout24")) {
@@ -141,9 +142,11 @@ public class ControlWatcher {
                 case startcal:
                     if (moveToState.equals("startcal")){
                         participant.receivedStartCal();
+                        long timestamp = participant.TZHelper.parseTime(time);
                         Launcher.dbEngine.saveStartCalTime(participantId, timestamp);
                         newState = "startcal";
                     } else if (moveToState.equals("endcal")) {
+                        long timestamp = participant.TZHelper.parseTime(time);
                         Launcher.dbEngine.saveEndCalTimeCreateTemp(participantId, timestamp);
                         participant.receivedEndCal();
                         Launcher.dbEngine.removeTempEndCal(participantId);
@@ -177,6 +180,7 @@ public class ControlWatcher {
                     }
                 case endcal:
                     if (moveToState.equals("endcal")){
+                        long timestamp = participant.TZHelper.parseTime(time);
                         Launcher.dbEngine.saveEndCalTimeCreateTemp(participantId, timestamp);
                         participant.receivedEndCal();
                         Launcher.dbEngine.removeTempEndCal(participantId);

@@ -240,7 +240,7 @@ public class TimezoneHelper {
             }
 
             // if current time is after 12am and before 4 am, set the date to yesterday
-            if (isBetween12AMand4AM() && ampm.equals("pm")){
+            if (isBetween12AMand4AM()){
                 forYesterday = true;
             }
 

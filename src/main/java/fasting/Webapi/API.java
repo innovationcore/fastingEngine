@@ -185,7 +185,7 @@ public class API {
     @Produces(MediaType.APPLICATION_JSON)
     public Response moveToNextState(@QueryParam("participantUUID") String participantId,
                                     @QueryParam("toState") String nextState,
-                                    @QueryParam("time") long time) {
+                                    @QueryParam("time") String time) {
         String responseString = "";
         try {
 

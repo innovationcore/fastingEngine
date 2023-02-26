@@ -20,7 +20,7 @@ public class Control extends ControlBase {
     private final Map<String, String> participantMap;
     private final Map<String,Long> stateMap;
     private long startTimestamp = 0;
-    private final TimezoneHelper TZHelper;
+    public final TimezoneHelper TZHelper;
     private boolean isRestoring;
     private Map<String,String> incomingMap;
     public String stateJSON;
