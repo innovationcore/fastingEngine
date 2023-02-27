@@ -23,8 +23,8 @@ public class WeeklyMessageWatcher {
         this.weeklyMessageMap = Collections.synchronizedMap(new HashMap<>());
 
         //how long to wait before checking protocols
-        long checkdelay = Launcher.config.getLongParam("checkdelay",5000l);
-        long checktimer = Launcher.config.getLongParam("checktimer",30000l);
+        long checkdelay = Launcher.config.getLongParam("checkdelay", 5000L);
+        long checktimer = Launcher.config.getLongParam("checktimer", 30000L);
 
         //create timer
         ScheduledExecutorService checkTimer = Executors.newScheduledThreadPool(1);
@@ -42,6 +42,7 @@ public class WeeklyMessageWatcher {
             try {
                 synchronized (lockEpisodeReset) {
                     List<Map<String,String>> participantMapList = Launcher.dbEngine.getParticipantMapByGroup("Control");
+                    participantMapList.addAll(Launcher.dbEngine.getParticipantMapByGroup("Baseline"));
                     Map<String, String> weeklyUUIDs = new HashMap<>(); // this only stores the uuids from partMapList
                     List<String> participantsToAdd = new ArrayList<>();
                     List<String> participantsToRemove = new ArrayList<>();
