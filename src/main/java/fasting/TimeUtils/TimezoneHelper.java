@@ -198,6 +198,7 @@ public class TimezoneHelper {
             int hours = -1;
             int minutes = -1;
             String ampm = "";
+
             if (time.contains(":")) {
                 // 00:00
                 String[] timeArray = time.split(":");
@@ -205,11 +206,11 @@ public class TimezoneHelper {
                 minutes = Integer.parseInt(timeArray[1].trim().substring(0, 2));
             } else {
                 // 5pm
-                if (time.contains("p")) {
+                if (time.toLowerCase().contains("p")) {
                     String[] timeArray = time.split("p");
                     hours = Integer.parseInt(timeArray[0].trim());
                     minutes = 0;
-                } else if (time.contains("a")){
+                } else if (time.toLowerCase().contains("a")){
                     String[] timeArray = time.split("a");
                     hours = Integer.parseInt(timeArray[0].trim());
                     minutes = 0;
@@ -223,9 +224,9 @@ public class TimezoneHelper {
                 }
             }
 
-            if (time.toLowerCase().contains("am")){
+            if (time.toLowerCase().contains("a")){
                 ampm = "am";
-            } else if (time.toLowerCase().contains("pm")){
+            } else if (time.toLowerCase().contains("p")){
                 ampm = "pm";
             }
 
