@@ -194,11 +194,11 @@ public class Baseline extends BaselineBase {
     private boolean isEndCal(String messageBody) {
         boolean isEnd = false;
         try {
-
-            isEnd = messageBody.toLowerCase().contains("endcal");
-
+            if(messageBody.toLowerCase().contains("endcal") || messageBody.toLowerCase().contains("stopcal")) {
+                isEnd = true;
+            }
         } catch (Exception ex) {
-            logger.error("isStartCal()");
+            logger.error("isEndCal()");
             logger.error(ex.getMessage());
         }
         return isEnd;

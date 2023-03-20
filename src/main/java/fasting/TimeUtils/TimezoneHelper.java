@@ -285,7 +285,7 @@ public class TimezoneHelper {
         }
     }
 
-    // start unix time, end unix time, time in seconds (9 hours = 32400)
+    // start unix time, end unix time, time in seconds (10 hours = 36000)
     public String getHoursMinutesBefore(long start, long end, long cutoffTime) {
         long duration = end - start;
         long durationBeforeCutoff = cutoffTime - duration;

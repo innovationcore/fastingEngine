@@ -289,12 +289,12 @@ public class Restricted extends RestrictedBase {
     private boolean isEndCal(String messageBody) {
         boolean isEnd = false;
         try {
-            if(messageBody.toLowerCase().contains("endcal")) {
+            if(messageBody.toLowerCase().contains("endcal") || messageBody.toLowerCase().contains("stopcal")) {
                 isEnd = true;
             }
 
         } catch (Exception ex) {
-            logger.error("isStartCal()");
+            logger.error("isEndCal()");
             logger.error(ex.getMessage());
         }
         return isEnd;
@@ -841,7 +841,7 @@ public class Restricted extends RestrictedBase {
             }
         }
         if (message.contains("[SHORT]")) {
-            String shortTime = TZHelper.getHoursMinutesBefore(startTime, endTime, 32400L); // 9 hours
+            String shortTime = TZHelper.getHoursMinutesBefore(startTime, endTime, 36000L); // 36000s = 10 hours
             message = message.replace("[SHORT]", shortTime);
         }
         return message;
