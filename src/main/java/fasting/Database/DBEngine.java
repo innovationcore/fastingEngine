@@ -1024,6 +1024,11 @@ public class DBEngine {
         return protocol;
     }
 
+    /**
+     * Probably won't need this
+     * @param protocol
+     * @param participantUUID
+     */
     public void addProtocolNameToLog(String protocol, String participantUUID){
         Connection conn = null;
         PreparedStatement stmt = null;

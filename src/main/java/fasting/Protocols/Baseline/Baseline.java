@@ -335,7 +335,6 @@ public class Baseline extends BaselineBase {
                         "when your calories finish at night! Let us know if you need help.");
                 break;
             case endProtocol:
-                Launcher.dbEngine.addProtocolNameToLog("Baseline", participantMap.get("participant_uuid"));
                 logger.warn(participantMap.get("participant_uuid") + " is not longer in protocol.");
                 break;
             default:

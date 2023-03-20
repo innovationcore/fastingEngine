@@ -591,7 +591,6 @@ public class Restricted extends RestrictedBase {
                 this.pauseMessages = true;
                 break;
             case endProtocol:
-                Launcher.dbEngine.addProtocolNameToLog("TRE", participantMap.get("participant_uuid"));
                 logger.warn(participantMap.get("participant_uuid") + " is not longer in protocol.");
                 break;
             default:
