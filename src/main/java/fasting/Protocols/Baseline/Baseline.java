@@ -251,7 +251,7 @@ public class Baseline extends BaselineBase {
                 break;
             case waitStart:
                 //24 hour timer set
-                int seconds = TZHelper.getSecondsTo359am();
+                int seconds = TZHelper.getSecondsTo4am();
                 setTimeout24Hours(seconds);
                 String waitStartMessage = participantMap.get("participant_uuid") + " created state machine: timeout24 timeout " + TZHelper.getDateFromAddingSeconds(seconds);
                 logger.warn(waitStartMessage);
@@ -292,7 +292,7 @@ public class Baseline extends BaselineBase {
                 break;
             case warnEndCal:
                 //set end for endcal
-                setTimeout24Hours(TZHelper.getSecondsTo359am());
+                setTimeout24Hours(TZHelper.getSecondsTo4am());
                 String warnEndCalMessage = "Remember to enter your \"ENDCAL\" tonight after your last calories. Thank you!";
                 if (!this.isRestoring){
                     Launcher.msgUtils.sendMessage(participantMap.get("number"), warnEndCalMessage);
@@ -303,7 +303,7 @@ public class Baseline extends BaselineBase {
                 Launcher.dbEngine.uploadSaveState(stateJSON, participantMap.get("participant_uuid"));
                 break;
             case endcal:
-                int secondsEnd = TZHelper.getSecondsTo359am();
+                int secondsEnd = TZHelper.getSecondsTo4am();
                 setTimeout24Hours(secondsEnd);
                 String endCalMessage = participantMap.get("participant_uuid") + " thanks for sending endcal: timeout24 timeout " + TZHelper.getDateFromAddingSeconds(secondsEnd);
                 logger.info(endCalMessage);
@@ -353,7 +353,7 @@ public class Baseline extends BaselineBase {
             if (isReset) {
                 this.isReset = true;
                 logger.info("restoreSaveState: resetting participant: " + participantMap.get("participant_uuid"));
-                int timeout24 = TZHelper.getSecondsTo359am();
+                int timeout24 = TZHelper.getSecondsTo4am();
                 setTimeout24Hours(timeout24);
                 receivedWaitStart(); // initial to waitStart
                 this.isReset = false;
@@ -392,7 +392,7 @@ public class Baseline extends BaselineBase {
                         case waitStart:
                             this.isRestoring = true;
                             //resetting warn timer
-                            setTimeout24Hours(TZHelper.getSecondsTo359am());
+                            setTimeout24Hours(TZHelper.getSecondsTo4am());
                             receivedWaitStart(); // initial to waitStart
                             this.isRestoring = false;
                             break;
@@ -409,14 +409,14 @@ public class Baseline extends BaselineBase {
                         case warnEndCal:
                             this.isRestoring = true;
                             //resetting warnEnd time
-                            setTimeout24Hours(TZHelper.getSecondsTo359am());
+                            setTimeout24Hours(TZHelper.getSecondsTo4am());
                             recievedWarnEndCal(); // initial to warnEndCal
                             this.isRestoring = false;
                             break;
                         case endcal:
                             this.isRestoring = true;
                             // setting timeout24
-                            setTimeout24Hours(TZHelper.getSecondsTo359am());
+                            setTimeout24Hours(TZHelper.getSecondsTo4am());
                             receivedStartCal();
                             receivedEndCal();
                             this.isRestoring = false;
@@ -426,7 +426,7 @@ public class Baseline extends BaselineBase {
                     }
                 } else {
                     logger.info("restoreSaveState: no save state found for " + participantMap.get("participant_uuid"));
-                    int timeout24 = TZHelper.getSecondsTo359am();
+                    int timeout24 = TZHelper.getSecondsTo4am();
                     setTimeout24Hours(timeout24);
                     receivedWaitStart(); // initial to waitStart
                 }

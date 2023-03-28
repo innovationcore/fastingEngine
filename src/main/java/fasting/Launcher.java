@@ -65,15 +65,10 @@ public class Launcher {
             startServer();
 
             //testing
-//            TimezoneHelper TZHelper = new TimezoneHelper("America/Louisville","Etc/UTC");
-//            System.out.println(TZHelper.parseTime("6p"));
-//            System.out.println(TZHelper.parseTime("6pm"));
-//            System.out.println(TZHelper.parseTime("6 p"));
-//            System.out.println(TZHelper.parseTime("12 a"));
-//            System.out.println(TZHelper.parseTime("12:00 a")); // this wrong
-//            System.out.println(TZHelper.parseTime("12a"));
-//            System.out.println(TZHelper.parseTime("12p"));
-//            System.out.println(TZHelper.parseTime("12"));
+//            TimezoneHelper TZHelper = new TimezoneHelper("Singapore","Etc/UTC");
+//            System.out.println(TZHelper.getSecondsTo4am());
+//            System.out.println(TZHelper.getSecondsTo359am());
+
 
             
 
