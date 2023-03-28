@@ -17,6 +17,7 @@ public class DailyMessage extends DailyMessageBase {
     private long startTimestamp = 0;
     private final TimezoneHelper TZHelper;
     private boolean isRestoring;
+    private boolean isReset;
     private final Gson gson;
     public ScheduledExecutorService uploadSave;
     private static final Logger logger = LoggerFactory.getLogger(DailyMessage.class.getName());
@@ -25,6 +26,7 @@ public class DailyMessage extends DailyMessageBase {
         this.gson = new Gson();
         this.participantMap = participantMap;
         this.isRestoring = false;
+        this.isReset = false;
 
         // this initializes the user's and machine's timezone
         this.TZHelper = new TimezoneHelper(participantMap.get("time_zone"), TimeZone.getDefault().getID());
@@ -90,7 +92,7 @@ public class DailyMessage extends DailyMessageBase {
         return true;
     }
 
-    public void restoreSaveState() {
+    public void restoreSaveState(boolean isReset) {
         try {
             this.isRestoring = true;
             // get current protocol
@@ -104,10 +106,18 @@ public class DailyMessage extends DailyMessageBase {
                 }
 
                 String currentState = restrictedMap.get(participantMap.get("participant_uuid")).getState().toString();
-                if (!currentState.equals("endProtocol")) {
+                if(isReset){
+                    this.isReset = true;
                     int seconds = TZHelper.getSecondsToFridayNoon();
                     setTimeout24Hours(seconds);
                     receivedWaitDay();
+                    this.isReset = false;
+                } else {
+                    if (!currentState.equals("endProtocol")) {
+                        int seconds = TZHelper.getSecondsToFridayNoon();
+                        setTimeout24Hours(seconds);
+                        receivedWaitDay();
+                    }
                 }
 
             }
@@ -124,7 +134,11 @@ public class DailyMessage extends DailyMessageBase {
             messageMap.put("state",state);
             messageMap.put("protocol", "DailyMessage");
             if (this.isRestoring) {
-                messageMap.put("restored","true");
+                if(this.isReset){
+                    messageMap.put("RESET", "true");
+                } else {
+                    messageMap.put("restored", "true");
+                }
             }
 
             String json_string = gson.toJson(messageMap);

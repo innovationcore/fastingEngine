@@ -104,6 +104,29 @@ public class RestrictedWatcher {
         return validNextStates;
     }
 
+    public void resetStateMachine(String participantId){
+        // Remove participant from protocol
+        Restricted removed = restrictedMap.remove(participantId);
+        if (removed != null) {
+            removed.receivedEndProtocol();
+            removed.uploadSave.shutdownNow();
+            removed = null;
+            System.gc();
+        }
+
+        //restart at beginning
+        List<Map<String,String>> participantMapList = Launcher.dbEngine.getParticipantMapByGroup("TRE");
+        //Create person
+        Map<String, String> addMap = getHashMapByParticipantUUID(participantMapList, participantId);
+        Restricted p0 = new Restricted(addMap);
+
+        p0.restoreSaveState(true);
+
+        synchronized (lockRestricted) {
+            restrictedMap.put(participantId, p0);
+        }
+    }
+
     public String moveToState(String participantId, String moveToState, String time) {
         String newState = "";
         try {
@@ -330,7 +353,7 @@ public class RestrictedWatcher {
                         Restricted p0 = new Restricted(addMap);
 
                         logger.info("Restoring State for participant_uuid=" + toAdd);
-                        p0.restoreSaveState();
+                        p0.restoreSaveState(false);
 
                         synchronized (lockRestricted) {
                             restrictedMap.put(toAdd, p0);

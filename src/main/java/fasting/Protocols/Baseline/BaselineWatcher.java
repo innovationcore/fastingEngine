@@ -1,6 +1,7 @@
 package fasting.Protocols.Baseline;
 
 import fasting.Launcher;
+import fasting.Protocols.Restricted.Restricted;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -99,6 +100,29 @@ public class BaselineWatcher {
         }
 
         return validNextStates;
+    }
+
+    public void resetStateMachine(String participantId){
+        // Remove participant from protocol
+        Baseline removed = baselineMap.remove(participantId);
+        if (removed != null) {
+            removed.receivedEndProtocol();
+            removed.uploadSave.shutdownNow();
+            removed = null;
+            System.gc();
+        }
+
+        //restart at beginning
+        List<Map<String,String>> participantMapList = Launcher.dbEngine.getParticipantMapByGroup("Baseline");
+        //Create person
+        Map<String, String> addMap = getHashMapByParticipantUUID(participantMapList, participantId);
+        Baseline p0 = new Baseline(addMap);
+
+        p0.restoreSaveState(true);
+
+        synchronized (lockBaseline) {
+            baselineMap.put(participantId, p0);
+        }
     }
 
     public String moveToState(String participantId, String moveToState, String time) {
@@ -278,7 +302,7 @@ public class BaselineWatcher {
                         Baseline p0 = new Baseline(addMap);
 
                         logger.info("Restoring State for participant_uuid=" + toAdd);
-                        p0.restoreSaveState();
+                        p0.restoreSaveState(false);
 
                         synchronized (lockBaseline) {
                             baselineMap.put(toAdd, p0);

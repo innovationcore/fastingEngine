@@ -103,6 +103,29 @@ public class ControlWatcher {
         return validNextStates;
     }
 
+    public void resetStateMachine(String participantId){
+        // Remove participant from protocol
+        Control removed = controlMap.remove(participantId);
+        if (removed != null) {
+            removed.receivedEndProtocol();
+            removed.uploadSave.shutdownNow();
+            removed = null;
+            System.gc();
+        }
+
+        //restart at beginning
+        List<Map<String,String>> participantMapList = Launcher.dbEngine.getParticipantMapByGroup("Control");
+        //Create person
+        Map<String, String> addMap = getHashMapByParticipantUUID(participantMapList, participantId);
+        Control p0 = new Control(addMap);
+
+        p0.restoreSaveState(true);
+
+        synchronized (lockControl) {
+            controlMap.put(participantId, p0);
+        }
+    }
+
     public String moveToState(String participantId, String moveToState, String time) {
         String newState = "";
         try {
@@ -277,7 +300,7 @@ public class ControlWatcher {
                         Control p0 = new Control(addMap);
 
                         logger.info("Restoring State for participant_uuid=" + toAdd);
-                        p0.restoreSaveState();
+                        p0.restoreSaveState(false);
 
                         synchronized (lockControl) {
                             controlMap.put(toAdd, p0);

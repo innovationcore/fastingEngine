@@ -23,8 +23,7 @@ public class WeeklyMessage extends WeeklyMessageBase {
     private long startTimestamp = 0;
     private TimezoneHelper TZHelper;
     private boolean isRestoring;
-
-    public String stateJSON;
+    private boolean isReset;
 
     private Gson gson;
     public ScheduledExecutorService uploadSave;
@@ -35,6 +34,7 @@ public class WeeklyMessage extends WeeklyMessageBase {
         this.participantMap = participantMap;
         this.stateMap = new HashMap<>();
         this.isRestoring = false;
+        this.isReset = false;
 
         // this initializes the user's and machine's timezone
         this.TZHelper = new TimezoneHelper(participantMap.get("time_zone"), TimeZone.getDefault().getID());
@@ -127,7 +127,7 @@ public class WeeklyMessage extends WeeklyMessageBase {
         return true;
     }
 
-    public void restoreSaveState() {
+    public void restoreSaveState(boolean isReset) {
         try {
             this.isRestoring = true;
             // get current protocol
@@ -141,10 +141,19 @@ public class WeeklyMessage extends WeeklyMessageBase {
                 }
 
                 String currentState = baselineMap.get(participantMap.get("participant_uuid")).getState().toString();
-                if (!currentState.equals("endProtocol")) {
+                if (isReset) {
+                    this.isReset = true;
                     int seconds = TZHelper.getSecondsToFridayNoon();
                     setTimeout1Week(seconds);
                     receivedWaitWeek();
+                    this.isReset = false;
+                }
+                else {
+                    if (!currentState.equals("endProtocol")) {
+                        int seconds = TZHelper.getSecondsToFridayNoon();
+                        setTimeout1Week(seconds);
+                        receivedWaitWeek();
+                    }
                 }
 
             } else if (protocolNameDB.equals("Control")){
@@ -155,10 +164,19 @@ public class WeeklyMessage extends WeeklyMessageBase {
                 }
 
                 String currentState = controlMap.get(participantMap.get("participant_uuid")).getState().toString();
-                if (!currentState.equals("endProtocol")) {
+                if (isReset) {
+                    this.isReset = true;
                     int seconds = TZHelper.getSecondsToFridayNoon();
                     setTimeout1Week(seconds);
                     receivedWaitWeek();
+                    this.isReset = false;
+                }
+                else {
+                    if (!currentState.equals("endProtocol")) {
+                        int seconds = TZHelper.getSecondsToFridayNoon();
+                        setTimeout1Week(seconds);
+                        receivedWaitWeek();
+                    }
                 }
 
             }
@@ -175,7 +193,11 @@ public class WeeklyMessage extends WeeklyMessageBase {
             messageMap.put("state",state);
             messageMap.put("protocol", "WeeklyMessage");
             if (this.isRestoring) {
-                messageMap.put("restored","true");
+                if(this.isReset) {
+                    messageMap.put("RESET", "true");
+                } else {
+                    messageMap.put("restored", "true");
+                }
             }
 
             String json_string = gson.toJson(messageMap);

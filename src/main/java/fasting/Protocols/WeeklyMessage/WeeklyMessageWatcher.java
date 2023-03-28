@@ -1,6 +1,7 @@
 package fasting.Protocols.WeeklyMessage;
 
 import fasting.Launcher;
+import fasting.Protocols.DailyMessage.DailyMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,6 +31,29 @@ public class WeeklyMessageWatcher {
         ScheduledExecutorService checkTimer = Executors.newScheduledThreadPool(1);
         //set timer
         checkTimer.scheduleAtFixedRate(new startWeeklyMessage(), checkdelay, checktimer, TimeUnit.MILLISECONDS);
+    }
+
+    public void resetStateMachine(String participantId){
+        // Remove participant from protocol
+        WeeklyMessage removed = weeklyMessageMap.remove(participantId);
+        if (removed != null) {
+            removed.receivedEndProtocol();
+            removed.uploadSave.shutdownNow();
+            removed = null;
+            System.gc();
+        }
+
+        //restart at beginning
+        List<Map<String,String>> participantMapList = Launcher.dbEngine.getParticipantMapByGroup("Control");
+        participantMapList.addAll(Launcher.dbEngine.getParticipantMapByGroup("Baseline"));
+        //Create person
+        Map<String, String> addMap = getHashMapByParticipantUUID(participantMapList, participantId);
+        WeeklyMessage p0 = new WeeklyMessage(addMap);
+        p0.restoreSaveState(true);
+
+        synchronized (lockWeeklyMessage) {
+            weeklyMessageMap.put(participantId, p0);
+        }
     }
 
     class startWeeklyMessage extends TimerTask {
@@ -89,7 +113,7 @@ public class WeeklyMessageWatcher {
                         WeeklyMessage p0 = new WeeklyMessage(addMap);
 
                         logger.info("Restoring State for participant_uuid=" + toAdd);
-                        p0.restoreSaveState();
+                        p0.restoreSaveState(false);
 
                         synchronized (lockWeeklyMessage) {
                             weeklyMessageMap.put(toAdd, p0);

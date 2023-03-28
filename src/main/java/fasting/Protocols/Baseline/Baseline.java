@@ -24,6 +24,7 @@ public class Baseline extends BaselineBase {
     private long startTimestamp = 0;
     public final TimezoneHelper TZHelper;
     private boolean isRestoring;
+    private boolean isReset;
     private Map<String,String> incomingMap;
     public String stateJSON;
     private final Gson gson;
@@ -35,6 +36,7 @@ public class Baseline extends BaselineBase {
         this.participantMap = participantMap;
         this.stateMap = new HashMap<>();
         this.isRestoring = false;
+        this.isReset = false;
 
         // this initializes the user's and machine's timezone
         this.TZHelper = new TimezoneHelper(participantMap.get("time_zone"), TimeZone.getDefault().getID());
@@ -344,81 +346,90 @@ public class Baseline extends BaselineBase {
         return true;
     }
 
-    public void restoreSaveState() {
+    public void restoreSaveState(boolean isReset) {
         try{
             String saveStateJSON = Launcher.dbEngine.getSaveState(participantMap.get("participant_uuid"));
 
-            if (!saveStateJSON.equals("")){
-                Map<String, Map<String,Long>> saveStateMap = gson.fromJson(saveStateJSON,typeOfHashMap);
-
-                // historyMap not needed currently, but available
-                //Map<String,Long> historyMap = saveStateMap.get("history");
-                Map<String,Long> timerMap = saveStateMap.get("timers");
-
-                int stateIndex = (int) timerMap.get("stateIndex").longValue();
-                String stateName = State.values()[stateIndex].toString(); // out of bounds
-
-                long saveCurrentTime = timerMap.get("currentTime");
-
-                // if same day (<4am) below is correct
-                // if next day (>=4am) need to reset to waitStart
-
-                // if past 4am, reset everything to beginning
-                boolean isSameDay = TZHelper.isSameDay(saveCurrentTime);
-                if (!isSameDay) {
-                    // if state is endProtocol, do not restart cycle
-                    if(!stateName.equals("endProtocol")) {
-                        stateName = "waitStart";
-                    }
-                }
-
-                switch (State.valueOf(stateName)) {
-                    case initial:
-                    case timeout24:
-                    case endProtocol:
-                        // no timers
-                        break;
-                    case waitStart:
-                        this.isRestoring = true;
-                        //resetting warn timer
-                        setTimeout24Hours(TZHelper.getSecondsTo359am());
-                        receivedWaitStart(); // initial to waitStart
-                        this.isRestoring = false;
-                        break;
-                    case startcal:
-                        this.isRestoring = true;
-                        long unixTS = Launcher.dbEngine.getStartCalTime(participantMap.get("participant_uuid"));
-                        if (unixTS == 0) {
-                            unixTS = TZHelper.getUnixTimestampNow();
-                        }
-                        Launcher.dbEngine.saveStartCalTime(participantMap.get("participant_uuid"), unixTS);
-                        receivedStartCal();
-                        this.isRestoring = false;
-                        break;
-                    case warnEndCal:
-                        this.isRestoring = true;
-                        //resetting warnEnd time
-                        setTimeout24Hours(TZHelper.getSecondsTo359am());
-                        recievedWarnEndCal(); // initial to warnEndCal
-                        this.isRestoring = false;
-                        break;
-                    case endcal:
-                        this.isRestoring = true;
-                        // setting timeout24
-                        setTimeout24Hours(TZHelper.getSecondsTo359am());
-                        receivedStartCal();
-                        receivedEndCal();
-                        this.isRestoring = false;
-                        break;
-                    default:
-                        logger.error("restoreSaveState: Invalid state: " + stateName);
-                }
-            }
-            else {
-                logger.info("restoreSaveState: no save state found for " + participantMap.get("participant_uuid"));
-                int timeout24 =  TZHelper.getSecondsTo359am();
+            if (isReset) {
+                this.isReset = true;
+                logger.info("restoreSaveState: resetting participant: " + participantMap.get("participant_uuid"));
+                int timeout24 = TZHelper.getSecondsTo359am();
                 setTimeout24Hours(timeout24);
                 receivedWaitStart(); // initial to waitStart
+                this.isReset = false;
+            }
+            else {
+                if (!saveStateJSON.equals("")) {
+                    Map<String, Map<String, Long>> saveStateMap = gson.fromJson(saveStateJSON, typeOfHashMap);
+
+                    // historyMap not needed currently, but available
+                    //Map<String,Long> historyMap = saveStateMap.get("history");
+                    Map<String, Long> timerMap = saveStateMap.get("timers");
+
+                    int stateIndex = (int) timerMap.get("stateIndex").longValue();
+                    String stateName = State.values()[stateIndex].toString(); // out of bounds
+
+                    long saveCurrentTime = timerMap.get("currentTime");
+
+                    // if same day (<4am) below is correct
+                    // if next day (>=4am) need to reset to waitStart
+
+                    // if past 4am, reset everything to beginning
+                    boolean isSameDay = TZHelper.isSameDay(saveCurrentTime);
+                    if (!isSameDay) {
+                        // if state is endProtocol, do not restart cycle
+                        if (!stateName.equals("endProtocol")) {
+                            stateName = "waitStart";
+                        }
+                    }
+
+                    switch (State.valueOf(stateName)) {
+                        case initial:
+                        case timeout24:
+                        case endProtocol:
+                            // no timers
+                            break;
+                        case waitStart:
+                            this.isRestoring = true;
+                            //resetting warn timer
+                            setTimeout24Hours(TZHelper.getSecondsTo359am());
+                            receivedWaitStart(); // initial to waitStart
+                            this.isRestoring = false;
+                            break;
+                        case startcal:
+                            this.isRestoring = true;
+                            long unixTS = Launcher.dbEngine.getStartCalTime(participantMap.get("participant_uuid"));
+                            if (unixTS == 0) {
+                                unixTS = TZHelper.getUnixTimestampNow();
+                            }
+                            Launcher.dbEngine.saveStartCalTime(participantMap.get("participant_uuid"), unixTS);
+                            receivedStartCal();
+                            this.isRestoring = false;
+                            break;
+                        case warnEndCal:
+                            this.isRestoring = true;
+                            //resetting warnEnd time
+                            setTimeout24Hours(TZHelper.getSecondsTo359am());
+                            recievedWarnEndCal(); // initial to warnEndCal
+                            this.isRestoring = false;
+                            break;
+                        case endcal:
+                            this.isRestoring = true;
+                            // setting timeout24
+                            setTimeout24Hours(TZHelper.getSecondsTo359am());
+                            receivedStartCal();
+                            receivedEndCal();
+                            this.isRestoring = false;
+                            break;
+                        default:
+                            logger.error("restoreSaveState: Invalid state: " + stateName);
+                    }
+                } else {
+                    logger.info("restoreSaveState: no save state found for " + participantMap.get("participant_uuid"));
+                    int timeout24 = TZHelper.getSecondsTo359am();
+                    setTimeout24Hours(timeout24);
+                    receivedWaitStart(); // initial to waitStart
+                }
             }
 
         } catch (Exception ex) {
@@ -436,6 +447,10 @@ public class Baseline extends BaselineBase {
             if (this.isRestoring) {
                 messageMap.put("restored", "true");
             }
+            if (this.isReset) {
+                messageMap.put("RESET", "true");
+            }
+
             String json_string = gson.toJson(messageMap);
 
             String insertQuery = "INSERT INTO state_log " +

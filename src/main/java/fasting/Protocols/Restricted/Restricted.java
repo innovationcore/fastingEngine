@@ -22,6 +22,7 @@ public class Restricted extends RestrictedBase {
     private long startTimestamp = 0;
     public final TimezoneHelper TZHelper;
     private boolean pauseMessages;
+    private boolean isReset;
     private boolean isDayOff;
     private boolean isFromYesterday = false;
     private Map<String,String> incomingMap;
@@ -36,6 +37,7 @@ public class Restricted extends RestrictedBase {
         this.participantMap = participantMap;
         this.stateMap = new HashMap<>();
         this.pauseMessages = false;
+        this.isReset = false;
         this.isDayOff = false;
         this.endcalRepeats = 0;
 
@@ -600,134 +602,146 @@ public class Restricted extends RestrictedBase {
         return true;
     }
 
-    public void restoreSaveState() {
+    public void restoreSaveState(boolean isReset) {
         try{
             String saveStateJSON = Launcher.dbEngine.getSaveState(participantMap.get("participant_uuid"));
 
-            if (!saveStateJSON.equals("")){
-                Map<String, Map<String,Long>> saveStateMap = gson.fromJson(saveStateJSON,typeOfHashMap);
-
-                Map<String,Long> historyMap = saveStateMap.get("history");
-                Map<String,Long> timerMap = saveStateMap.get("timers");
-
-                int stateIndex = (int) timerMap.get("stateIndex").longValue();
-                String stateName = State.values()[stateIndex].toString();
-
-                long saveCurrentTime = timerMap.get("currentTime");
-
-                // if same day (<4am) below is correct
-                // if next day (>=4am) need to reset to waitStart
-
-                // if past 4am, reset everything to beginning
-                boolean isSameDay = TZHelper.isSameDay(saveCurrentTime);
-                if (!isSameDay) {
-                    // if state is endProtocol, do not restart cycle
-                    if(!stateName.equals("endProtocol")) {
-                        stateName = "waitStart";
-                    }
-                    this.isDayOff = false;
-                    this.endcalRepeats = 0;
-                } else {
-                    String lastDayOffString = Launcher.dbEngine.getLastDayOff(participantMap.get("participant_uuid"));
-                    if (!lastDayOffString.equals("")) {
-                        this.isDayOff = TZHelper.isSameDay(TZHelper.parseSQLTimestamp(lastDayOffString));
-                    } else {
-                        this.isDayOff = false;
-                    }
-                    try {
-                        this.endcalRepeats = historyMap.get("endcalCount").intValue();
-                    } catch (NullPointerException npex){
-                        this.endcalRepeats = 0;
-                    }
-                }
-
-                switch (State.valueOf(stateName)) {
-                    case initial:
-                    case missedStartCal:
-                    case endcal:
-                    case endProtocol:
-                    case missedEndCal:
-                    case resetEpisodeVariables:
-                    case dayOffStartCal:
-                    case dayOffWait:
-                    case dayOffWarn:
-                    case dayOffWarnEndCal:
-                        //no timers
-                        break;
-                    case waitStart:
-                        //resetting warn timer
-                        int startWarnDiff =  TZHelper.getSecondsTo1159am();  //timeToD1T1159am();
-                        if(startWarnDiff <= 0) {
-                            startWarnDiff = 300;
-                        }
-                        this.pauseMessages = true;
-                        setStartWarnDeadline(startWarnDiff);
-                        receivedWaitStart(); // initial to waitStart
-                        this.pauseMessages = false;
-                        break;
-                    case warnStartCal:
-                        //reset startDeadline
-                        int secondsTo359am0 = TZHelper.getSecondsTo359am();
-                        if (secondsTo359am0 < 0) {
-                            secondsTo359am0 = 0;
-                        }
-                        this.pauseMessages = true;
-                        setStartDeadline(secondsTo359am0); // timeToD2359am());
-                        receivedWarnStartCal(); // initial to warnStartCal
-                        this.pauseMessages = false;
-                        break;
-                    case startcal:
-                        //reset endWarnDeadline
-                        int secondsTo2059pm = TZHelper.getSecondsTo2059pm();
-                        if (secondsTo2059pm < 0) {
-                            secondsTo2059pm = 0;
-                        }
-                        long unixTS = Launcher.dbEngine.getStartCalTime(participantMap.get("participant_uuid"));
-                        if (unixTS == 0) {
-                            unixTS = TZHelper.getUnixTimestampNow();
-                        }
-                        Launcher.dbEngine.saveStartCalTime(participantMap.get("participant_uuid"), unixTS);
-                        this.pauseMessages = true;
-                        setEndWarnDeadline(secondsTo2059pm); //timeToD19pm());
-                        receivedStartCal();
-                        this.pauseMessages = false;
-                        break;
-                    case warnEndCal:
-                        //reset endDeadline
-                        int secondsTo359am1 = TZHelper.getSecondsTo359am();
-                        if (secondsTo359am1 < 0) {
-                            secondsTo359am1 = 0;
-                        }
-                        this.pauseMessages = true;
-                        setEndDeadline(secondsTo359am1);
-                        recievedWarnEndCal();
-                        this.pauseMessages = false;
-                        break;
-                    case endOfEpisode:
-                        // reset endOfEpisodeDeadline
-                        int secondsTo4am = TZHelper.getSecondsTo4am();
-                        if (secondsTo4am < 0) {
-                            secondsTo4am = 0;
-                        }
-                        this.pauseMessages = true;
-                        setEndOfEpisodeDeadline(secondsTo4am);
-                        // quickest path to endOfEpisode, move it but don't save it
-                        receivedStartCal();
-                        receivedEndCal();
-                        this.pauseMessages = false;
-                        break;
-                    default:
-                        logger.error("restoreSaveState: Invalid state: " + stateName);
-                }
-            }
-            else {
-                logger.info("restoreSaveState: no save state found for " + participantMap.get("participant_uuid"));
-                int startWarnDiff =  TZHelper.getSecondsTo1159am();  //timeToD1T1159am();
+            if (isReset) {
+                this.isReset = true;
+                logger.info("restoreSaveState: resetting participant: " + participantMap.get("participant_uuid"));
+                int startWarnDiff =  TZHelper.getSecondsTo1159am();
                 if(startWarnDiff <= 0) {
                     startWarnDiff = 300;
                 }
                 setStartWarnDeadline(startWarnDiff);
                 receivedWaitStart(); // initial to waitStart
+                this.isReset = false;
+            }
+            else {
+                if (!saveStateJSON.equals("")) {
+                    Map<String, Map<String, Long>> saveStateMap = gson.fromJson(saveStateJSON, typeOfHashMap);
+
+                    Map<String, Long> historyMap = saveStateMap.get("history");
+                    Map<String, Long> timerMap = saveStateMap.get("timers");
+
+                    int stateIndex = (int) timerMap.get("stateIndex").longValue();
+                    String stateName = State.values()[stateIndex].toString();
+
+                    long saveCurrentTime = timerMap.get("currentTime");
+
+                    // if same day (<4am) below is correct
+                    // if next day (>=4am) need to reset to waitStart
+
+                    // if past 4am, reset everything to beginning
+                    boolean isSameDay = TZHelper.isSameDay(saveCurrentTime);
+                    if (!isSameDay) {
+                        // if state is endProtocol, do not restart cycle
+                        if (!stateName.equals("endProtocol")) {
+                            stateName = "waitStart";
+                        }
+                        this.isDayOff = false;
+                        this.endcalRepeats = 0;
+                    } else {
+                        String lastDayOffString = Launcher.dbEngine.getLastDayOff(participantMap.get("participant_uuid"));
+                        if (!lastDayOffString.equals("")) {
+                            this.isDayOff = TZHelper.isSameDay(TZHelper.parseSQLTimestamp(lastDayOffString));
+                        } else {
+                            this.isDayOff = false;
+                        }
+                        try {
+                            this.endcalRepeats = historyMap.get("endcalCount").intValue();
+                        } catch (NullPointerException npex) {
+                            this.endcalRepeats = 0;
+                        }
+                    }
+
+                    switch (State.valueOf(stateName)) {
+                        case initial:
+                        case missedStartCal:
+                        case endcal:
+                        case endProtocol:
+                        case missedEndCal:
+                        case resetEpisodeVariables:
+                        case dayOffStartCal:
+                        case dayOffWait:
+                        case dayOffWarn:
+                        case dayOffWarnEndCal:
+                            //no timers
+                            break;
+                        case waitStart:
+                            //resetting warn timer
+                            int startWarnDiff = TZHelper.getSecondsTo1159am();  //timeToD1T1159am();
+                            if (startWarnDiff <= 0) {
+                                startWarnDiff = 300;
+                            }
+                            this.pauseMessages = true;
+                            setStartWarnDeadline(startWarnDiff);
+                            receivedWaitStart(); // initial to waitStart
+                            this.pauseMessages = false;
+                            break;
+                        case warnStartCal:
+                            //reset startDeadline
+                            int secondsTo359am0 = TZHelper.getSecondsTo359am();
+                            if (secondsTo359am0 < 0) {
+                                secondsTo359am0 = 0;
+                            }
+                            this.pauseMessages = true;
+                            setStartDeadline(secondsTo359am0); // timeToD2359am());
+                            receivedWarnStartCal(); // initial to warnStartCal
+                            this.pauseMessages = false;
+                            break;
+                        case startcal:
+                            //reset endWarnDeadline
+                            int secondsTo2059pm = TZHelper.getSecondsTo2059pm();
+                            if (secondsTo2059pm < 0) {
+                                secondsTo2059pm = 0;
+                            }
+                            long unixTS = Launcher.dbEngine.getStartCalTime(participantMap.get("participant_uuid"));
+                            if (unixTS == 0) {
+                                unixTS = TZHelper.getUnixTimestampNow();
+                            }
+                            Launcher.dbEngine.saveStartCalTime(participantMap.get("participant_uuid"), unixTS);
+                            this.pauseMessages = true;
+                            setEndWarnDeadline(secondsTo2059pm); //timeToD19pm());
+                            receivedStartCal();
+                            this.pauseMessages = false;
+                            break;
+                        case warnEndCal:
+                            //reset endDeadline
+                            int secondsTo359am1 = TZHelper.getSecondsTo359am();
+                            if (secondsTo359am1 < 0) {
+                                secondsTo359am1 = 0;
+                            }
+                            this.pauseMessages = true;
+                            setEndDeadline(secondsTo359am1);
+                            recievedWarnEndCal();
+                            this.pauseMessages = false;
+                            break;
+                        case endOfEpisode:
+                            // reset endOfEpisodeDeadline
+                            int secondsTo4am = TZHelper.getSecondsTo4am();
+                            if (secondsTo4am < 0) {
+                                secondsTo4am = 0;
+                            }
+                            this.pauseMessages = true;
+                            setEndOfEpisodeDeadline(secondsTo4am);
+                            // quickest path to endOfEpisode, move it but don't save it
+                            receivedStartCal();
+                            receivedEndCal();
+                            this.pauseMessages = false;
+                            break;
+                        default:
+                            logger.error("restoreSaveState: Invalid state: " + stateName);
+                    }
+                } else {
+                    logger.info("restoreSaveState: no save state found for " + participantMap.get("participant_uuid"));
+                    int startWarnDiff = TZHelper.getSecondsTo1159am();  //timeToD1T1159am();
+                    if (startWarnDiff <= 0) {
+                        startWarnDiff = 300;
+                    }
+                    setStartWarnDeadline(startWarnDiff);
+                    receivedWaitStart(); // initial to waitStart
+                }
             }
 
         } catch (Exception ex) {
@@ -755,6 +769,9 @@ public class Restricted extends RestrictedBase {
             messageMap.put("protocol", "TRE");
             if (this.pauseMessages) {
                 messageMap.put("restored", "true");
+            }
+            if (this.isReset) {
+                messageMap.put("RESET", "true");
             }
             String json_string = gson.toJson(messageMap);
 

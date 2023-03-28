@@ -1,6 +1,7 @@
 package fasting.Protocols.DailyMessage;
 
 import fasting.Launcher;
+import fasting.Protocols.Restricted.Restricted;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,6 +31,28 @@ public class DailyMessageWatcher {
         ScheduledExecutorService checkTimer = Executors.newScheduledThreadPool(1);
         //set timer
         checkTimer.scheduleAtFixedRate(new startDailyMessage(), checkdelay, checktimer, TimeUnit.MILLISECONDS);
+    }
+
+    public void resetStateMachine(String participantId){
+        // Remove participant from protocol
+        DailyMessage removed = dailyMessageMap.remove(participantId);
+        if (removed != null) {
+            removed.receivedEndProtocol();
+            removed.uploadSave.shutdownNow();
+            removed = null;
+            System.gc();
+        }
+
+        //restart at beginning
+        List<Map<String,String>> participantMapList = Launcher.dbEngine.getParticipantMapByGroup("TRE");
+        //Create person
+        Map<String, String> addMap = getHashMapByParticipantUUID(participantMapList, participantId);
+        DailyMessage p0 = new DailyMessage(addMap);
+        p0.restoreSaveState(true);
+
+        synchronized (lockDailyMessage) {
+            dailyMessageMap.put(participantId, p0);
+        }
     }
 
     class startDailyMessage extends TimerTask {
@@ -90,7 +113,7 @@ public class DailyMessageWatcher {
                         DailyMessage p0 = new DailyMessage(addMap);
 
                         logger.info("Restoring State for participant_uuid=" + toAdd);
-                        p0.restoreSaveState();
+                        p0.restoreSaveState(false);
 
                         synchronized (lockDailyMessage) {
                             dailyMessageMap.put(toAdd, p0);

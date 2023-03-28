@@ -141,7 +141,7 @@ public class API {
         String responseString;
         try {
 
-            if (participantId != null) {
+            if (!participantId.equals("")) {
                 // this returns a comma delimited list as a string
                 String validNextStates = "";
                 String protocol = Launcher.dbEngine.getProtocolFromParticipantId(participantId);
@@ -225,6 +225,57 @@ public class API {
             return Response.status(500).entity(exceptionAsString).build();
         }
         //return state moved to
+        return Response.ok(responseString).header("Access-Control-Allow-Origin", "*").build();
+    }
+
+    @POST
+    @Path("/reset-machine")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response resetStateMachine(MultivaluedMap<String, String> data) {
+
+        String responseString;
+        try {
+            String participantId = data.get("uuid").get(0);
+            if (participantId != null) {
+                //send to state machine
+                String enrollment = Launcher.dbEngine.getEnrollmentUUID(participantId);
+                String enrollmentName = Launcher.dbEngine.getEnrollmentName(enrollment);
+                if (enrollmentName.equals("TRE")) {
+                    Launcher.restrictedWatcher.resetStateMachine(participantId);
+                    Launcher.dailyMessageWatcher.resetStateMachine(participantId);
+                } else if (enrollmentName.equals("Baseline")) {
+                    Launcher.baselineWatcher.resetStateMachine(participantId);
+                    Launcher.weeklyMessageWatcher.resetStateMachine(participantId);
+                } else if (enrollmentName.equals("Control")) {
+                    Launcher.controlWatcher.resetStateMachine(participantId);
+                    Launcher.weeklyMessageWatcher.resetStateMachine(participantId);
+                } else {
+                    logger.error("Cannot reset machine, participant not in an active protocol.");
+                }
+
+                Map<String,String> response = new HashMap<>();
+                response.put("status", "ok");
+                responseString = gson.toJson(response);
+
+            } else {
+                Map<String,String> response = new HashMap<>();
+                response.put("status","error");
+                response.put("status_desc","participant not found");
+                responseString = gson.toJson(response);
+            }
+
+        } catch (Exception ex) {
+
+            StringWriter sw = new StringWriter();
+            ex.printStackTrace(new PrintWriter(sw));
+            String exceptionAsString = sw.toString();
+            ex.printStackTrace();
+            logger.error("resetStateMachine");
+            logger.error(exceptionAsString);
+
+            return Response.status(500).entity(exceptionAsString).build();
+        }
         return Response.ok(responseString).header("Access-Control-Allow-Origin", "*").build();
     }
 
