@@ -180,12 +180,15 @@ public class API {
         return Response.ok(responseString).header("Access-Control-Allow-Origin", "*").build();
     }
 
-    @GET
+    @POST
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     @Path("/next-state")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response moveToNextState(@QueryParam("participantUUID") String participantId,
-                                    @QueryParam("toState") String nextState,
-                                    @QueryParam("time") String time) {
+    public Response moveToNextState(MultivaluedMap<String, String> data) {
+
+        String participantId = data.get("participantUUID").get(0);
+        String nextState = data.get("toState").get(0);
+        String time = data.get("time").get(0);
         String responseString = "";
         try {
 
