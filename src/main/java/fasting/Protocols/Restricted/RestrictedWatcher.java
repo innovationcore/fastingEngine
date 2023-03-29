@@ -297,6 +297,12 @@ public class RestrictedWatcher {
         return newState;
     }
 
+    public void updateTimeZone(String participantId, String tz) {
+        Restricted toUpdate = restrictedMap.get(participantId);
+        logger.warn(participantId + ": changed TZ from " + toUpdate.TZHelper.getUserTimezone() + " to " + tz);
+        toUpdate.TZHelper.setUserTimezone(tz);
+    }
+
     class startRestricted extends TimerTask {
         private final Logger logger;
         public startRestricted() {

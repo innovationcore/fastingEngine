@@ -244,6 +244,12 @@ public class ControlWatcher {
         return newState;
     }
 
+    public void updateTimeZone(String participantId, String tz) {
+        Control toUpdate = controlMap.get(participantId);
+        logger.warn(participantId + ": changed TZ from " + toUpdate.TZHelper.getUserTimezone() + " to " + tz);
+        toUpdate.TZHelper.setUserTimezone(tz);
+    }
+
     class startControl extends TimerTask {
         private final Logger logger;
         public startControl() {

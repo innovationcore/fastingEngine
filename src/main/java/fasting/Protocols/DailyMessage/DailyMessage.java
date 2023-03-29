@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit;
 public class DailyMessage extends DailyMessageBase {
     private final Map<String, String> participantMap;
     private long startTimestamp = 0;
-    private final TimezoneHelper TZHelper;
+    public TimezoneHelper TZHelper;
     private boolean isRestoring;
     private boolean isReset;
     private final Gson gson;
@@ -48,7 +48,7 @@ public class DailyMessage extends DailyMessageBase {
 
                 }
             } catch (Exception ex) {
-                logger.error("protocols.Baseline Thread");
+                logger.error("protocols.DailyMessage Thread");
                 logger.error(ex.getMessage());
             }
         }, 30, 900, TimeUnit.SECONDS); //900 sec is 15 mins

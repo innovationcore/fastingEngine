@@ -80,23 +80,44 @@ public class TimezoneHelper {
     }
 
     /**
-    * return the seconds until 4am -1 min (next day) for user timezone
+    * return the seconds until 4am - 30 sec (next day) for user timezone
     */
     public int getSecondsTo359am() {
         Instant nowUTC = Instant.now();
         ZoneId userTZ = ZoneId.of(this.userTimezone);
         ZonedDateTime nowUserTimezone = ZonedDateTime.ofInstant(nowUTC, userTZ);
         LocalDateTime nowUserLocalTime = nowUserTimezone.toLocalDateTime();
-        LocalDateTime userLocalTime4am = LocalDateTime.of(nowUserLocalTime.getYear(), nowUserLocalTime.getMonth(), nowUserLocalTime.getDayOfMonth(), 23, 59, 30);
+        if(isBetween12AMand359AM()){
+            LocalDateTime userLocalTime4am = LocalDateTime.of(nowUserLocalTime.getYear(), nowUserLocalTime.getMonth(), nowUserLocalTime.getDayOfMonth(), 3, 59, 30);
+            long secondsUntil4am = Duration.between(nowUserLocalTime, userLocalTime4am).getSeconds();
+            return (int) secondsUntil4am;
+        } else {
+            LocalDateTime userLocalTime4am = LocalDateTime.of(nowUserLocalTime.getYear(), nowUserLocalTime.getMonth(), nowUserLocalTime.getDayOfMonth(), 23, 59, 30);
+            long secondsUntil4am = Duration.between(nowUserLocalTime, userLocalTime4am).getSeconds();
+            secondsUntil4am += SEC_IN_4_HOURS;
+            // doing it this way avoids months with 30 and 31 days, instead of adding a day to getDayofMonth() (which may fail),
+            //just add 4 hours of seconds onto a midnight time
+            return (int) secondsUntil4am;
+        }
+    }
+
+    /**
+     * return the seconds until 4am - 30 sec (next day) for user timezone
+     */
+    public int getSecondsTo359amNextDay() {
+        Instant nowUTC = Instant.now();
+        ZoneId userTZ = ZoneId.of(this.userTimezone);
+        ZonedDateTime nowUserTimezone = ZonedDateTime.ofInstant(nowUTC, userTZ);
+        LocalDateTime nowUserLocalTime = nowUserTimezone.toLocalDateTime();
+        LocalDateTime userLocalTime4am = LocalDateTime.of(nowUserLocalTime.getYear(), nowUserLocalTime.getMonth(), nowUserLocalTime.getDayOfMonth(), 3, 59, 30);
+        userLocalTime4am = userLocalTime4am.plusDays(1);
         long secondsUntil4am = Duration.between(nowUserLocalTime, userLocalTime4am).getSeconds();
-        secondsUntil4am += SEC_IN_4_HOURS; 
-        // doing it this way avoids months with 30 and 31 days, instead of adding a day to getDayofMonth() (which may fail), 
-        //just add 4 hours of seconds onto a midnight time
         return (int) secondsUntil4am;
     }
 
     /**
-    * return the seconds until 4am for user timezone (This should only be used in resetting the episode)
+    * !!! IMPORTANT !!! THIS SHOULD ONLY BE USED TO RESTORE PARTICIPANT STATE, WILL CREATE A LOOP OF TEXTS IF USED ELSEWHERE
+     * return the seconds until 4am for user timezone
     */
     public int getSecondsTo4am() {
         Instant nowUTC = Instant.now();
@@ -143,6 +164,19 @@ public class TimezoneHelper {
         return secondsUntil3am <= 0 && secondsUntil3pm >= 0;
     }
 
+    public Boolean isBetween3AMand3PM(long unixTS) {
+        Instant unixUTC = Instant.ofEpochMilli(unixTS*1000L);
+        ZoneId userTZ = ZoneId.of(this.userTimezone);
+        ZonedDateTime nowUserTimezone = ZonedDateTime.ofInstant(unixUTC, userTZ);
+        LocalDateTime nowUserLocalTime = nowUserTimezone.toLocalDateTime();
+        LocalDateTime userLocalTime3am = LocalDateTime.of(nowUserLocalTime.getYear(), nowUserLocalTime.getMonth(), nowUserLocalTime.getDayOfMonth(), 3, 0, 0);
+        LocalDateTime userLocalTime3pm = LocalDateTime.of(nowUserLocalTime.getYear(), nowUserLocalTime.getMonth(), nowUserLocalTime.getDayOfMonth(), 15, 0, 0);
+        long secondsUntil3am = Duration.between(nowUserLocalTime, userLocalTime3am).getSeconds();
+        long secondsUntil3pm = Duration.between(nowUserLocalTime, userLocalTime3pm).getSeconds();
+
+        return secondsUntil3am <= 0 && secondsUntil3pm >= 0;
+    }
+
     public Boolean isBetween12AMand4AM() {
         Instant nowUTC = Instant.now();
         ZoneId userTZ = ZoneId.of(this.userTimezone);
@@ -156,17 +190,17 @@ public class TimezoneHelper {
         return secondsUntil12am <= 0 && secondsUntil4am >= 0;
     }
 
-    public Boolean isBetween3AMand3PM(long unixTS) {
-        Instant unixUTC = Instant.ofEpochMilli(unixTS*1000L);
+    public Boolean isBetween12AMand359AM() {
+        Instant nowUTC = Instant.now();
         ZoneId userTZ = ZoneId.of(this.userTimezone);
-        ZonedDateTime nowUserTimezone = ZonedDateTime.ofInstant(unixUTC, userTZ);
+        ZonedDateTime nowUserTimezone = ZonedDateTime.ofInstant(nowUTC, userTZ);
         LocalDateTime nowUserLocalTime = nowUserTimezone.toLocalDateTime();
-        LocalDateTime userLocalTime3am = LocalDateTime.of(nowUserLocalTime.getYear(), nowUserLocalTime.getMonth(), nowUserLocalTime.getDayOfMonth(), 3, 0, 0);
-        LocalDateTime userLocalTime3pm = LocalDateTime.of(nowUserLocalTime.getYear(), nowUserLocalTime.getMonth(), nowUserLocalTime.getDayOfMonth(), 15, 0, 0);
-        long secondsUntil3am = Duration.between(nowUserLocalTime, userLocalTime3am).getSeconds();
-        long secondsUntil3pm = Duration.between(nowUserLocalTime, userLocalTime3pm).getSeconds();
+        LocalDateTime userLocalTime12am = LocalDateTime.of(nowUserLocalTime.getYear(), nowUserLocalTime.getMonth(), nowUserLocalTime.getDayOfMonth(), 0, 0, 0);
+        LocalDateTime userLocalTime4am = LocalDateTime.of(nowUserLocalTime.getYear(), nowUserLocalTime.getMonth(), nowUserLocalTime.getDayOfMonth(), 3, 59, 30);
+        long secondsUntil12am = Duration.between(nowUserLocalTime, userLocalTime12am).getSeconds();
+        long secondsUntil4am = Duration.between(nowUserLocalTime, userLocalTime4am).getSeconds();
 
-        return secondsUntil3am <= 0 && secondsUntil3pm >= 0;
+        return secondsUntil12am <= 0 && secondsUntil4am >= 0;
     }
 
     // is same day <4am

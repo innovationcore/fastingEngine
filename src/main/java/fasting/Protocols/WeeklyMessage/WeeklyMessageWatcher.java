@@ -1,7 +1,6 @@
 package fasting.Protocols.WeeklyMessage;
 
 import fasting.Launcher;
-import fasting.Protocols.DailyMessage.DailyMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,13 +13,13 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class WeeklyMessageWatcher {
-
+    private final Logger logger;
     private final AtomicBoolean lockWeeklyMessage = new AtomicBoolean();
     private final AtomicBoolean lockEpisodeReset = new AtomicBoolean();
     private final Map<String, WeeklyMessage> weeklyMessageMap;
 
     public WeeklyMessageWatcher() {
-        Logger logger = LoggerFactory.getLogger(WeeklyMessageWatcher.class);
+        this.logger = LoggerFactory.getLogger(WeeklyMessageWatcher.class);
         this.weeklyMessageMap = Collections.synchronizedMap(new HashMap<>());
 
         //how long to wait before checking protocols
@@ -54,6 +53,12 @@ public class WeeklyMessageWatcher {
         synchronized (lockWeeklyMessage) {
             weeklyMessageMap.put(participantId, p0);
         }
+    }
+
+    public void updateTimeZone(String participantId, String tz) {
+        WeeklyMessage toUpdate = weeklyMessageMap.get(participantId);
+        logger.warn(participantId + ": changed TZ from " + toUpdate.TZHelper.getUserTimezone() + " to " + tz);
+        toUpdate.TZHelper.setUserTimezone(tz);
     }
 
     class startWeeklyMessage extends TimerTask {

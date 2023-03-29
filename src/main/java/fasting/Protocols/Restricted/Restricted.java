@@ -366,8 +366,8 @@ public class Restricted extends RestrictedBase {
                 break;
             case warnStartCal:
                 //set start fail timer
-                setStartDeadline(TZHelper.getSecondsTo4am());
-                String warnStartCalMessageLog = participantMap.get("participant_uuid") + " please submit startcal: startdeadline timeout " + TZHelper.getDateFromAddingSeconds(TZHelper.getSecondsTo4am());
+                setStartDeadline(TZHelper.getSecondsTo359am());
+                String warnStartCalMessageLog = participantMap.get("participant_uuid") + " please submit startcal: startdeadline timeout " + TZHelper.getDateFromAddingSeconds(TZHelper.getSecondsTo359am());
                 logger.warn(warnStartCalMessageLog);
                 // send reminder message at noon
                 String warnStartCalMessage = "No \"STARTCAL\" received yet today. Please send us your \"STARTCAL\" so we know when your calories began today.";
@@ -434,7 +434,7 @@ public class Restricted extends RestrictedBase {
                 break;
             case warnEndCal:
                 //set end for endcal
-                setEndDeadline(TZHelper.getSecondsTo4am());
+                setEndDeadline(TZHelper.getSecondsTo359am());
                 String warnEndCalMessage = participantMap.get("first_name") +  ", we haven't heard from you. Remember to text \"ENDCAL\" when you go calorie free.";
                 if (!this.pauseMessages){
                     Launcher.msgUtils.sendMessage(participantMap.get("number"), warnEndCalMessage);
@@ -681,7 +681,7 @@ public class Restricted extends RestrictedBase {
                             break;
                         case warnStartCal:
                             //reset startDeadline
-                            int secondsTo359am0 = TZHelper.getSecondsTo4am();
+                            int secondsTo359am0 = TZHelper.getSecondsTo359am();
                             if (secondsTo359am0 < 0) {
                                 secondsTo359am0 = 0;
                             }
@@ -708,7 +708,7 @@ public class Restricted extends RestrictedBase {
                             break;
                         case warnEndCal:
                             //reset endDeadline
-                            int secondsTo359am1 = TZHelper.getSecondsTo4am();
+                            int secondsTo359am1 = TZHelper.getSecondsTo359am();
                             if (secondsTo359am1 < 0) {
                                 secondsTo359am1 = 0;
                             }

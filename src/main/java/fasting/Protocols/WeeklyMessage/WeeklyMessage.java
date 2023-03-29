@@ -21,7 +21,7 @@ public class WeeklyMessage extends WeeklyMessageBase {
     private Map<String, String> participantMap;
     private Map<String,Long> stateMap;
     private long startTimestamp = 0;
-    private TimezoneHelper TZHelper;
+    public TimezoneHelper TZHelper;
     private boolean isRestoring;
     private boolean isReset;
 
@@ -57,7 +57,7 @@ public class WeeklyMessage extends WeeklyMessageBase {
 
                 }
             } catch (Exception ex) {
-                logger.error("protocols.Baseline Thread");
+                logger.error("protocols.WeeklyMessage Thread");
                 logger.error(ex.getMessage());
             }
         }, 30, 900, TimeUnit.SECONDS); //900 sec is 15 mins

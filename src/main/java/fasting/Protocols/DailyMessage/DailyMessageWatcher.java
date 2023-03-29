@@ -14,13 +14,13 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class DailyMessageWatcher {
-
+    private final Logger logger;
     private final AtomicBoolean lockDailyMessage = new AtomicBoolean();
     private final AtomicBoolean lockEpisodeReset = new AtomicBoolean();
     private final Map<String, DailyMessage> dailyMessageMap;
 
     public DailyMessageWatcher() {
-        Logger logger = LoggerFactory.getLogger(DailyMessageWatcher.class);
+        this.logger = LoggerFactory.getLogger(DailyMessageWatcher.class);
         this.dailyMessageMap = Collections.synchronizedMap(new HashMap<>());
 
         //how long to wait before checking protocols
@@ -53,6 +53,12 @@ public class DailyMessageWatcher {
         synchronized (lockDailyMessage) {
             dailyMessageMap.put(participantId, p0);
         }
+    }
+
+    public void updateTimeZone(String participantId, String tz) {
+        DailyMessage toUpdate = dailyMessageMap.get(participantId);
+        logger.warn(participantId + ": changed TZ from " + toUpdate.TZHelper.getUserTimezone() + " to " + tz);
+        toUpdate.TZHelper.setUserTimezone(tz);
     }
 
     class startDailyMessage extends TimerTask {

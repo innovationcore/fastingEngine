@@ -1,7 +1,6 @@
 package fasting.Protocols.Baseline;
 
 import fasting.Launcher;
-import fasting.Protocols.Restricted.Restricted;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -244,6 +243,12 @@ public class BaselineWatcher {
             logger.error(exceptionAsString);
         }
         return newState;
+    }
+
+    public void updateTimeZone(String participantId, String tz) {
+        Baseline toUpdate = baselineMap.get(participantId);
+        logger.warn(participantId + ": changed TZ from " + toUpdate.TZHelper.getUserTimezone() + " to " + tz);
+        toUpdate.TZHelper.setUserTimezone(tz);
     }
 
     class startBaseline extends TimerTask {

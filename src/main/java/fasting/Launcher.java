@@ -65,14 +65,16 @@ public class Launcher {
             startServer();
 
             //testing
-//            TimezoneHelper TZHelper = new TimezoneHelper("Singapore","Etc/UTC");
+//            TimezoneHelper TZHelper = new TimezoneHelper("Australia/Sydney","Etc/UTC");
 //            System.out.println(TZHelper.getSecondsTo4am());
 //            System.out.println(TZHelper.getSecondsTo359am());
+//
+//            TimezoneHelper TZHelper1 = new TimezoneHelper("US/Hawaii","Etc/UTC");
+//            System.out.println(TZHelper1.getSecondsTo4am());
+//            System.out.println(TZHelper1.getSecondsTo359am());
 
 
-            
 
-    
             //start protocols
             restrictedWatcher = new RestrictedWatcher();
             controlWatcher = new ControlWatcher();

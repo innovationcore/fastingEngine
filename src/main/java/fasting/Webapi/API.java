@@ -279,6 +279,56 @@ public class API {
         return Response.ok(responseString).header("Access-Control-Allow-Origin", "*").build();
     }
 
+    @POST
+    @Path("/update-timezone")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response updateTimeZone(MultivaluedMap<String, String> data) {
+
+        String responseString;
+        try {
+            String participantId = data.get("uuid").get(0);
+            String tz = data.get("tz").get(0);
+            if (participantId != null) {
+                //send to state machine
+                String enrollment = Launcher.dbEngine.getEnrollmentUUID(participantId);
+                String enrollmentName = Launcher.dbEngine.getEnrollmentName(enrollment);
+                if (enrollmentName.equals("TRE")) {
+                    Launcher.restrictedWatcher.updateTimeZone(participantId, tz);
+                    Launcher.dailyMessageWatcher.updateTimeZone(participantId, tz);
+                } else if (enrollmentName.equals("Baseline")) {
+                    Launcher.baselineWatcher.updateTimeZone(participantId, tz);
+                    Launcher.weeklyMessageWatcher.updateTimeZone(participantId, tz);
+                } else if (enrollmentName.equals("Control")) {
+                    Launcher.controlWatcher.updateTimeZone(participantId, tz);
+                    Launcher.weeklyMessageWatcher.updateTimeZone(participantId, tz);
+                }
+
+                Map<String,String> response = new HashMap<>();
+                response.put("status", "ok");
+                responseString = gson.toJson(response);
+
+            } else {
+                Map<String,String> response = new HashMap<>();
+                response.put("status","error");
+                response.put("status_desc","participant not found");
+                responseString = gson.toJson(response);
+            }
+
+        } catch (Exception ex) {
+
+            StringWriter sw = new StringWriter();
+            ex.printStackTrace(new PrintWriter(sw));
+            String exceptionAsString = sw.toString();
+            ex.printStackTrace();
+            logger.error("updateTimeZone");
+            logger.error(exceptionAsString);
+
+            return Response.status(500).entity(exceptionAsString).build();
+        }
+        return Response.ok(responseString).header("Access-Control-Allow-Origin", "*").build();
+    }
+
     private Map<String, String> convertMultiToRegularMap(MultivaluedMap<String, String> m) {
         Map<String, String> map = new HashMap<String, String>();
         if (m == null) {
