@@ -264,7 +264,7 @@ public class Restricted extends RestrictedBase {
     private boolean isDayoff(String messageBody) {
         boolean isDayoff = false;
         try {
-            if(messageBody.toLowerCase().contains("dayoff")) {
+            if(messageBody.toLowerCase().contains("dayoff") || messageBody.toLowerCase().contains("day off")) {
                 isDayoff = true;
             }
 
