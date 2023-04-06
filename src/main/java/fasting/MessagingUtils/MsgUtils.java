@@ -52,7 +52,8 @@ public class MsgUtils {
         String timestamp = format.format(date);
 
         Map<String,String> messageMap = new HashMap<>();
-        messageMap.put("Body",body);
+        String stripped_body = body.replaceAll("\n", "").replaceAll("\r", "").replaceAll("\t", "");
+        messageMap.put("Body",stripped_body);
         String json_string = gson.toJson(messageMap);
         logger.info(json_string);
 
