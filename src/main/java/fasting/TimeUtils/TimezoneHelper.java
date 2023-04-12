@@ -233,6 +233,12 @@ public class TimezoneHelper {
             int minutes = -1;
             String ampm = "";
 
+            time = time.toLowerCase();
+
+            if (!(time.contains("a") || time.contains("p"))) {
+                return -1L;
+            }
+
             if (time.contains(":")) {
                 // 00:00
                 String[] timeArray = time.split(":");

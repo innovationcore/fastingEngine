@@ -94,7 +94,7 @@ public class Restricted extends RestrictedBase {
                         String textBody = incomingMap.get("Body").trim(); // removes whitespace before and after
                         String[] startCalSplit = textBody.split(" ", 2);
                         if (startCalSplit.length >= 2) {
-                            if (!startCalSplit[1].toLowerCase().contains("a") && !startCalSplit[1].toLowerCase().contains("p")){
+                            if (!(startCalSplit[1].toLowerCase().contains("a") || startCalSplit[1].toLowerCase().contains("p"))){
                                 Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your STARTCAL time was not understood. Please send \"STARTCAL\" again with your starting time including \"am\" or \"pm\". For example, \"STARTCAL 7:30 am\".");
                                 break;
                             }
@@ -121,7 +121,7 @@ public class Restricted extends RestrictedBase {
                         String[] endCalSplit = textBody.split(" ", 2);
                         boolean isBetween3AMand3PM;
                         if (endCalSplit.length >= 2){
-                            if (!endCalSplit[1].toLowerCase().contains("a") && !endCalSplit[1].toLowerCase().contains("p")){
+                            if (!(endCalSplit[1].toLowerCase().contains("a") || endCalSplit[1].toLowerCase().contains("p"))){
                                 Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time including \"am\" or \"pm\". For example, \"ENDCAL 7:30 pm\".");
                                 break;
                             }
@@ -158,7 +158,7 @@ public class Restricted extends RestrictedBase {
                         String[] endCalSplit = textBody.split(" ", 2);
                         boolean isBetween3AMand3PM;
                         if (endCalSplit.length >= 2){
-                            if (!endCalSplit[1].toLowerCase().contains("a") && !endCalSplit[1].toLowerCase().contains("p")){
+                            if (!(endCalSplit[1].toLowerCase().contains("a") || endCalSplit[1].toLowerCase().contains("p"))) {
                                 Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time including \"am\" or \"pm\". For example, \"ENDCAL 7:30 pm\".");
                                 break;
                             }
@@ -191,7 +191,7 @@ public class Restricted extends RestrictedBase {
                         String[] endCalSplit = textBody.split(" ", 2);
                         boolean isBetween3AMand3PM;
                         if (endCalSplit.length >= 2){
-                            if (!endCalSplit[1].toLowerCase().contains("a") && !endCalSplit[1].toLowerCase().contains("p")){
+                            if (!(endCalSplit[1].toLowerCase().contains("a") || endCalSplit[1].toLowerCase().contains("p"))) {
                                 Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time including \"am\" or \"pm\". For example, \"ENDCAL 7:30 pm\".");
                                 break;
                             }
