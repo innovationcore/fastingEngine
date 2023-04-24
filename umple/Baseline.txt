@@ -2,6 +2,7 @@
 class BaselineBase
 {
   Integer timeout24Hours = 0;
+  Integer startWarnDeadline = 0;
   Integer endWarnDeadline = 0;
 
 
@@ -16,6 +17,7 @@ class BaselineBase
 
       //must be able to advance to any state
       receivedWaitStart -> waitStart;
+      receivedWarnStart -> warnStartCal;
       receivedStartCal -> startcal;
       recievedWarnEndCal -> warnEndCal;
     }
@@ -28,10 +30,19 @@ class BaselineBase
       };
 
       receivedStartCal -> startcal;
-      after(timeout24Hours) -> timeout24;
+      after(startWarnDeadline) -> warnStartCal;
       receivedEndProtocol -> endProtocol;
     }
 
+    warnStartCal {
+      entry/ {
+    	// send a reminder messaage at noon
+        stateNotify("warnStartCal");
+      };
+
+      receivedStartCal -> startcal;
+      after(timeout24Hours) -> timeout24;
+    }
 
     startcal {
       entry / {

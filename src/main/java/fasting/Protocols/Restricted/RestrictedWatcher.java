@@ -155,13 +155,14 @@ public class RestrictedWatcher {
                         participant.timeoutwaitStartTowarnStartCal();
                         newState = "warnStartCal";
                     } else if (moveToState.equals("startcal")) {
+                        long timestamp = participant.TZHelper.parseTimeWebsite(time);
+                        Launcher.dbEngine.saveStartCalTimeCreateTemp(participantId, timestamp);
                         participant.receivedStartCal();
-                        long timestamp = participant.TZHelper.parseTime(time);
-                        Launcher.dbEngine.saveStartCalTime(participantId, timestamp);
+                        Launcher.dbEngine.removeTempStartCal(participantId);
                         newState = "startcal";
                     } else if (moveToState.equals("dayOffWait")) {
-                    participant.receivedDayOff();
-                    newState = "dayOffWait";
+                        participant.receivedDayOff();
+                        newState = "dayOffWait";
                     } else {
                         // invalid state
                         newState = "waitstart invalid";
@@ -169,9 +170,10 @@ public class RestrictedWatcher {
                     break;
                 case warnStartCal:
                     if (moveToState.equals("startcal")) {
+                        long timestamp = participant.TZHelper.parseTimeWebsite(time);
+                        Launcher.dbEngine.saveStartCalTimeCreateTemp(participantId, timestamp);
                         participant.receivedStartCal();
-                        long timestamp = participant.TZHelper.parseTime(time);
-                        Launcher.dbEngine.saveStartCalTime(participantId, timestamp);
+                        Launcher.dbEngine.removeTempStartCal(participantId);
                         newState = "startcal";
                     } else if (moveToState.equals("missedStartCal")) {
                         participant.timeoutwarnStartCalTomissedStartCal();
@@ -185,13 +187,14 @@ public class RestrictedWatcher {
                     }
                     break;
                 case startcal:
-                    if (moveToState.equals("startcal")){ 
+                    if (moveToState.equals("startcal")){
+                        long timestamp = participant.TZHelper.parseTimeWebsite(time);
+                        Launcher.dbEngine.saveStartCalTimeCreateTemp(participantId, timestamp);
                         participant.receivedStartCal();
-                        long timestamp = participant.TZHelper.parseTime(time);
-                        Launcher.dbEngine.saveStartCalTime(participantId, timestamp);
+                        Launcher.dbEngine.removeTempStartCal(participantId);
                         newState = "startcal";
                     } else if (moveToState.equals("endcal")) {
-                        long timestamp = participant.TZHelper.parseTime(time);
+                        long timestamp = participant.TZHelper.parseTimeWebsite(time);
                         Launcher.dbEngine.saveEndCalTimeCreateTemp(participantId, timestamp);
                         participant.receivedEndCal();
                         Launcher.dbEngine.removeTempEndCal(participantId);
@@ -218,7 +221,7 @@ public class RestrictedWatcher {
                     break;
                 case warnEndCal:
                     if (moveToState.equals("endcal")) {
-                        long timestamp = participant.TZHelper.parseTime(time);
+                        long timestamp = participant.TZHelper.parseTimeWebsite(time);
                         Launcher.dbEngine.saveEndCalTimeCreateTemp(participantId, timestamp);
                         participant.receivedEndCal(); // needs to create endcal state before saving time
                         Launcher.dbEngine.removeTempEndCal(participantId);
@@ -258,7 +261,7 @@ public class RestrictedWatcher {
                         participant.timeoutendOfEpisodeToresetEpisodeVariables();
                         newState = "resetEpisodeVariables";
                     } else if (moveToState.equals("endcal")){
-                        long timestamp = participant.TZHelper.parseTime(time);
+                        long timestamp = participant.TZHelper.parseTimeWebsite(time);
                         Launcher.dbEngine.saveEndCalTimeCreateTemp(participantId, timestamp);
                         participant.receivedEndCal();
                         Launcher.dbEngine.removeTempEndCal(participantId);

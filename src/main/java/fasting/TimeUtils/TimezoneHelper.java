@@ -303,6 +303,64 @@ public class TimezoneHelper {
         }
     }
 
+    public long parseTimeWebsite(String time){
+        // parse time string into seconds
+        // time string should be in format HH:MM:SS
+        boolean forYesterday = false;
+        try {
+            int hours = -1;
+            int minutes = -1;
+
+            time = time.toLowerCase();
+
+            if (time.contains(":")) {
+                // 00:00
+                String[] timeArray = time.split(":");
+                hours = Integer.parseInt(timeArray[0].trim());
+                minutes = Integer.parseInt(timeArray[1].trim().substring(0, 2));
+            } else {
+                // 5pm
+                if (time.toLowerCase().contains("p")) {
+                    String[] timeArray = time.split("p");
+                    hours = Integer.parseInt(timeArray[0].trim());
+                    minutes = 0;
+                } else if (time.toLowerCase().contains("a")){
+                    String[] timeArray = time.split("a");
+                    hours = Integer.parseInt(timeArray[0].trim());
+                    minutes = 0;
+                } else {
+                    try {
+                        hours = Integer.parseInt(time.trim());
+                        minutes = 0;
+                    } catch (Exception e) {
+                        return -1L;
+                    }
+                }
+            }
+
+            // if current time is after 12am and before 4 am, set the date to yesterday
+            if (isBetween12AMand4AM()){
+                forYesterday = true;
+            }
+
+            Instant nowUTC = Instant.now();
+            ZoneId userTZ = ZoneId.of(this.userTimezone);
+            ZonedDateTime nowUserTimezone = ZonedDateTime.ofInstant(nowUTC, userTZ);
+            LocalDateTime nowUserLocalTime = nowUserTimezone.toLocalDateTime();
+
+            LocalDateTime currentDateAndTime = LocalDateTime.of(nowUserLocalTime.getYear(), nowUserLocalTime.getMonth(), nowUserLocalTime.getDayOfMonth(), hours, minutes, 0);
+            if (forYesterday){
+                currentDateAndTime = currentDateAndTime.minusDays(1);
+            }
+
+            return currentDateAndTime.toEpochSecond(userTZ.getRules().getOffset(currentDateAndTime));
+        } catch (Exception e){
+            e.printStackTrace();
+            // if fails to parse time, return the time now
+            return -1L;
+        }
+    }
+
     public long getUnixTimestampNow(){
         Instant nowUTC = Instant.now();
         ZoneId userTZ = ZoneId.of(this.userTimezone);
@@ -378,6 +436,19 @@ public class TimezoneHelper {
     }
 
     /**
+     * return the seconds until Noon in the users timezone
+     */
+    public int getSecondsToNoon() {
+        Instant nowUTC = Instant.now();
+        ZoneId userTZ = ZoneId.of(this.userTimezone);
+        ZonedDateTime nowUserTimezone = ZonedDateTime.ofInstant(nowUTC, userTZ);
+        LocalDateTime nowUserLocalTime = nowUserTimezone.toLocalDateTime();
+        LocalDateTime userLocalTimeNoon = LocalDateTime.of(nowUserLocalTime.getYear(), nowUserLocalTime.getMonth(), nowUserLocalTime.getDayOfMonth(), 11, 59, 59);
+        long secondsUntilNoon = Duration.between(nowUserLocalTime, userLocalTimeNoon).getSeconds();
+        return (int) secondsUntilNoon;
+    }
+
+    /**
      * return the seconds until 5pm in user's timezone
      */
     public int getSecondsTo5pm() {
@@ -391,7 +462,6 @@ public class TimezoneHelper {
             secondsUntil5pm += SEC_IN_DAY;
         }
         return (int) secondsUntil5pm;
-
     }
 
     /**

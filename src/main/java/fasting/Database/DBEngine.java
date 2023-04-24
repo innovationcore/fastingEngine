@@ -639,6 +639,43 @@ public class DBEngine {
         }
     }
 
+    public void saveStartCalTimeCreateTemp(String participantUUID, long unixTS){
+        Connection conn = null;
+        PreparedStatement stmt = null;
+
+        try {
+            String json = "{\"state\": \"startcal\", \"start_cal_time\":" + unixTS + ", \"temp\": \"true\"}";
+            String query = "INSERT INTO state_log VALUES (?, GETUTCDATE(), ?)";
+            conn = ds.getConnection();
+            stmt = conn.prepareStatement(query);
+            stmt.setString(1, participantUUID);
+            stmt.setString(2, json);
+            stmt.executeUpdate();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        } finally {
+            try { stmt.close(); } catch (Exception e) { /* Null Ignored */ }
+            try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
+        }
+    }
+
+    public void removeTempStartCal(String participantUUID){
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        try{
+            String query = "DELETE FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.temp') = 'true' AND JSON_VALUE(log_json, '$.state') = 'startcal'";
+            conn = ds.getConnection();
+            stmt = conn.prepareStatement(query);
+            stmt.setString(1, participantUUID);
+            stmt.executeUpdate();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        } finally {
+            try { stmt.close(); } catch (Exception e) { /* Null Ignored */ }
+            try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
+        }
+    }
+
     public void saveEndCalTimeCreateTemp(String participantUUID, long unixTS){
         Connection conn = null;
         PreparedStatement stmt = null;
@@ -663,7 +700,7 @@ public class DBEngine {
         Connection conn = null;
         PreparedStatement stmt = null;
         try{
-            String query = "DELETE FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.temp') = 'true'";
+            String query = "DELETE FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.temp') = 'true' AND JSON_VALUE(log_json, '$.state') = 'endcal'";
             conn = ds.getConnection();
             stmt = conn.prepareStatement(query);
             stmt.setString(1, participantUUID);

@@ -11,7 +11,7 @@ import java.util.*;
  * UML State diagram for a library loan, represented in Umple
  */
 // line 3 "model.ump"
-// line 94 "model.ump"
+// line 105 "model.ump"
 public class BaselineBase
 {
 
@@ -21,14 +21,16 @@ public class BaselineBase
 
   //BaselineBase Attributes
   private int timeout24Hours;
+  private int startWarnDeadline;
   private int endWarnDeadline;
 
   //BaselineBase State Machines
-  public enum State { initial, waitStart, startcal, warnEndCal, endcal, timeout24, endProtocol }
+  public enum State { initial, waitStart, warnStartCal, startcal, warnEndCal, endcal, timeout24, endProtocol }
   private State state;
 
   //Helper Variables
-  private TimedEventHandler timeoutwaitStartTotimeout24Handler;
+  private TimedEventHandler timeoutwaitStartTowarnStartCalHandler;
+  private TimedEventHandler timeoutwarnStartCalTotimeout24Handler;
   private TimedEventHandler timeoutstartcalTowarnEndCalHandler;
   private TimedEventHandler timeoutwarnEndCalTowaitStartHandler;
   private TimedEventHandler timeoutendcalTowaitStartHandler;
@@ -40,6 +42,7 @@ public class BaselineBase
   public BaselineBase()
   {
     timeout24Hours = 0;
+    startWarnDeadline = 0;
     endWarnDeadline = 0;
     setState(State.initial);
   }
@@ -56,6 +59,14 @@ public class BaselineBase
     return wasSet;
   }
 
+  public boolean setStartWarnDeadline(int aStartWarnDeadline)
+  {
+    boolean wasSet = false;
+    startWarnDeadline = aStartWarnDeadline;
+    wasSet = true;
+    return wasSet;
+  }
+
   public boolean setEndWarnDeadline(int aEndWarnDeadline)
   {
     boolean wasSet = false;
@@ -67,6 +78,11 @@ public class BaselineBase
   public int getTimeout24Hours()
   {
     return timeout24Hours;
+  }
+
+  public int getStartWarnDeadline()
+  {
+    return startWarnDeadline;
   }
 
   public int getEndWarnDeadline()
@@ -103,6 +119,24 @@ public class BaselineBase
     return wasEventProcessed;
   }
 
+  public boolean receivedWarnStart()
+  {
+    boolean wasEventProcessed = false;
+
+    State aState = state;
+    switch (aState)
+    {
+      case initial:
+        setState(State.warnStartCal);
+        wasEventProcessed = true;
+        break;
+      default:
+        // Other states do respond to this event
+    }
+
+    return wasEventProcessed;
+  }
+
   public boolean receivedStartCal()
   {
     boolean wasEventProcessed = false;
@@ -115,6 +149,11 @@ public class BaselineBase
         wasEventProcessed = true;
         break;
       case waitStart:
+        exitState();
+        setState(State.startcal);
+        wasEventProcessed = true;
+        break;
+      case warnStartCal:
         exitState();
         setState(State.startcal);
         wasEventProcessed = true;
@@ -149,7 +188,7 @@ public class BaselineBase
     return wasEventProcessed;
   }
 
-  public boolean timeoutwaitStartTotimeout24()
+  public boolean timeoutwaitStartTowarnStartCal()
   {
     boolean wasEventProcessed = false;
 
@@ -158,7 +197,7 @@ public class BaselineBase
     {
       case waitStart:
         exitState();
-        setState(State.timeout24);
+        setState(State.warnStartCal);
         wasEventProcessed = true;
         break;
       default:
@@ -193,6 +232,25 @@ public class BaselineBase
       case endcal:
         exitState();
         setState(State.endProtocol);
+        wasEventProcessed = true;
+        break;
+      default:
+        // Other states do respond to this event
+    }
+
+    return wasEventProcessed;
+  }
+
+  public boolean timeoutwarnStartCalTotimeout24()
+  {
+    boolean wasEventProcessed = false;
+
+    State aState = state;
+    switch (aState)
+    {
+      case warnStartCal:
+        exitState();
+        setState(State.timeout24);
         wasEventProcessed = true;
         break;
       default:
@@ -288,7 +346,7 @@ public class BaselineBase
     return wasEventProcessed;
   }
 
-  private boolean __autotransition1198__()
+  private boolean __autotransition1616__()
   {
     boolean wasEventProcessed = false;
 
@@ -311,7 +369,10 @@ public class BaselineBase
     switch(state)
     {
       case waitStart:
-        stopTimeoutwaitStartTotimeout24Handler();
+        stopTimeoutwaitStartTowarnStartCalHandler();
+        break;
+      case warnStartCal:
+        stopTimeoutwarnStartCalTotimeout24Handler();
         break;
       case startcal:
         stopTimeoutstartcalTowarnEndCalHandler();
@@ -333,59 +394,75 @@ public class BaselineBase
     switch(state)
     {
       case initial:
-        // line 12 "model.ump"
+        // line 13 "model.ump"
         // here we need to receive the message to start
         // Possibly send missed fasts messages
         stateNotify("initial");
         break;
       case waitStart:
-        // line 25 "model.ump"
+        // line 27 "model.ump"
         // here we need to receive the message to start
         // Possibly send missed fasts messages
         stateNotify("waitStart");
-        startTimeoutwaitStartTotimeout24Handler();
+        startTimeoutwaitStartTowarnStartCalHandler();
+        break;
+      case warnStartCal:
+        // line 39 "model.ump"
+        // send a reminder messaage at noon
+        stateNotify("warnStartCal");
+        startTimeoutwarnStartCalTotimeout24Handler();
         break;
       case startcal:
-        // line 38 "model.ump"
+        // line 49 "model.ump"
         // here we need to receive the message to start
         // Possibly send missed fasts messages
         stateNotify("startcal");
         startTimeoutstartcalTowarnEndCalHandler();
         break;
       case warnEndCal:
-        // line 52 "model.ump"
+        // line 63 "model.ump"
         stateNotify("warnEndCal");
         startTimeoutwarnEndCalTowaitStartHandler();
         break;
       case endcal:
-        // line 61 "model.ump"
+        // line 72 "model.ump"
         // here we need to receive the message to start
         // Possibly send missed fasts messages
         stateNotify("endcal");
         startTimeoutendcalTowaitStartHandler();
         break;
       case timeout24:
-        // line 72 "model.ump"
+        // line 83 "model.ump"
         // here we need to receive the message to start
         // Possibly send missed fasts messages
         stateNotify("timeout24");
-        __autotransition1198__();
+        __autotransition1616__();
         break;
       case endProtocol:
-        // line 81 "model.ump"
+        // line 92 "model.ump"
         stateNotify("endProtocol");
         break;
     }
   }
 
-  private void startTimeoutwaitStartTotimeout24Handler()
+  private void startTimeoutwaitStartTowarnStartCalHandler()
   {
-    timeoutwaitStartTotimeout24Handler = new TimedEventHandler(this,"timeoutwaitStartTotimeout24",timeout24Hours);
+    timeoutwaitStartTowarnStartCalHandler = new TimedEventHandler(this,"timeoutwaitStartTowarnStartCal",startWarnDeadline);
   }
 
-  private void stopTimeoutwaitStartTotimeout24Handler()
+  private void stopTimeoutwaitStartTowarnStartCalHandler()
   {
-    timeoutwaitStartTotimeout24Handler.stop();
+    timeoutwaitStartTowarnStartCalHandler.stop();
+  }
+
+  private void startTimeoutwarnStartCalTotimeout24Handler()
+  {
+    timeoutwarnStartCalTotimeout24Handler = new TimedEventHandler(this,"timeoutwarnStartCalTotimeout24",timeout24Hours);
+  }
+
+  private void stopTimeoutwarnStartCalTotimeout24Handler()
+  {
+    timeoutwarnStartCalTotimeout24Handler.stop();
   }
 
   private void startTimeoutstartcalTowarnEndCalHandler()
@@ -441,12 +518,21 @@ public class BaselineBase
 
     public void run ()
     {
-      if ("timeoutwaitStartTotimeout24".equals(timeoutMethodName))
+      if ("timeoutwaitStartTowarnStartCal".equals(timeoutMethodName))
       {
-        boolean shouldRestart = !controller.timeoutwaitStartTotimeout24();
+        boolean shouldRestart = !controller.timeoutwaitStartTowarnStartCal();
         if (shouldRestart)
         {
-          controller.startTimeoutwaitStartTotimeout24Handler();
+          controller.startTimeoutwaitStartTowarnStartCalHandler();
+        }
+        return;
+      }
+      if ("timeoutwarnStartCalTotimeout24".equals(timeoutMethodName))
+      {
+        boolean shouldRestart = !controller.timeoutwarnStartCalTotimeout24();
+        if (shouldRestart)
+        {
+          controller.startTimeoutwarnStartCalTotimeout24Handler();
         }
         return;
       }
@@ -483,12 +569,12 @@ public class BaselineBase
   public void delete()
   {}
 
-  // line 88 "model.ump"
+  // line 99 "model.ump"
   public boolean stateNotify(String node){
     return true;
   }
 
-  // line 89 "model.ump"
+  // line 100 "model.ump"
   public int currentTime(){
     return 1;
   }
@@ -498,6 +584,7 @@ public class BaselineBase
   {
     return super.toString() + "["+
             "timeout24Hours" + ":" + getTimeout24Hours()+ "," +
+            "startWarnDeadline" + ":" + getStartWarnDeadline()+ "," +
             "endWarnDeadline" + ":" + getEndWarnDeadline()+ "]";
   }
 }

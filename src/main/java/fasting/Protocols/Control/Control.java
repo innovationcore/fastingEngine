@@ -77,6 +77,7 @@ public class Control extends ControlBase {
                     //no timers
                     break;
                 case waitStart:
+                case warnStartCal:
                     if(isStartCal(incomingMap.get("Body"))) {
                         String textBody = incomingMap.get("Body").trim(); // removes whitespace before and after
                         String[] startCalSplit = textBody.split(" ", 2);
@@ -247,14 +248,25 @@ public class Control extends ControlBase {
                 //no timers
                 break;
             case waitStart:
-                //24 hour timer set
-                int seconds = TZHelper.getSecondsTo359am();
+                int seconds = TZHelper.getSecondsToNoon();
                 if (seconds <= 0) {
-                    seconds = TZHelper.getSecondsTo359amNextDay();
+                    seconds = 1;
                 }
-                setTimeout24Hours(seconds);
-                String waitStartMessage = participantMap.get("participant_uuid") + " created state machine: timeout24 timeout " + TZHelper.getDateFromAddingSeconds(seconds);
+                setStartWarnDeadline(seconds);
+                String waitStartMessage = participantMap.get("participant_uuid") + " created state machine: warnStartCal timeout " + TZHelper.getDateFromAddingSeconds(seconds);
                 logger.warn(waitStartMessage);
+                //save state info
+                stateJSON = saveStateJSON();
+                Launcher.dbEngine.uploadSaveState(stateJSON, participantMap.get("participant_uuid"));
+                break;
+            case warnStartCal:
+                //set end for startcal
+                setTimeout24Hours(TZHelper.getSecondsTo359am());
+                String warnStartMessage = "Remember to text \"STARTCAL\" when your calories start for the day and \"ENDCAL\" when your calories finish at night. Thank you!";
+                if (!this.isRestoring){
+                    Launcher.msgUtils.sendMessage(participantMap.get("number"), warnStartMessage);
+                }
+                logger.warn(warnStartMessage);
                 //save state info
                 stateJSON = saveStateJSON();
                 Launcher.dbEngine.uploadSaveState(stateJSON, participantMap.get("participant_uuid"));
@@ -393,9 +405,15 @@ public class Control extends ControlBase {
                         case waitStart:
                             this.isRestoring = true;
                             //resetting warn timer
-                            int timeout24 = TZHelper.getSecondsTo359am();  //timeToD1T1159am();
-                            setTimeout24Hours(timeout24);
+                            setStartWarnDeadline(TZHelper.getSecondsToNoon());
                             receivedWaitStart(); // initial to waitStart
+                            this.isRestoring = false;
+                            break;
+                        case warnStartCal:
+                            this.isRestoring = true;
+                            //resetting warn timer
+                            setTimeout24Hours(TZHelper.getSecondsTo359am());
+                            receivedWarnStart(); // initial to warnStart
                             this.isRestoring = false;
                             break;
                         case startcal:

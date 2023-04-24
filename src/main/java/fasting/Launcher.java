@@ -66,7 +66,8 @@ public class Launcher {
 
             //testing
 //            TimezoneHelper TZHelper = new TimezoneHelper("America/Louisville","Etc/UTC");
-//            System.out.println(TZHelper.parseTime("3:45"));
+//            System.out.println(TZHelper.getSecondsToNoon());
+//            System.out.println(TZHelper.parseTimeWebsite("04:21"));
 //            System.out.println(TZHelper.parseTime("3:45A"));
 //            System.out.println(TZHelper.parseTime("3:45P"));
 //            System.out.println(TZHelper.parseTime("3:45 pm"));

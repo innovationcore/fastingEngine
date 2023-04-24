@@ -65,10 +65,13 @@ public class BaselineWatcher {
 
             switch (currentState){
                 case "initial":
-                    validNextStates = "waitStart,startcal,warnEndCal";
+                    validNextStates = "waitStart,warnStartCal,startcal,warnEndCal";
                     break;
                 case "waitStart":
-                    validNextStates = "startcal,timeout24,endProtocol";
+                    validNextStates = "warnStartCal,startcal,endProtocol";
+                    break;
+                case "warnStartCal":
+                    validNextStates = "timeout24,startcal";
                     break;
                 case "startcal":
                     validNextStates = "startcal,endcal,warnEndCal,endProtocol";
@@ -133,6 +136,9 @@ public class BaselineWatcher {
                     if (moveToState.equals("waitStart")){
                         participant.receivedWaitStart();
                         newState = "waitStart";
+                    } else if (moveToState.equals("warnStartCal")) {
+                        participant.receivedWarnStart();
+                        newState = "warnStartCal";
                     } else if (moveToState.equals("startcal")) {
                         participant.receivedStartCal();
                         newState = "startcal";
@@ -144,13 +150,14 @@ public class BaselineWatcher {
                     break;
                 case waitStart:
                     if (moveToState.equals("startcal")) {
+                        long timestamp = participant.TZHelper.parseTimeWebsite(time);
+                        Launcher.dbEngine.saveStartCalTimeCreateTemp(participantId, timestamp);
                         participant.receivedStartCal();
-                        long timestamp = participant.TZHelper.parseTime(time);
-                        Launcher.dbEngine.saveStartCalTime(participantId, timestamp);
+                        Launcher.dbEngine.removeTempStartCal(participantId);
                         newState = "startcal";
-                    } else if (moveToState.equals("timeout24")) {
-                        participant.timeoutwaitStartTotimeout24();
-                        newState = "timeout24";
+                    } else if (moveToState.equals("warnStartCal")) {
+                        participant.timeoutwaitStartTowarnStartCal();
+                        newState = "warnStartCal";
                     } else if (moveToState.equals("endProtocol")) {
                         participant.receivedEndProtocol();
                         newState = "endProtocol";
@@ -160,14 +167,31 @@ public class BaselineWatcher {
                         break;
                     }
                     break;
+                case warnStartCal:
+                    if(moveToState.equals("timeout24")){
+                        participant.timeoutwarnStartCalTotimeout24();
+                        newState = "timeout24";
+                    } else if (moveToState.equals("startcal")) {
+                        long timestamp = participant.TZHelper.parseTimeWebsite(time);
+                        Launcher.dbEngine.saveStartCalTimeCreateTemp(participantId, timestamp);
+                        participant.receivedStartCal();
+                        Launcher.dbEngine.removeTempStartCal(participantId);
+                        newState = "startcal";
+                    } else {
+                        newState = "warnStartCal invalid";
+                        // invalid state
+                        break;
+                    }
+                    break;
                 case startcal:
                     if (moveToState.equals("startcal")){
+                        long timestamp = participant.TZHelper.parseTimeWebsite(time);
+                        Launcher.dbEngine.saveStartCalTimeCreateTemp(participantId, timestamp);
                         participant.receivedStartCal();
-                        long timestamp = participant.TZHelper.parseTime(time);
-                        Launcher.dbEngine.saveStartCalTime(participantId, timestamp);
+                        Launcher.dbEngine.removeTempStartCal(participantId);
                         newState = "startcal";
                     } else if (moveToState.equals("endcal")) {
-                        long timestamp = participant.TZHelper.parseTime(time);
+                        long timestamp = participant.TZHelper.parseTimeWebsite(time);
                         Launcher.dbEngine.saveEndCalTimeCreateTemp(participantId, timestamp);
                         participant.receivedEndCal();
                         Launcher.dbEngine.removeTempEndCal(participantId);
@@ -201,7 +225,7 @@ public class BaselineWatcher {
                     }
                 case endcal:
                     if (moveToState.equals("endcal")){
-                        long timestamp = participant.TZHelper.parseTime(time);
+                        long timestamp = participant.TZHelper.parseTimeWebsite(time);
                         Launcher.dbEngine.saveEndCalTimeCreateTemp(participantId, timestamp);
                         participant.receivedEndCal();
                         Launcher.dbEngine.removeTempEndCal(participantId);
