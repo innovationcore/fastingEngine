@@ -102,20 +102,6 @@ public class TimezoneHelper {
     }
 
     /**
-     * return the seconds until 4am - 30 sec (next day) for user timezone
-     */
-    public int getSecondsTo359amNextDay() {
-        Instant nowUTC = Instant.now();
-        ZoneId userTZ = ZoneId.of(this.userTimezone);
-        ZonedDateTime nowUserTimezone = ZonedDateTime.ofInstant(nowUTC, userTZ);
-        LocalDateTime nowUserLocalTime = nowUserTimezone.toLocalDateTime();
-        LocalDateTime userLocalTime4am = LocalDateTime.of(nowUserLocalTime.getYear(), nowUserLocalTime.getMonth(), nowUserLocalTime.getDayOfMonth(), 3, 59, 30);
-        userLocalTime4am = userLocalTime4am.plusDays(1);
-        long secondsUntil4am = Duration.between(nowUserLocalTime, userLocalTime4am).getSeconds();
-        return (int) secondsUntil4am;
-    }
-
-    /**
     * !!! IMPORTANT !!! THIS SHOULD ONLY BE USED TO RESTORE PARTICIPANT STATE, WILL CREATE A LOOP OF TEXTS IF USED ELSEWHERE
      * return the seconds until 4am for user timezone
     */
@@ -417,16 +403,16 @@ public class TimezoneHelper {
     }
 
     /**
-     * return the seconds until Friday at Noon in the users timezone
+     * return the seconds until Friday at 5pm in the users timezone
      */
-    public int getSecondsToFridayNoon() {
+    public int getSecondsToFriday5pm() {
         Instant nowUTC = Instant.now();
         ZoneId userTZ = ZoneId.of(this.userTimezone);
         ZonedDateTime nowUserTimezone = ZonedDateTime.ofInstant(nowUTC, userTZ);
         LocalDateTime nowUserLocalTime = nowUserTimezone.toLocalDateTime();
 
 
-        LocalDateTime userLocalTimeNoon = nowUserLocalTime.with(DayOfWeek.FRIDAY).withHour(12).withMinute(0).withSecond(0).withNano(0);
+        LocalDateTime userLocalTimeNoon = nowUserLocalTime.with(DayOfWeek.FRIDAY).withHour(17).withMinute(0).withSecond(0).withNano(0);
         if (nowUserLocalTime.isAfter(userLocalTimeNoon)) {
             userLocalTimeNoon = userLocalTimeNoon.plusWeeks(1);
         }
@@ -456,7 +442,7 @@ public class TimezoneHelper {
         ZoneId userTZ = ZoneId.of(this.userTimezone);
         ZonedDateTime nowUserTimezone = ZonedDateTime.ofInstant(nowUTC, userTZ);
         LocalDateTime nowUserLocalTime = nowUserTimezone.toLocalDateTime();
-        LocalDateTime userLocalTime5pm = LocalDateTime.of(nowUserLocalTime.getYear(), nowUserLocalTime.getMonth(), nowUserLocalTime.getDayOfMonth(), 17, 00, 00);
+        LocalDateTime userLocalTime5pm = LocalDateTime.of(nowUserLocalTime.getYear(), nowUserLocalTime.getMonth(), nowUserLocalTime.getDayOfMonth(), 17, 0, 0);
         long secondsUntil5pm = Duration.between(nowUserLocalTime, userLocalTime5pm).getSeconds();
         if (secondsUntil5pm < 0) {
             secondsUntil5pm += SEC_IN_DAY;

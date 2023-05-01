@@ -108,13 +108,13 @@ public class DailyMessage extends DailyMessageBase {
                 String currentState = restrictedMap.get(participantMap.get("participant_uuid")).getState().toString();
                 if(isReset){
                     this.isReset = true;
-                    int seconds = TZHelper.getSecondsToFridayNoon();
+                    int seconds = TZHelper.getSecondsTo5pm();
                     setTimeout24Hours(seconds);
                     receivedWaitDay();
                     this.isReset = false;
                 } else {
                     if (!currentState.equals("endProtocol")) {
-                        int seconds = TZHelper.getSecondsToFridayNoon();
+                        int seconds = TZHelper.getSecondsTo5pm();
                         setTimeout24Hours(seconds);
                         receivedWaitDay();
                     }

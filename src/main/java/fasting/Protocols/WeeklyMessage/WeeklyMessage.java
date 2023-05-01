@@ -64,29 +64,6 @@ public class WeeklyMessage extends WeeklyMessageBase {
 
     }
 
-//    public String saveStateJSON() {
-//        String stateJSON = null;
-//        try {
-//            Map<String,Long> timerMap = new HashMap<>();
-//            timerMap.put("stateIndex", Long.valueOf(getState().ordinal()));
-//            timerMap.put("startTime", startTimestamp);
-//            timerMap.put("currentTime", System.currentTimeMillis() / 1000); //unix seconds
-//            timerMap.put("timeout1Week", Long.valueOf(getTimeout1Week()));
-//
-//            Map<String,Map<String,Long>> stateSaveMap = new HashMap<>();
-//            stateSaveMap.put("history",stateMap);
-//            stateSaveMap.put("timers", timerMap);
-//
-//            stateJSON = gson.toJson(stateSaveMap);
-//
-//        } catch (Exception ex) {
-//            logger.error("saveStateJSON");
-//            logger.error(ex.getMessage());
-//
-//        }
-//        return stateJSON;
-//    }
-
     @Override
     public boolean stateNotify(String state){
 
@@ -105,13 +82,13 @@ public class WeeklyMessage extends WeeklyMessageBase {
                 break;
             case waitWeek:
                 // 1 week timer set
-                int seconds = TZHelper.getSecondsToFridayNoon();
+                int seconds = TZHelper.getSecondsToFriday5pm();
                 setTimeout1Week(seconds);
                 String waitWeekMessage = participantMap.get("participant_uuid") + " created state machine: waitWeek timeout " + TZHelper.getDateFromAddingSeconds(seconds);
                 logger.info(waitWeekMessage);
                 break;
             case sendWeeklyMessage:
-                String weeklyMessage = "Thank you for continuing to send us your STARTCAL and ENDCAL each day. Keep up the great work!";
+                String weeklyMessage = "Thank you for continuing to send us your \"STARTCAL\" and \"ENDCAL\" each day. Keep up the great work!";
                 logger.info(weeklyMessage);
                 Launcher.msgUtils.sendMessage(participantMap.get("number"), weeklyMessage);
                 // wait 5 seconds, so multiple messages don't get sent at the same time
@@ -143,14 +120,14 @@ public class WeeklyMessage extends WeeklyMessageBase {
                 String currentState = baselineMap.get(participantMap.get("participant_uuid")).getState().toString();
                 if (isReset) {
                     this.isReset = true;
-                    int seconds = TZHelper.getSecondsToFridayNoon();
+                    int seconds = TZHelper.getSecondsToFriday5pm();
                     setTimeout1Week(seconds);
                     receivedWaitWeek();
                     this.isReset = false;
                 }
                 else {
                     if (!currentState.equals("endProtocol")) {
-                        int seconds = TZHelper.getSecondsToFridayNoon();
+                        int seconds = TZHelper.getSecondsToFriday5pm();
                         setTimeout1Week(seconds);
                         receivedWaitWeek();
                     }
@@ -166,14 +143,14 @@ public class WeeklyMessage extends WeeklyMessageBase {
                 String currentState = controlMap.get(participantMap.get("participant_uuid")).getState().toString();
                 if (isReset) {
                     this.isReset = true;
-                    int seconds = TZHelper.getSecondsToFridayNoon();
+                    int seconds = TZHelper.getSecondsToFriday5pm();
                     setTimeout1Week(seconds);
                     receivedWaitWeek();
                     this.isReset = false;
                 }
                 else {
                     if (!currentState.equals("endProtocol")) {
-                        int seconds = TZHelper.getSecondsToFridayNoon();
+                        int seconds = TZHelper.getSecondsToFriday5pm();
                         setTimeout1Week(seconds);
                         receivedWaitWeek();
                     }
