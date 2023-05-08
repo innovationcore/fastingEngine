@@ -839,10 +839,10 @@ public class Restricted extends RestrictedBase {
         // this is a list of responses for when a participant sends endcal
         final List<String> successMessages = Collections.unmodifiableList(
         new ArrayList<String>() {{
-            add("You ended your time-restricted eating [SHORT] too early. Your success rate is now [SUCCESS]. Try planning ahead for how you will end your TRE.");
-            add("You ended your time-restricted eating too early! [NAME], your success rate is now [SUCCESS]. Have small snacks or meals ready so you can stay on time.");
-            add("[NAME], you ended your time-restricted eating too early! Your success rate is now [SUCCESS]. If you need help, get a family member to help you end your fasting time!");
-            add("You ended your time-restricted eating too early. Your success rate is now [SUCCESS]. Try putting Post-Its on your fridge and cupboards to help you remember your target End Calories time!");
+            add("You ended your time-restricted eating [SHORT] too short. Your success rate is now [SUCCESS]. Try planning ahead for how you will end your TRE.");
+            add("You ended your time-restricted eating too short! [NAME], your success rate is now [SUCCESS]. Have small snacks or meals ready so you can stay on time.");
+            add("[NAME], you ended your time-restricted eating too short! Your success rate is now [SUCCESS]. If you need help, get a family member to help you end your fasting time!");
+            add("You ended your time-restricted eating too short. Your success rate is now [SUCCESS]. Try putting Post-Its on your fridge and cupboards to help you remember your target End Calories time!");
         }});
         int rnd = new Random().nextInt(successMessages.size());
         String message = successMessages.get(rnd);
