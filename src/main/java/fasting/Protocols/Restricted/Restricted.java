@@ -512,21 +512,22 @@ public class Restricted extends RestrictedBase {
                         // update the success rate
                         if(TZHelper.isAfter8PM(endTime)){
                             Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false, isRepeat);
+                            String after8PMMsg = randomAfter8PMMessage();
+                            Launcher.msgUtils.sendMessage(participantMap.get("number"), after8PMMsg);
+                            String neutralMsg = pickNeutralTRE();
+                            if(!neutralMsg.equals("")){
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), neutralMsg);
+                            }
                         } else {
                             Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), true, isRepeat);
-                        }
-                        String successMsg = pickRandomSuccessTRE();
-                        if(!successMsg.equals("")){
-                            Launcher.msgUtils.sendMessage(participantMap.get("number"), successMsg);
+                            String successMsg = pickRandomSuccessTRE();
+                            if(!successMsg.equals("")){
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), successMsg);
+                            }
                         }
                     }
                 }
 
-                // send message if endcal is after 8pm
-                if (TZHelper.isAfter8PM(endTime) && !this.pauseMessages && !this.isDayOff) {
-                    String after8PMMsg = randomAfter8PMMessage();
-                    Launcher.msgUtils.sendMessage(participantMap.get("number"), after8PMMsg);
-                }
                 //save state info
                 stateJSON = saveStateJSON();
                 Launcher.dbEngine.uploadSaveState(stateJSON, participantMap.get("participant_uuid"));
@@ -804,6 +805,27 @@ public class Restricted extends RestrictedBase {
         String message = endCalMessages.get(rnd);
         if (message.contains("[NAME]")) {
             message = message.replace("[NAME]", participantMap.get("first_name"));
+        }
+        return message;
+    }
+
+    public String pickNeutralTRE(){
+        // this is a list of responses for when a participant sends endcal
+        final List<String> neutralMessages = Collections.unmodifiableList(
+            new ArrayList<String>() {{
+                add("Your overall success rate is now [SUCCESS]!");
+            }});
+        int rnd = new Random().nextInt(neutralMessages.size());
+        String message = neutralMessages.get(rnd);
+//        if (message.contains("[NAME]")) {
+//            message = message.replace("[NAME]", participantMap.get("first_name"));
+//        }
+        if (message.contains("[SUCCESS]")) {
+            String successRate = Launcher.dbEngine.getSuccessRate(participantMap.get("participant_uuid"));
+            message = message.replace("[SUCCESS]", successRate);
+            if (successRate.equals("")) {
+                message = "";
+            }
         }
         return message;
     }
