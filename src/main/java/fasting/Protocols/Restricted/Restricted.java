@@ -813,7 +813,7 @@ public class Restricted extends RestrictedBase {
         // this is a list of responses for when a participant sends endcal
         final List<String> neutralMessages = Collections.unmodifiableList(
             new ArrayList<String>() {{
-                add("Your overall success rate is now [SUCCESS]!");
+                add("Your overall success rate is now [SUCCESS].");
             }});
         int rnd = new Random().nextInt(neutralMessages.size());
         String message = neutralMessages.get(rnd);
