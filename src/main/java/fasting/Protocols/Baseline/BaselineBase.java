@@ -11,7 +11,7 @@ import java.util.*;
  * UML State diagram for a library loan, represented in Umple
  */
 // line 3 "model.ump"
-// line 105 "model.ump"
+// line 106 "model.ump"
 public class BaselineBase
 {
 
@@ -188,25 +188,6 @@ public class BaselineBase
     return wasEventProcessed;
   }
 
-  public boolean timeoutwaitStartTowarnStartCal()
-  {
-    boolean wasEventProcessed = false;
-
-    State aState = state;
-    switch (aState)
-    {
-      case waitStart:
-        exitState();
-        setState(State.warnStartCal);
-        wasEventProcessed = true;
-        break;
-      default:
-        // Other states do respond to this event
-    }
-
-    return wasEventProcessed;
-  }
-
   public boolean receivedEndProtocol()
   {
     boolean wasEventProcessed = false;
@@ -214,7 +195,16 @@ public class BaselineBase
     State aState = state;
     switch (aState)
     {
+      case initial:
+        setState(State.endProtocol);
+        wasEventProcessed = true;
+        break;
       case waitStart:
+        exitState();
+        setState(State.endProtocol);
+        wasEventProcessed = true;
+        break;
+      case warnStartCal:
         exitState();
         setState(State.endProtocol);
         wasEventProcessed = true;
@@ -232,6 +222,25 @@ public class BaselineBase
       case endcal:
         exitState();
         setState(State.endProtocol);
+        wasEventProcessed = true;
+        break;
+      default:
+        // Other states do respond to this event
+    }
+
+    return wasEventProcessed;
+  }
+
+  public boolean timeoutwaitStartTowarnStartCal()
+  {
+    boolean wasEventProcessed = false;
+
+    State aState = state;
+    switch (aState)
+    {
+      case waitStart:
+        exitState();
+        setState(State.warnStartCal);
         wasEventProcessed = true;
         break;
       default:
@@ -346,7 +355,7 @@ public class BaselineBase
     return wasEventProcessed;
   }
 
-  private boolean __autotransition1616__()
+  private boolean __autotransition887__()
   {
     boolean wasEventProcessed = false;
 
@@ -400,46 +409,46 @@ public class BaselineBase
         stateNotify("initial");
         break;
       case waitStart:
-        // line 27 "model.ump"
+        // line 28 "model.ump"
         // here we need to receive the message to start
         // Possibly send missed fasts messages
         stateNotify("waitStart");
         startTimeoutwaitStartTowarnStartCalHandler();
         break;
       case warnStartCal:
-        // line 39 "model.ump"
+        // line 40 "model.ump"
         // send a reminder messaage at noon
         stateNotify("warnStartCal");
         startTimeoutwarnStartCalTotimeout24Handler();
         break;
       case startcal:
-        // line 49 "model.ump"
+        // line 51 "model.ump"
         // here we need to receive the message to start
         // Possibly send missed fasts messages
         stateNotify("startcal");
         startTimeoutstartcalTowarnEndCalHandler();
         break;
       case warnEndCal:
-        // line 63 "model.ump"
+        // line 64 "model.ump"
         stateNotify("warnEndCal");
         startTimeoutwarnEndCalTowaitStartHandler();
         break;
       case endcal:
-        // line 72 "model.ump"
+        // line 73 "model.ump"
         // here we need to receive the message to start
         // Possibly send missed fasts messages
         stateNotify("endcal");
         startTimeoutendcalTowaitStartHandler();
         break;
       case timeout24:
-        // line 83 "model.ump"
+        // line 84 "model.ump"
         // here we need to receive the message to start
         // Possibly send missed fasts messages
         stateNotify("timeout24");
-        __autotransition1616__();
+        __autotransition887__();
         break;
       case endProtocol:
-        // line 92 "model.ump"
+        // line 93 "model.ump"
         stateNotify("endProtocol");
         break;
     }
@@ -569,12 +578,12 @@ public class BaselineBase
   public void delete()
   {}
 
-  // line 99 "model.ump"
+  // line 100 "model.ump"
   public boolean stateNotify(String node){
     return true;
   }
 
-  // line 100 "model.ump"
+  // line 101 "model.ump"
   public int currentTime(){
     return 1;
   }

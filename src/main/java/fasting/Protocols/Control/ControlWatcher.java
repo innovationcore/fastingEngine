@@ -65,13 +65,13 @@ public class ControlWatcher {
 
             switch (currentState){
                 case "initial":
-                    validNextStates = "waitStart,warnStartCal,startcal,warnEndCal";
+                    validNextStates = "waitStart,warnStartCal,startcal,warnEndCal,endProtocol";
                     break;
                 case "waitStart":
                     validNextStates = "warnStartCal,startcal,endProtocol";
                     break;
                 case "warnStartCal":
-                    validNextStates = "timeout24,startcal";
+                    validNextStates = "timeout24,startcal,endProtocol";
                     break;
                 case "startcal":
                     validNextStates = "startcal,endcal,warnEndCal,endProtocol";
@@ -132,6 +132,7 @@ public class ControlWatcher {
         try {
             Control participant = controlMap.get(participantId);
             switch (participant.getState()){
+                //waitStart,warnStartCal,startcal,warnEndCal,endProtocol
                 case initial:
                     if (moveToState.equals("waitStart")){
                         participant.receivedWaitStart();
@@ -142,12 +143,19 @@ public class ControlWatcher {
                     } else if (moveToState.equals("startcal")) {
                         participant.receivedStartCal();
                         newState = "startcal";
+                    } else if (moveToState.equals("warnEndCal")) {
+                        participant.recievedWarnEndCal();
+                        newState = "warnEndCal";
+                    } else if (moveToState.equals("endProtocol")) {
+                        participant.receivedEndProtocol();
+                        newState = "endProtocol";
                     } else {
                         // invalid state
                         newState = "initial invalid";
                         break;
                     }
                     break;
+                //warnStartCal,startcal,endProtocol
                 case waitStart:
                     if (moveToState.equals("startcal")) {
                         long timestamp = participant.TZHelper.parseTimeWebsite(time);
@@ -167,6 +175,7 @@ public class ControlWatcher {
                         break;
                     }
                     break;
+                // timeout24,startcal,endProtocol
                 case warnStartCal:
                     if(moveToState.equals("timeout24")){
                         participant.timeoutwarnStartCalTotimeout24();
@@ -177,12 +186,16 @@ public class ControlWatcher {
                         participant.receivedStartCal();
                         Launcher.dbEngine.removeTempStartCal(participantId);
                         newState = "startcal";
+                    } else if (moveToState.equals("endProtocol")){
+                        participant.receivedEndProtocol();
+                        newState = "endProtocol";
                     } else {
                         newState = "warnStartCal invalid";
                         // invalid state
                         break;
                     }
                     break;
+                // startcal,endcal,warnEndCal,endProtocol
                 case startcal:
                     if (moveToState.equals("startcal")){
                         long timestamp = participant.TZHelper.parseTimeWebsite(time);
@@ -208,6 +221,7 @@ public class ControlWatcher {
                         break;
                     }
                     break;
+                // waitStart,endcal,endProtocol
                 case warnEndCal:
                     if (moveToState.equals("waitStart")){
                         participant.timeoutwarnEndCalTowaitStart();
@@ -223,6 +237,7 @@ public class ControlWatcher {
                         newState = "warnEndCal invalid";
                         break;
                     }
+                // endcal,waitStart,endProtocol
                 case endcal:
                     if (moveToState.equals("endcal")){
                         long timestamp = participant.TZHelper.parseTimeWebsite(time);

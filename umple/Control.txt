@@ -20,6 +20,7 @@ class ControlBase
       receivedWarnStart -> warnStartCal;
       receivedStartCal -> startcal;
       recievedWarnEndCal -> warnEndCal;
+      receivedEndProtocol -> endProtocol;
     }
 
     waitStart {
@@ -42,6 +43,7 @@ class ControlBase
 
       receivedStartCal -> startcal;
       after(timeout24Hours) -> timeout24;
+      receivedEndProtocol -> endProtocol;
     }
 
     startcal {
