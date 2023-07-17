@@ -946,6 +946,51 @@ public class DBEngine {
         return successRate;
     }
 
+    /**
+     * updates the already set success rate for dayoff messages sent after endcal
+     * @param wasFastSuccessful boolean was the last endcal time successful
+     * */
+    public String updateSuccessRate(String participantUUID, boolean wasFastSuccessful){
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        String updatedSuccessRate = "";
+        int successCount = getLastKnownSuccessCount(participantUUID);
+        int totalCount = getLastKnownTotalCount(participantUUID);
+
+        try {
+            conn = ds.getConnection();
+            String query = "";
+            if (wasFastSuccessful){
+                //subtract 1 from success and total
+                query = "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.successful_TRE', " + (successCount - 1) + ") WHERE TS IN (SELECT TOP 1 TS FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'startcal' ORDER BY TS DESC);";
+                query += "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.total_TRE', " + (totalCount - 1) + ") WHERE TS IN (SELECT TOP 1 TS FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'startcal' ORDER BY TS DESC)";
+                stmt = conn.prepareStatement(query);
+                stmt.setString(1, participantUUID);
+                stmt.setString(2, participantUUID);
+            } else {
+                // only subtract 1 from total
+                query += "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.total_TRE', " + (totalCount - 1) + ") WHERE TS IN (SELECT TOP 1 TS FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'startcal' ORDER BY TS DESC)";
+                stmt = conn.prepareStatement(query);
+                stmt.setString(1, participantUUID);
+            }
+
+            if (stmt != null) {
+                stmt.executeUpdate();
+            }
+
+            updatedSuccessRate = getSuccessRate(participantUUID);
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        } finally {
+            try { rs.close(); }   catch (Exception e) { /* Null Ignored */ }
+            try { stmt.close(); } catch (Exception e) { /* Null Ignored */ }
+            try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
+        }
+        return updatedSuccessRate;
+    }
+
     public boolean wasLastTRESuccessful(String participantUUID){
         Connection conn = null;
         PreparedStatement stmt = null;

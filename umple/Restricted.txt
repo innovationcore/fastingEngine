@@ -131,8 +131,15 @@ class RestrictedBase
       };
 
       after(endOfEpisodeDeadline) -> resetEpisodeVariables;
+      receivedDayOff -> dayOffEndOfEpisode;
       receivedEndCal -> endcal;
       receivedEndProtocol -> endProtocol;
+    }
+
+    dayOffEndOfEpisode {
+      entry / {
+        stateNotify("dayOffEndOfEpisode");
+      } -> endOfEpisode;
     }
 
     resetEpisodeVariables {

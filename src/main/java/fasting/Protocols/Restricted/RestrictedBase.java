@@ -11,7 +11,7 @@ import java.util.*;
  * UML State diagram for a library loan, represented in Umple
  */
 // line 3 "model.ump"
-// line 160 "model.ump"
+// line 167 "model.ump"
 public class RestrictedBase
 {
 
@@ -27,7 +27,7 @@ public class RestrictedBase
   private int endOfEpisodeDeadline;
 
   //RestrictedBase State Machines
-  public enum State { initial, waitStart, dayOffWait, warnStartCal, dayOffWarn, startcal, dayOffStartCal, missedStartCal, warnEndCal, dayOffWarnEndCal, endcal, missedEndCal, endOfEpisode, resetEpisodeVariables, endProtocol }
+  public enum State { initial, waitStart, dayOffWait, warnStartCal, dayOffWarn, startcal, dayOffStartCal, missedStartCal, warnEndCal, dayOffWarnEndCal, endcal, missedEndCal, endOfEpisode, dayOffEndOfEpisode, resetEpisodeVariables, endProtocol }
   private State state;
 
   //Helper Variables
@@ -290,6 +290,11 @@ public class RestrictedBase
         setState(State.dayOffWarnEndCal);
         wasEventProcessed = true;
         break;
+      case endOfEpisode:
+        exitState();
+        setState(State.dayOffEndOfEpisode);
+        wasEventProcessed = true;
+        break;
       default:
         // Other states do respond to this event
     }
@@ -316,7 +321,7 @@ public class RestrictedBase
     return wasEventProcessed;
   }
 
-  private boolean __autotransition1634__()
+  private boolean __autotransition1057__()
   {
     boolean wasEventProcessed = false;
 
@@ -353,7 +358,7 @@ public class RestrictedBase
     return wasEventProcessed;
   }
 
-  private boolean __autotransition1635__()
+  private boolean __autotransition1058__()
   {
     boolean wasEventProcessed = false;
 
@@ -419,7 +424,7 @@ public class RestrictedBase
     return wasEventProcessed;
   }
 
-  private boolean __autotransition1636__()
+  private boolean __autotransition1059__()
   {
     boolean wasEventProcessed = false;
 
@@ -437,7 +442,7 @@ public class RestrictedBase
     return wasEventProcessed;
   }
 
-  private boolean __autotransition1637__()
+  private boolean __autotransition1060__()
   {
     boolean wasEventProcessed = false;
 
@@ -474,7 +479,7 @@ public class RestrictedBase
     return wasEventProcessed;
   }
 
-  private boolean __autotransition1638__()
+  private boolean __autotransition1061__()
   {
     boolean wasEventProcessed = false;
 
@@ -492,7 +497,7 @@ public class RestrictedBase
     return wasEventProcessed;
   }
 
-  private boolean __autotransition1639__()
+  private boolean __autotransition1062__()
   {
     boolean wasEventProcessed = false;
 
@@ -510,7 +515,7 @@ public class RestrictedBase
     return wasEventProcessed;
   }
 
-  private boolean __autotransition1640__()
+  private boolean __autotransition1063__()
   {
     boolean wasEventProcessed = false;
 
@@ -547,7 +552,25 @@ public class RestrictedBase
     return wasEventProcessed;
   }
 
-  private boolean __autotransition1641__()
+  private boolean __autotransition1064__()
+  {
+    boolean wasEventProcessed = false;
+
+    State aState = state;
+    switch (aState)
+    {
+      case dayOffEndOfEpisode:
+        setState(State.endOfEpisode);
+        wasEventProcessed = true;
+        break;
+      default:
+        // Other states do respond to this event
+    }
+
+    return wasEventProcessed;
+  }
+
+  private boolean __autotransition1065__()
   {
     boolean wasEventProcessed = false;
 
@@ -610,7 +633,7 @@ public class RestrictedBase
       case dayOffWait:
         // line 44 "model.ump"
         stateNotify("dayOffWait");
-        __autotransition1634__();
+        __autotransition1057__();
         break;
       case warnStartCal:
         // line 50 "model.ump"
@@ -620,7 +643,7 @@ public class RestrictedBase
       case dayOffWarn:
         // line 62 "model.ump"
         stateNotify("dayOffWarn");
-        __autotransition1635__();
+        __autotransition1058__();
         break;
       case startcal:
         // line 68 "model.ump"
@@ -632,12 +655,12 @@ public class RestrictedBase
       case dayOffStartCal:
         // line 83 "model.ump"
         stateNotify("dayOffStartCal");
-        __autotransition1636__();
+        __autotransition1059__();
         break;
       case missedStartCal:
         // line 89 "model.ump"
         stateNotify("missedStartCal");
-        __autotransition1637__();
+        __autotransition1060__();
         break;
       case warnEndCal:
         // line 95 "model.ump"
@@ -647,32 +670,37 @@ public class RestrictedBase
       case dayOffWarnEndCal:
         // line 105 "model.ump"
         stateNotify("dayOffWarnEndCal");
-        __autotransition1638__();
+        __autotransition1061__();
         break;
       case endcal:
         // line 112 "model.ump"
         // here we need to receive the message to start
         // Possibly send missed fasts messages
         stateNotify("endcal");
-        __autotransition1639__();
+        __autotransition1062__();
         break;
       case missedEndCal:
         // line 121 "model.ump"
         stateNotify("missedEndCal");
-        __autotransition1640__();
+        __autotransition1063__();
         break;
       case endOfEpisode:
         // line 130 "model.ump"
         stateNotify("endOfEpisode");
         startTimeoutendOfEpisodeToresetEpisodeVariablesHandler();
         break;
+      case dayOffEndOfEpisode:
+        // line 141 "model.ump"
+        stateNotify("dayOffEndOfEpisode");
+        __autotransition1064__();
+        break;
       case resetEpisodeVariables:
-        // line 140 "model.ump"
+        // line 147 "model.ump"
         stateNotify("resetEpisodeVariables");
-        __autotransition1641__();
+        __autotransition1065__();
         break;
       case endProtocol:
-        // line 147 "model.ump"
+        // line 154 "model.ump"
         stateNotify("endProtocol");
         break;
     }
@@ -802,12 +830,12 @@ public class RestrictedBase
   public void delete()
   {}
 
-  // line 154 "model.ump"
+  // line 161 "model.ump"
   public boolean stateNotify(String node){
     return true;
   }
 
-  // line 155 "model.ump"
+  // line 162 "model.ump"
   public int currentTime(){
     return 1;
   }

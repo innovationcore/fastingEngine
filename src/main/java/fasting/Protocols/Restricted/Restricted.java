@@ -27,6 +27,8 @@ public class Restricted extends RestrictedBase {
     private boolean isFromYesterday = false;
     private Map<String,String> incomingMap;
     private int endcalRepeats;
+
+    private boolean wasSucessfulFast;
     public String stateJSON;
     private final Gson gson;
     public ScheduledExecutorService uploadSave;
@@ -40,6 +42,7 @@ public class Restricted extends RestrictedBase {
         this.isReset = false;
         this.isDayOff = false;
         this.endcalRepeats = 0;
+        this.wasSucessfulFast = false;
 
         // this initializes the user's and machine's timezone
         this.TZHelper = new TimezoneHelper(participantMap.get("time_zone"), TimeZone.getDefault().getID());
@@ -230,6 +233,9 @@ public class Restricted extends RestrictedBase {
                         logger.warn(endOfEpisodeMessage);
                         Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Text 270-402-2214 if you need help.");
                     }
+                    break;
+                case dayOffEndOfEpisode:
+                    logger.warn(participantMap.get("participant_uuid") + " dayOffEndOfEpisode unexpected message");
                     break;
                 case resetEpisodeVariables:
                     logger.warn(participantMap.get("participant_uuid") + " resetEpisodeVariables unexpected message");
@@ -520,6 +526,7 @@ public class Restricted extends RestrictedBase {
                             }
                         } else {
                             Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), true, isRepeat);
+                            this.wasSucessfulFast = true;
                             String successMsg = pickRandomSuccessTRE();
                             if(!successMsg.equals("")){
                                 Launcher.msgUtils.sendMessage(participantMap.get("number"), successMsg);
@@ -567,9 +574,17 @@ public class Restricted extends RestrictedBase {
                     Launcher.msgUtils.sendMessage("+12704022214", dayOffMissedEndCalMsg);
                 }
                 break;
+            case dayOffEndOfEpisode:
+                this.isDayOff = true;
+                // check if endcal was successful or not, variable that is reset
+                String updatedPercentage = Launcher.dbEngine.updateSuccessRate(participantMap.get("participant_uuid"), this.wasSucessfulFast);
+                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Got it, no TRE today! Thank you for telling us. You're success rate is now: " + updatedPercentage);
+                logger.info(participantMap.get("participant_uuid") + " DayOff in endOfEpisode");
+                break;
             case resetEpisodeVariables:
                 this.endcalRepeats = 0;
                 this.isDayOff = false;
+                this.wasSucessfulFast = false;
                 break;
             case dayOffWait:
                 this.isDayOff = true;
@@ -580,7 +595,6 @@ public class Restricted extends RestrictedBase {
                 this.isDayOff = true;
                 Launcher.msgUtils.sendMessage(participantMap.get("number"), "Got it, no TRE today! Thank you for telling us. Please still let us know your \"STARTCAL\" and \"ENDCAL\" today.");
                 logger.info(participantMap.get("participant_uuid") + " DayOff in warnStart");
-                this.pauseMessages = true;
                 break;
             case dayOffStartCal:
                 this.isDayOff = true;
@@ -591,7 +605,6 @@ public class Restricted extends RestrictedBase {
                 this.isDayOff = true;
                 Launcher.msgUtils.sendMessage(participantMap.get("number"), "Got it, no TRE today! Thank you for telling us. Please still let us know your \"ENDCAL\" today.");
                 logger.info(participantMap.get("participant_uuid") + " DayOff in WarnEndCal");
-                this.pauseMessages = true;
                 break;
             case endProtocol:
                 logger.warn(participantMap.get("participant_uuid") + " is not longer in protocol.");
@@ -667,6 +680,7 @@ public class Restricted extends RestrictedBase {
                         case dayOffWait:
                         case dayOffWarn:
                         case dayOffWarnEndCal:
+                        case dayOffEndOfEpisode:
                             //no timers
                             break;
                         case waitStart:

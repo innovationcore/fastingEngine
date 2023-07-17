@@ -83,7 +83,7 @@ public class RestrictedWatcher {
                     validNextStates = "endcal,missedEndCal,dayOffWarnEndCal,endProtocol";
                     break;
                 case "endOfEpisode":
-                    validNextStates = "resetEpisodeVariables,endcal,endProtocol";
+                    validNextStates = "resetEpisodeVariables,dayOffEndOfEpisode,endcal,endProtocol";
                     break;
                 case "endProtocol":
                     validNextStates = "";
@@ -260,6 +260,9 @@ public class RestrictedWatcher {
                     if (moveToState.equals("resetEpisodeVariables")){
                         participant.timeoutendOfEpisodeToresetEpisodeVariables();
                         newState = "resetEpisodeVariables";
+                    } else if (moveToState.equals("dayOffEndOfEpisode")) {
+                        participant.receivedDayOff();
+                        newState = "dayOffEndOfEpisode";
                     } else if (moveToState.equals("endcal")){
                         long timestamp = participant.TZHelper.parseTimeWebsite(time);
                         Launcher.dbEngine.saveEndCalTimeCreateTemp(participantId, timestamp);
