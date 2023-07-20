@@ -228,7 +228,10 @@ public class Restricted extends RestrictedBase {
                 case endOfEpisode:
                     if(isEndCal(incomingMap.get("Body"))) {
                         receivedEndCal();
-                    } else {
+                    }
+                    else if (isDayoff(incomingMap.get("Body"))){
+                        receivedDayOff();
+                    }else {
                         String endOfEpisodeMessage = participantMap.get("participant_uuid") + " endOfEpisode unexpected message";
                         logger.warn(endOfEpisodeMessage);
                         Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Text 270-402-2214 if you need help.");
