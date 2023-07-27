@@ -107,6 +107,12 @@ public class Restricted extends RestrictedBase {
                                 Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your STARTCAL time was not understood. Please send \"STARTCAL\" again with your starting time. For example, \"STARTCAL 7:30 am\".");
                                 break;
                             }
+                        } else {
+                            // if just sent startcal make sure its not startcal9:45 or something similar
+                            if (startCalSplit[0].length() > 8){
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your STARTCAL time was not understood. Please send \"STARTCAL\" again with your starting time. For example, \"STARTCAL 7:30 am\".");
+                                break;
+                            }
                         }
                         receivedStartCal();
                     } else {
@@ -136,6 +142,18 @@ public class Restricted extends RestrictedBase {
                             isBetween3AMand3PM = TZHelper.isBetween3AMand3PM(parsedTime);
                         } else {
                             isBetween3AMand3PM = TZHelper.isBetween3AMand3PM(); // gets time now
+                            // if just sent stopcal/endcal make sure its not endcal9:45 or something similar
+                            if (incomingMap.get("Body").toLowerCase().contains("stopcal")){
+                                if (endCalSplit[0].length() > 7){
+                                    Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".");
+                                    break;
+                                }
+                            } else if (incomingMap.get("Body").toLowerCase().contains("endcal")){
+                                if (endCalSplit[0].length() > 6){
+                                    Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".");
+                                    break;
+                                }
+                            }
                         }
                         if (isBetween3AMand3PM) {
                             Launcher.msgUtils.sendMessage(participantMap.get("number"), "We don't recommend that you end calories this early in the day. " +
@@ -173,6 +191,18 @@ public class Restricted extends RestrictedBase {
                             isBetween3AMand3PM = TZHelper.isBetween3AMand3PM(parsedTime);
                         } else {
                             isBetween3AMand3PM = TZHelper.isBetween3AMand3PM(); // gets time now
+                            // if just sent stopcal/endcal make sure its not endcal9:45 or something similar
+                            if (incomingMap.get("Body").toLowerCase().contains("stopcal")){
+                                if (endCalSplit[0].length() > 7){
+                                    Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".");
+                                    break;
+                                }
+                            } else if (incomingMap.get("Body").toLowerCase().contains("endcal")){
+                                if (endCalSplit[0].length() > 6){
+                                    Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".");
+                                    break;
+                                }
+                            }
                         }
                         if (isBetween3AMand3PM){
                             if(!this.isDayOff){
@@ -206,6 +236,18 @@ public class Restricted extends RestrictedBase {
                             isBetween3AMand3PM = TZHelper.isBetween3AMand3PM(parsedTime);
                         } else {
                             isBetween3AMand3PM = TZHelper.isBetween3AMand3PM(); // gets time now
+                            // if just sent stopcal/endcal make sure its not endcal9:45 or something similar
+                            if (incomingMap.get("Body").toLowerCase().contains("stopcal")){
+                                if (endCalSplit[0].length() > 7){
+                                    Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".");
+                                    break;
+                                }
+                            } else if (incomingMap.get("Body").toLowerCase().contains("endcal")){
+                                if (endCalSplit[0].length() > 6){
+                                    Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".");
+                                    break;
+                                }
+                            }
                         }
                         if (isBetween3AMand3PM){
                             if(!this.isDayOff){
