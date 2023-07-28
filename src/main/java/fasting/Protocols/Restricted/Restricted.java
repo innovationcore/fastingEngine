@@ -538,44 +538,45 @@ public class Restricted extends RestrictedBase {
                 int validTRE = TZHelper.determineGoodFastTime(startTime, endTime);
 
                 if (validTRE == -1){
-                    if (!this.pauseMessages && !this.isDayOff){
+                    if (!this.pauseMessages){
                         // update the success rate
-
-                        Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false, isRepeat);
+                        if (!this.isDayOff) {
+                            Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false, isRepeat);
+                        }
 
                         String before9Msg = pickRandomLess9TRE(startTime, endTime);
-                        if (!before9Msg.equals("")) {
-                            Launcher.msgUtils.sendMessage(participantMap.get("number"), before9Msg);
-                        }
+                        System.out.println(before9Msg);
+                        Launcher.msgUtils.sendMessage(participantMap.get("number"), before9Msg);
                     }
                 } else if (validTRE == 1) {
-                    if (!this.pauseMessages && !this.isDayOff){
+                    if (!this.pauseMessages){
                         // update the success rate
-                        Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false, isRepeat);
+                        if (!this.isDayOff) {
+                            Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false, isRepeat);
+                        }
 
                         String after11Msg = pickRandomGreater11TRE();
-                        if (!after11Msg.equals("")){
-                            Launcher.msgUtils.sendMessage(participantMap.get("number"), after11Msg);
-                        }
+                        Launcher.msgUtils.sendMessage(participantMap.get("number"), after11Msg);
                     }
                 } else {
-                    if (!this.pauseMessages && !this.isDayOff){
+                    if (!this.pauseMessages){
                         // update the success rate
                         if(TZHelper.isAfter8PM(endTime)){
-                            Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false, isRepeat);
+                            if (!this.isDayOff) {
+                                Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false, isRepeat);
+                            }
                             String after8PMMsg = randomAfter8PMMessage();
                             Launcher.msgUtils.sendMessage(participantMap.get("number"), after8PMMsg);
                             String neutralMsg = pickNeutralTRE();
-                            if(!neutralMsg.equals("")){
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), neutralMsg);
-                            }
+                            Launcher.msgUtils.sendMessage(participantMap.get("number"), neutralMsg);
                         } else {
-                            Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), true, isRepeat);
+                            if (!this.isDayOff) {
+                                Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), true, isRepeat);
+                            }
+
                             this.wasSucessfulFast = true;
                             String successMsg = pickRandomSuccessTRE();
-                            if(!successMsg.equals("")){
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), successMsg);
-                            }
+                            Launcher.msgUtils.sendMessage(participantMap.get("number"), successMsg);
                         }
                     }
                 }
@@ -620,6 +621,11 @@ public class Restricted extends RestrictedBase {
                 }
                 break;
             case dayOffEndOfEpisode:
+                if (this.isDayOff == true) {
+                    logger.warn(participantMap.get("participant_uuid") + " REPEATED DayOff in endOfEpisode");
+                    Launcher.msgUtils.sendMessage(participantMap.get("number"), "You have already sent \"DAYOFF\" for today.");
+                    break;
+                }
                 this.isDayOff = true;
                 // check if endcal was successful or not, variable that is reset
                 String updatedPercentage = Launcher.dbEngine.updateSuccessRate(participantMap.get("participant_uuid"), this.wasSucessfulFast);
@@ -876,15 +882,16 @@ public class Restricted extends RestrictedBase {
             }});
         int rnd = new Random().nextInt(neutralMessages.size());
         String message = neutralMessages.get(rnd);
-//        if (message.contains("[NAME]")) {
-//            message = message.replace("[NAME]", participantMap.get("first_name"));
-//        }
         if (message.contains("[SUCCESS]")) {
             String successRate = Launcher.dbEngine.getSuccessRate(participantMap.get("participant_uuid"));
-            message = message.replace("[SUCCESS]", successRate);
             if (successRate.equals("")) {
-                message = "";
+                if (this.isDayOff){
+                    successRate = "100.00%";
+                } else {
+                    successRate = "0.00%";
+                }
             }
+            message = message.replace("[SUCCESS]", successRate);
         }
         return message;
     }
@@ -908,10 +915,14 @@ public class Restricted extends RestrictedBase {
         }
         if (message.contains("[SUCCESS]")) {
             String successRate = Launcher.dbEngine.getSuccessRate(participantMap.get("participant_uuid"));
-            message = message.replace("[SUCCESS]", successRate);
             if (successRate.equals("")) {
-                message = "";
+                if (this.isDayOff){
+                    successRate = "100.00%";
+                } else {
+                    successRate = "0.00%";
+                }
             }
+            message = message.replace("[SUCCESS]", successRate);
         }
         return message;
     }
@@ -932,10 +943,15 @@ public class Restricted extends RestrictedBase {
         }
         if (message.contains("[SUCCESS]")) {
             String successRate = Launcher.dbEngine.getSuccessRate(participantMap.get("participant_uuid"));
-            message = message.replace("[SUCCESS]", successRate);
             if (successRate.equals("")) {
-                message = "";
+                if (this.isDayOff){
+                    successRate = "100.00%";
+                } else {
+                    successRate = "0.00%";
+                }
             }
+            message = message.replace("[SUCCESS]", successRate);
+
         }
         if (message.contains("[SHORT]")) {
             String shortTime = TZHelper.getHoursMinutesBefore(startTime, endTime, 36000L); // 36000s = 10 hours
@@ -960,10 +976,14 @@ public class Restricted extends RestrictedBase {
         }
         if (message.contains("[SUCCESS]")) {
             String successRate = Launcher.dbEngine.getSuccessRate(participantMap.get("participant_uuid"));
-            message = message.replace("[SUCCESS]", successRate);
             if (successRate.equals("")) {
-                message = "";
+                if (this.isDayOff){
+                    successRate = "100.00%";
+                } else {
+                    successRate = "0.00%";
+                }
             }
+            message = message.replace("[SUCCESS]", successRate);
         }
         return message;
     }
