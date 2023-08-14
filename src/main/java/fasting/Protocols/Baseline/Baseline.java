@@ -82,6 +82,14 @@ public class Baseline extends BaselineBase {
                         String textBody = incomingMap.get("Body").trim(); // removes whitespace before and after
                         String[] startCalSplit = textBody.split(" ", 2);
                         if (startCalSplit.length >= 2) {
+                            if (!(startCalSplit[1].toLowerCase().contains("a") || startCalSplit[1].toLowerCase().contains("p"))){
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your STARTCAL time was not understood. Please send \"STARTCAL\" again with your starting time including \"am\" or \"pm\". For example, \"STARTCAL 7:30 am\".");
+                                break;
+                            }
+                            if (!isStartCal(startCalSplit[0])) {
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your STARTCAL time was not understood. Please send \"STARTCAL\" again with your starting time. For example, \"STARTCAL 7:30 am\".");
+                                break;
+                            }
                             long parsedTime = TZHelper.parseTime(startCalSplit[1]);
                             if (parsedTime == -1L) {
                                 Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your STARTCAL time was not understood. Please send \"STARTCAL\" again with your starting time. For example, \"STARTCAL 7:30 am\".");
@@ -105,6 +113,14 @@ public class Baseline extends BaselineBase {
                         String textBody = incomingMap.get("Body").trim(); // removes whitespace before and after
                         String[] startCalSplit = textBody.split(" ", 2);
                         if (startCalSplit.length >= 2) {
+                            if (!(startCalSplit[1].toLowerCase().contains("a") || startCalSplit[1].toLowerCase().contains("p"))){
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your STARTCAL time was not understood. Please send \"STARTCAL\" again with your starting time. For example, \"STARTCAL 7:30 am\".");
+                                break;
+                            }
+                            if (!isStartCal(startCalSplit[0])) {
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your STARTCAL time was not understood. Please send \"STARTCAL\" again with your starting time. For example, \"STARTCAL 7:30 am\".");
+                                break;
+                            }
                             long parsedTime = TZHelper.parseTime(startCalSplit[1]);
                             if (parsedTime == -1L) {
                                 Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your STARTCAL time was not understood. Please send \"STARTCAL\" again with your starting time. For example, \"STARTCAL 7:30 am\".");
@@ -122,6 +138,14 @@ public class Baseline extends BaselineBase {
                         String textBody = incomingMap.get("Body").trim(); // removes whitespace before and after
                         String[] endCalSplit = textBody.split(" ", 2);
                         if (endCalSplit.length >= 2) {
+                            if (!(endCalSplit[1].toLowerCase().contains("a") || endCalSplit[1].toLowerCase().contains("p"))){
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time including \"am\" or \"pm\". For example, \"ENDCAL 7:30 pm\".");
+                                break;
+                            }
+                            if (!isEndCal(endCalSplit[0])) {
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".");
+                                break;
+                            }
                             long parsedTime = TZHelper.parseTime(endCalSplit[1]);
                             if (parsedTime == -1L) {
                                 Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".");
@@ -152,6 +176,14 @@ public class Baseline extends BaselineBase {
                         String textBody = incomingMap.get("Body").trim(); // removes whitespace before and after
                         String[] endCalSplit = textBody.split(" ", 2);
                         if (endCalSplit.length >= 2) {
+                            if (!(endCalSplit[1].toLowerCase().contains("a") || endCalSplit[1].toLowerCase().contains("p"))) {
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time including \"am\" or \"pm\". For example, \"ENDCAL 7:30 pm\".");
+                                break;
+                            }
+                            if (!isEndCal(endCalSplit[0])) {
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".");
+                                break;
+                            }
                             long parsedTime = TZHelper.parseTime(endCalSplit[1]);
                             if (parsedTime == -1L) {
                                 Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".");
@@ -183,6 +215,14 @@ public class Baseline extends BaselineBase {
                         String textBody = incomingMap.get("Body").trim(); // removes whitespace before and after
                         String[] endCalSplit = textBody.split(" ", 2);
                         if (endCalSplit.length >= 2) {
+                            if (!(endCalSplit[1].toLowerCase().contains("a") || endCalSplit[1].toLowerCase().contains("p"))) {
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time including \"am\" or \"pm\". For example, \"ENDCAL 7:30 pm\".");
+                                break;
+                            }
+                            if (!isEndCal(endCalSplit[0])) {
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".");
+                                break;
+                            }
                             long parsedTime = TZHelper.parseTime(endCalSplit[1]);
                             if (parsedTime == -1L) {
                                 Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".");
@@ -299,9 +339,9 @@ public class Baseline extends BaselineBase {
                 //no timers
                 break;
             case waitStart:
-                int seconds = TZHelper.getSecondsToNoon();
+                int seconds = TZHelper.getSecondsTo1159am();
                 if (seconds <= 0) {
-                    seconds = 1;
+                    seconds = 300;
                 }
                 setStartWarnDeadline(seconds);
                 String waitStartMessage = participantMap.get("participant_uuid") + " created state machine: warnStartCal timeout " + TZHelper.getDateFromAddingSeconds(seconds);
@@ -453,7 +493,7 @@ public class Baseline extends BaselineBase {
                         case waitStart:
                             this.isRestoring = true;
                             //resetting warn timer
-                            setStartWarnDeadline(TZHelper.getSecondsToNoon());
+                            setStartWarnDeadline(TZHelper.getSecondsTo1159am());
                             receivedWaitStart(); // initial to waitStart
                             this.isRestoring = false;
                             break;
