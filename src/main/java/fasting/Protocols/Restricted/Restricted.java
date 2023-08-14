@@ -404,7 +404,7 @@ public class Restricted extends RestrictedBase {
                 break;
             case waitStart:
                 //setting warn timer
-                int startWarnDiff =  TZHelper.getSecondsTo1159am();  //timeToD1T1159am();
+                int startWarnDiff =  TZHelper.getSecondsTo1159am();
                 if(startWarnDiff <= 0) {
                     startWarnDiff = 300;
                 }
@@ -434,13 +434,11 @@ public class Restricted extends RestrictedBase {
                 break;
             case startcal:
                 //set warn timer
-                // In the CSV with responses they don't have anything for sending startcal
                 int secondsTo2059pm = TZHelper.getSecondsTo2059pm();
-                // if after 9pm, don't immediately send warnEndCal message. Wait some time so user has time to respond
                 if (secondsTo2059pm < 0) {
                     secondsTo2059pm = 300; // add 5 minutes
                 }
-                setEndWarnDeadline(secondsTo2059pm); //timeToD19pm());
+                setEndWarnDeadline(secondsTo2059pm);
                 String startCalMessage = participantMap.get("participant_uuid") + " thanks for sending startcal: endwarndeadline timeout " + TZHelper.getDateFromAddingSeconds(secondsTo2059pm);
                 logger.info(startCalMessage);
                 
@@ -620,18 +618,6 @@ public class Restricted extends RestrictedBase {
                     Launcher.msgUtils.sendMessage("+12704022214", dayOffMissedEndCalMsg);
                 }
                 break;
-            case dayOffEndOfEpisode:
-                if (this.isDayOff == true) {
-                    logger.warn(participantMap.get("participant_uuid") + " REPEATED DayOff in endOfEpisode");
-                    Launcher.msgUtils.sendMessage(participantMap.get("number"), "You have already sent \"DAYOFF\" for today.");
-                    break;
-                }
-                this.isDayOff = true;
-                // check if endcal was successful or not, variable that is reset
-                String updatedPercentage = Launcher.dbEngine.updateSuccessRate(participantMap.get("participant_uuid"), this.wasSucessfulFast);
-                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Got it, no TRE today! Thank you for telling us. You're success rate is now: " + updatedPercentage);
-                logger.info(participantMap.get("participant_uuid") + " DayOff in endOfEpisode");
-                break;
             case resetEpisodeVariables:
                 this.endcalRepeats = 0;
                 this.isDayOff = false;
@@ -656,6 +642,18 @@ public class Restricted extends RestrictedBase {
                 this.isDayOff = true;
                 Launcher.msgUtils.sendMessage(participantMap.get("number"), "Got it, no TRE today! Thank you for telling us. Please still let us know your \"ENDCAL\" today.");
                 logger.info(participantMap.get("participant_uuid") + " DayOff in WarnEndCal");
+                break;
+            case dayOffEndOfEpisode:
+                if (this.isDayOff == true) {
+                    logger.warn(participantMap.get("participant_uuid") + " REPEATED DayOff in endOfEpisode");
+                    Launcher.msgUtils.sendMessage(participantMap.get("number"), "You have already sent \"DAYOFF\" for today.");
+                    break;
+                }
+                this.isDayOff = true;
+                // check if endcal was successful or not, variable that is reset
+                String updatedPercentage = Launcher.dbEngine.updateSuccessRate(participantMap.get("participant_uuid"), this.wasSucessfulFast);
+                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Got it, no TRE today! Thank you for telling us. You're success rate is now: " + updatedPercentage);
+                logger.info(participantMap.get("participant_uuid") + " DayOff in endOfEpisode");
                 break;
             case endProtocol:
                 logger.warn(participantMap.get("participant_uuid") + " is not longer in protocol.");

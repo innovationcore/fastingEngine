@@ -2,18 +2,21 @@ package fasting.TimeUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.time.*;
-import java.time.format.*;
-import java.util.*;
-import java.text.*;
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
+import java.util.TimeZone;
 
 public class TimezoneHelper {
     private static final long SEC_IN_DAY = 86400;
     private final int SEC_IN_4_HOURS = 14400;
-
     private String userTimezone;
     private String machineTimezone;
     private Integer timezoneDifference;
+    private final Logger logger;
 
     /**
     * initialize the timezone helper with the user's timezone and the machine's timezone (in seconds)
@@ -22,7 +25,7 @@ public class TimezoneHelper {
         this.userTimezone = userTimezone;
         this.machineTimezone = machineTimezone;
         this.timezoneDifference = calculateTZOffset();
-        Logger logger = LoggerFactory.getLogger(TimezoneHelper.class.getName());
+        this.logger = LoggerFactory.getLogger(TimezoneHelper.class);
         logger.info("TimezoneHelper initialized with user timezone: " + userTimezone + " and machine timezone: " + machineTimezone + " and timezone difference: " + timezoneDifference);
     }
 
@@ -137,6 +140,9 @@ public class TimezoneHelper {
         return df.format(date);
     }
 
+    /**
+     * checks if current time is between 3am and 3 pm
+     */
     public Boolean isBetween3AMand3PM() {
         Instant nowUTC = Instant.now();
         ZoneId userTZ = ZoneId.of(this.userTimezone);
@@ -150,6 +156,11 @@ public class TimezoneHelper {
         return secondsUntil3am <= 0 && secondsUntil3pm >= 0;
     }
 
+    /**
+     * checks if between 3am and 3pm given a unix epoch time
+     * @param unixTS
+     * @return true/false
+     */
     public Boolean isBetween3AMand3PM(long unixTS) {
         Instant unixUTC = Instant.ofEpochMilli(unixTS*1000L);
         ZoneId userTZ = ZoneId.of(this.userTimezone);
@@ -163,6 +174,10 @@ public class TimezoneHelper {
         return secondsUntil3am <= 0 && secondsUntil3pm >= 0;
     }
 
+    /**
+     * checks to see if current time is between midnight and 4am
+     * @return true/false
+     */
     public Boolean isBetween12AMand4AM() {
         Instant nowUTC = Instant.now();
         ZoneId userTZ = ZoneId.of(this.userTimezone);
@@ -176,6 +191,10 @@ public class TimezoneHelper {
         return secondsUntil12am <= 0 && secondsUntil4am >= 0;
     }
 
+    /**
+     * checks to see if current time is between midnight and 3:59:30am
+     * @return
+     */
     public Boolean isBetween12AMand359AM() {
         Instant nowUTC = Instant.now();
         ZoneId userTZ = ZoneId.of(this.userTimezone);
@@ -189,7 +208,11 @@ public class TimezoneHelper {
         return secondsUntil12am <= 0 && secondsUntil4am >= 0;
     }
 
-    // is same day <4am
+    /**
+     * checks to see if the current time is the same day as the provided lastKnownTime
+     * @param lastKnownTime
+     * @return
+     */
     public boolean isSameDay(long lastKnownTime){
         // check if lastKnownTime is on the same day as now and before the next day at 4am
 
@@ -210,6 +233,11 @@ public class TimezoneHelper {
         return secondsUntil4am <= 86400;
     }
 
+    /**
+     * Parses the times sent in by participants
+     * @param time
+     * @return unix timestamp of the parsed time, -1L if some error occurs
+     */
     public long parseTime(String time){
         // parse time string into seconds
         // time string should be in format HH:MM:SS
@@ -245,6 +273,7 @@ public class TimezoneHelper {
                         hours = Integer.parseInt(time.trim());
                         minutes = 0;
                     } catch (Exception e) {
+                        logger.error("parseTime", e);
                         return -1L;
                     }
                 }
@@ -267,7 +296,7 @@ public class TimezoneHelper {
             }
 
             // if current time is after 12am and before 4 am, set the date to yesterday
-            if (isBetween12AMand4AM()){
+            if (isBetween12AMand4AM()) {
                 forYesterday = true;
             }
 
@@ -283,12 +312,17 @@ public class TimezoneHelper {
 
             return currentDateAndTime.toEpochSecond(userTZ.getRules().getOffset(currentDateAndTime));
         } catch (Exception e){
-            e.printStackTrace();
+            logger.error("parseTime", e);
             // if fails to parse time, return the time now
             return -1L;
         }
     }
 
+    /**
+     * parses the times received by manually moving the state machine on the website
+     * @param time
+     * @return unix timestamp of the parsed time, -1L if some error occurs
+     */
     public long parseTimeWebsite(String time){
         // parse time string into seconds
         // time string should be in format HH:MM:SS
@@ -319,6 +353,7 @@ public class TimezoneHelper {
                         hours = Integer.parseInt(time.trim());
                         minutes = 0;
                     } catch (Exception e) {
+                        logger.error("parseTimeWebsite", e);
                         return -1L;
                     }
                 }
@@ -341,12 +376,16 @@ public class TimezoneHelper {
 
             return currentDateAndTime.toEpochSecond(userTZ.getRules().getOffset(currentDateAndTime));
         } catch (Exception e){
-            e.printStackTrace();
+            logger.error("parseTimeWebsite", e);
             // if fails to parse time, return the time now
             return -1L;
         }
     }
 
+    /**
+     * Gets the current unix timestamp
+     * @return unix timestamp
+     */
     public long getUnixTimestampNow(){
         Instant nowUTC = Instant.now();
         ZoneId userTZ = ZoneId.of(this.userTimezone);
@@ -356,6 +395,13 @@ public class TimezoneHelper {
     }
 
     // returns -1 if before 9 hours, 0 if between 9 and 11 hours, 1 if after 11 hours
+
+    /**
+     * Determines if participant ate for too short, too long, or just right
+     * @param start
+     * @param end
+     * @return -1 if too short (<9 hours), 0 if good (9-11 hours), 1 if too long (>11 hours)
+     */
     public int determineGoodFastTime(long start, long end) {
 
         int duration = (int)(end - start);
@@ -370,6 +416,14 @@ public class TimezoneHelper {
     }
 
     // start unix time, end unix time, time in seconds (10 hours = 36000)
+
+    /**
+     * Gets the amount of time to the end of a fast
+     * @param start unix time
+     * @param end unix time
+     * @param cutoffTime time in seconds (10 hours = 36000 seconds)
+     * @return number of hours and minutes before in format ##h ##m
+     */
     public String getHoursMinutesBefore(long start, long end, long cutoffTime) {
         long duration = end - start;
         long durationBeforeCutoff = cutoffTime - duration;
@@ -381,6 +435,11 @@ public class TimezoneHelper {
         return hours + "h " + String.format("%02dm", minutes);
     }
 
+    /**
+     * Checks if time is after 8pm
+     * @param endTime unix time
+     * @return true/false
+     */
     public boolean isAfter8PM(long endTime){
         Instant endUTC = Instant.ofEpochMilli(endTime*1000L);
         ZoneId endTZ = ZoneId.of(this.userTimezone);
@@ -391,6 +450,11 @@ public class TimezoneHelper {
         return secondsUntil8pm < 0;
     }
 
+    /**
+     * parses the SQL timestamp into a unix timestamp to be used with the app
+     * @param sqlTimeString in format 'yyyy-MM-dd HH:mm:ss'
+     * @return unix timestamp
+     */
     public long parseSQLTimestamp(String sqlTimeString) {
         // 2022-11-07 21:06:07.343
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
@@ -404,6 +468,7 @@ public class TimezoneHelper {
 
     /**
      * return the seconds until Friday at 5pm in the users timezone
+     * @return number of seconds
      */
     public int getSecondsToFriday5pm() {
         Instant nowUTC = Instant.now();
@@ -422,20 +487,8 @@ public class TimezoneHelper {
     }
 
     /**
-     * return the seconds until Noon in the users timezone
-     */
-    public int getSecondsToNoon() {
-        Instant nowUTC = Instant.now();
-        ZoneId userTZ = ZoneId.of(this.userTimezone);
-        ZonedDateTime nowUserTimezone = ZonedDateTime.ofInstant(nowUTC, userTZ);
-        LocalDateTime nowUserLocalTime = nowUserTimezone.toLocalDateTime();
-        LocalDateTime userLocalTimeNoon = LocalDateTime.of(nowUserLocalTime.getYear(), nowUserLocalTime.getMonth(), nowUserLocalTime.getDayOfMonth(), 11, 59, 59);
-        long secondsUntilNoon = Duration.between(nowUserLocalTime, userLocalTimeNoon).getSeconds();
-        return (int) secondsUntilNoon;
-    }
-
-    /**
      * return the seconds until 5pm in user's timezone
+     * @return seconds
      */
     public int getSecondsTo5pm() {
         Instant nowUTC = Instant.now();

@@ -853,7 +853,6 @@ public class DBEngine {
         Connection conn = null;
         PreparedStatement stmt = null;
         String query = "";
-        //success rate = (between 9-11 hours)/total
 
         try {
             // need to get values from second endcal to update to latest endcal
@@ -883,7 +882,7 @@ public class DBEngine {
                     stmt = conn.prepareStatement(query);
                     stmt.setString(1, participantUUID);
                     stmt.setString(2, participantUUID);
-                } else {
+                } else if (totalCount > 0 && !wasSuccessful) {
                     // don't increment if not successful
                     query = "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.successful_TRE', " + successCount + ") WHERE TS IN (SELECT TOP 1 TS FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'startcal' ORDER BY TS DESC);";
                     query += "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.total_TRE', " + (totalCount + 1) + ") WHERE TS IN (SELECT TOP 1 TS FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'startcal' ORDER BY TS DESC)";
@@ -1040,7 +1039,7 @@ public class DBEngine {
             if (successOld == -1 && successNew == totalNew) {
                 // base case, only one ENDCAL
                 wasSuccess = true;
-            }else if (successOld == -1 && successNew != totalNew) {
+            } else if (successOld == -1 && successNew != totalNew) {
                 // base case, only one ENDCAL
                 wasSuccess = false;
             } else if (successNew > successOld && totalNew > totalOld){
