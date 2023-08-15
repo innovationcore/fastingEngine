@@ -66,11 +66,11 @@ public class API {
                 String enrollment = Launcher.dbEngine.getEnrollmentUUID(participantId);
                 String enrollmentName = Launcher.dbEngine.getEnrollmentName(enrollment);
                 if (enrollmentName.equals("TRE")) {
-                    Launcher.restrictedWatcher.incomingText(participantId, formsMap);
+                    Launcher.HPM_RestrictedWatcher.incomingText(participantId, formsMap);
                 } else if (enrollmentName.equals("Baseline")) {
-                    Launcher.baselineWatcher.incomingText(participantId, formsMap);
+                    Launcher.HPM_BaselineWatcher.incomingText(participantId, formsMap);
                 } else if (enrollmentName.equals("Control")) {
-                    Launcher.controlWatcher.incomingText(participantId, formsMap);
+                    Launcher.HPM_ControlWatcher.incomingText(participantId, formsMap);
                 } else {
                     logger.error("Text from participant not enrolled in any protocol");
                 }
@@ -146,13 +146,13 @@ public class API {
                 String validNextStates = "";
                 String protocol = Launcher.dbEngine.getProtocolFromParticipantId(participantId);
                 if (protocol.equals("TRE")) {
-                    validNextStates = Launcher.restrictedWatcher.getValidNextStates(participantId);
+                    validNextStates = Launcher.HPM_RestrictedWatcher.getValidNextStates(participantId);
                 }
                 else if (protocol.equals("Control")) {
-                    validNextStates = Launcher.controlWatcher.getValidNextStates(participantId);
+                    validNextStates = Launcher.HPM_ControlWatcher.getValidNextStates(participantId);
                 }
                 else if (protocol.equals("Baseline")) {
-                    validNextStates = Launcher.baselineWatcher.getValidNextStates(participantId);
+                    validNextStates = Launcher.HPM_BaselineWatcher.getValidNextStates(participantId);
                 }
 
                 Map<String,String> response = new HashMap<>();
@@ -197,13 +197,13 @@ public class API {
                 String newState = "";
                 String protocol = Launcher.dbEngine.getProtocolFromParticipantId(participantId);
                 if (protocol.equals("TRE")) {
-                    newState = Launcher.restrictedWatcher.moveToState(participantId, nextState, time);
+                    newState = Launcher.HPM_RestrictedWatcher.moveToState(participantId, nextState, time);
                 }
                 else if (protocol.equals("Control")) {
-                    newState = Launcher.controlWatcher.moveToState(participantId, nextState, time);
+                    newState = Launcher.HPM_ControlWatcher.moveToState(participantId, nextState, time);
                 }
                 else if (protocol.equals("Baseline")) {
-                    newState = Launcher.baselineWatcher.moveToState(participantId, nextState, time);
+                    newState = Launcher.HPM_BaselineWatcher.moveToState(participantId, nextState, time);
                 }
 
                 Map<String,String> response = new HashMap<>();
@@ -245,14 +245,14 @@ public class API {
                 String enrollment = Launcher.dbEngine.getEnrollmentUUID(participantId);
                 String enrollmentName = Launcher.dbEngine.getEnrollmentName(enrollment);
                 if (enrollmentName.equals("TRE")) {
-                    Launcher.restrictedWatcher.resetStateMachine(participantId);
-                    Launcher.dailyMessageWatcher.resetStateMachine(participantId);
+                    Launcher.HPM_RestrictedWatcher.resetStateMachine(participantId);
+                    Launcher.HPM_DailyMessageWatcher.resetStateMachine(participantId);
                 } else if (enrollmentName.equals("Baseline")) {
-                    Launcher.baselineWatcher.resetStateMachine(participantId);
-                    Launcher.weeklyMessageWatcher.resetStateMachine(participantId);
+                    Launcher.HPM_BaselineWatcher.resetStateMachine(participantId);
+                    Launcher.HPM_WeeklyMessageWatcher.resetStateMachine(participantId);
                 } else if (enrollmentName.equals("Control")) {
-                    Launcher.controlWatcher.resetStateMachine(participantId);
-                    Launcher.weeklyMessageWatcher.resetStateMachine(participantId);
+                    Launcher.HPM_ControlWatcher.resetStateMachine(participantId);
+                    Launcher.HPM_WeeklyMessageWatcher.resetStateMachine(participantId);
                 } else {
                     logger.error("Cannot reset machine, participant not in an active protocol.");
                 }
@@ -297,14 +297,14 @@ public class API {
                 String enrollment = Launcher.dbEngine.getEnrollmentUUID(participantId);
                 String enrollmentName = Launcher.dbEngine.getEnrollmentName(enrollment);
                 if (enrollmentName.equals("TRE")) {
-                    Launcher.restrictedWatcher.updateTimeZone(participantId, tz);
-                    Launcher.dailyMessageWatcher.updateTimeZone(participantId, tz);
+                    Launcher.HPM_RestrictedWatcher.updateTimeZone(participantId, tz);
+                    Launcher.HPM_DailyMessageWatcher.updateTimeZone(participantId, tz);
                 } else if (enrollmentName.equals("Baseline")) {
-                    Launcher.baselineWatcher.updateTimeZone(participantId, tz);
-                    Launcher.weeklyMessageWatcher.updateTimeZone(participantId, tz);
+                    Launcher.HPM_BaselineWatcher.updateTimeZone(participantId, tz);
+                    Launcher.HPM_WeeklyMessageWatcher.updateTimeZone(participantId, tz);
                 } else if (enrollmentName.equals("Control")) {
-                    Launcher.controlWatcher.updateTimeZone(participantId, tz);
-                    Launcher.weeklyMessageWatcher.updateTimeZone(participantId, tz);
+                    Launcher.HPM_ControlWatcher.updateTimeZone(participantId, tz);
+                    Launcher.HPM_WeeklyMessageWatcher.updateTimeZone(participantId, tz);
                 }
 
                 Map<String,String> response = new HashMap<>();

@@ -91,7 +91,7 @@ public class MsgUtils {
                 Launcher.dbEngine.executeUpdate(insertQuery);
 
                 //send to state machine
-                Launcher.restrictedWatcher.incomingText(participantId, formsMap);
+                Launcher.HPM_RestrictedWatcher.incomingText(participantId, formsMap);
 
                 Map<String,String> responce = new HashMap<>();
                 responce.put("status","ok");

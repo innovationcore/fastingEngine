@@ -1,5 +1,5 @@
-package fasting.Protocols.WeeklyMessage;
-//%% NEW FILE WeeklyMessageBase BEGINS HERE %%
+package fasting.Protocols.HPM_WeeklyMessage;
+//%% NEW FILE HPM_WeeklyMessageBase BEGINS HERE %%
 
 /*PLEASE DO NOT EDIT THIS CODE*/
 /*This code was generated using the UMPLE 1.32.1.6535.66c005ced modeling language!*/
@@ -12,28 +12,28 @@ import java.util.*;
  */
 // line 3 "model.ump"
 // line 50 "model.ump"
-public class WeeklyMessageBase
+public class HPM_WeeklyMessageBase
 {
 
     //------------------------
     // MEMBER VARIABLES
     //------------------------
 
-    //WeeklyMessageBase Attributes
+    //HPM_WeeklyMessageBase Attributes
     private int timeout1Week;
 
-    //WeeklyMessageBase State Machines
-    public enum State { initial, waitWeek, sendWeeklyMessage, endProtocol }
+    //HPM_WeeklyMessageBase State Machines
+    public enum State { initial, waitWeek, sendHPM_WeeklyMessage, endProtocol }
     private State state;
 
     //Helper Variables
-    private TimedEventHandler timeoutwaitWeekTosendWeeklyMessageHandler;
+    private TimedEventHandler timeoutwaitWeekTosendHPM_WeeklyMessageHandler;
 
     //------------------------
     // CONSTRUCTOR
     //------------------------
 
-    public WeeklyMessageBase()
+    public HPM_WeeklyMessageBase()
     {
         timeout1Week = 0;
         setState(State.initial);
@@ -85,7 +85,7 @@ public class WeeklyMessageBase
         return wasEventProcessed;
     }
 
-    public boolean timeoutwaitWeekTosendWeeklyMessage()
+    public boolean timeoutwaitWeekTosendHPM_WeeklyMessage()
     {
         boolean wasEventProcessed = false;
 
@@ -94,7 +94,7 @@ public class WeeklyMessageBase
         {
             case waitWeek:
                 exitState();
-                setState(State.sendWeeklyMessage);
+                setState(State.sendHPM_WeeklyMessage);
                 wasEventProcessed = true;
                 break;
             default:
@@ -130,7 +130,7 @@ public class WeeklyMessageBase
         State aState = state;
         switch (aState)
         {
-            case sendWeeklyMessage:
+            case sendHPM_WeeklyMessage:
                 setState(State.waitWeek);
                 wasEventProcessed = true;
                 break;
@@ -146,7 +146,7 @@ public class WeeklyMessageBase
         switch(state)
         {
             case waitWeek:
-                stopTimeoutwaitWeekTosendWeeklyMessageHandler();
+                stopTimeoutwaitWeekTosendHPM_WeeklyMessageHandler();
                 break;
         }
     }
@@ -165,11 +165,11 @@ public class WeeklyMessageBase
             case waitWeek:
                 // line 20 "model.ump"
                 stateNotify("waitWeek");
-                startTimeoutwaitWeekTosendWeeklyMessageHandler();
+                startTimeoutwaitWeekTosendHPM_WeeklyMessageHandler();
                 break;
-            case sendWeeklyMessage:
+            case sendHPM_WeeklyMessage:
                 // line 30 "model.ump"
-                stateNotify("sendWeeklyMessage");
+                stateNotify("sendHPM_WeeklyMessage");
                 __autotransition100__();
                 break;
             case endProtocol:
@@ -179,24 +179,24 @@ public class WeeklyMessageBase
         }
     }
 
-    private void startTimeoutwaitWeekTosendWeeklyMessageHandler()
+    private void startTimeoutwaitWeekTosendHPM_WeeklyMessageHandler()
     {
-        timeoutwaitWeekTosendWeeklyMessageHandler = new TimedEventHandler(this,"timeoutwaitWeekTosendWeeklyMessage",timeout1Week);
+        timeoutwaitWeekTosendHPM_WeeklyMessageHandler = new TimedEventHandler(this,"timeoutwaitWeekTosendHPM_WeeklyMessage",timeout1Week);
     }
 
-    private void stopTimeoutwaitWeekTosendWeeklyMessageHandler()
+    private void stopTimeoutwaitWeekTosendHPM_WeeklyMessageHandler()
     {
-        timeoutwaitWeekTosendWeeklyMessageHandler.stop();
+        timeoutwaitWeekTosendHPM_WeeklyMessageHandler.stop();
     }
 
     public static class TimedEventHandler extends TimerTask
     {
-        private WeeklyMessageBase controller;
+        private HPM_WeeklyMessageBase controller;
         private String timeoutMethodName;
         private double howLongInSeconds;
         private Timer timer;
 
-        public TimedEventHandler(WeeklyMessageBase aController, String aTimeoutMethodName, double aHowLongInSeconds)
+        public TimedEventHandler(HPM_WeeklyMessageBase aController, String aTimeoutMethodName, double aHowLongInSeconds)
         {
             controller = aController;
             timeoutMethodName = aTimeoutMethodName;
@@ -212,12 +212,12 @@ public class WeeklyMessageBase
 
         public void run ()
         {
-            if ("timeoutwaitWeekTosendWeeklyMessage".equals(timeoutMethodName))
+            if ("timeoutwaitWeekTosendHPM_WeeklyMessage".equals(timeoutMethodName))
             {
-                boolean shouldRestart = !controller.timeoutwaitWeekTosendWeeklyMessage();
+                boolean shouldRestart = !controller.timeoutwaitWeekTosendHPM_WeeklyMessage();
                 if (shouldRestart)
                 {
-                    controller.startTimeoutwaitWeekTosendWeeklyMessageHandler();
+                    controller.startTimeoutwaitWeekTosendHPM_WeeklyMessageHandler();
                 }
                 return;
             }

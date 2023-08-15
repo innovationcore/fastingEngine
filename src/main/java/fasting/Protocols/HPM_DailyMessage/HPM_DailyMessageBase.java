@@ -1,5 +1,5 @@
-package fasting.Protocols.DailyMessage;
-//%% NEW FILE DailyMessageBase BEGINS HERE %%
+package fasting.Protocols.HPM_DailyMessage;
+//%% NEW FILE HPM_DailyMessageBase BEGINS HERE %%
 
 /*PLEASE DO NOT EDIT THIS CODE*/
 /*This code was generated using the UMPLE 1.32.1.6535.66c005ced modeling language!*/
@@ -12,28 +12,28 @@ import java.util.*;
  */
 // line 3 "model.ump"
 // line 50 "model.ump"
-public class DailyMessageBase
+public class HPM_DailyMessageBase
 {
 
     //------------------------
     // MEMBER VARIABLES
     //------------------------
 
-    //DailyMessageBase Attributes
+    //HPM_DailyMessageBase Attributes
     private int timeout24Hours;
 
-    //DailyMessageBase State Machines
-    public enum State { initial, waitDay, sendDailyMessage, endProtocol }
+    //HPM_DailyMessageBase State Machines
+    public enum State { initial, waitDay, sendHPM_DailyMessage, endProtocol }
     private State state;
 
     //Helper Variables
-    private TimedEventHandler timeoutwaitDayTosendDailyMessageHandler;
+    private TimedEventHandler timeoutwaitDayTosendHPM_DailyMessageHandler;
 
     //------------------------
     // CONSTRUCTOR
     //------------------------
 
-    public DailyMessageBase()
+    public HPM_DailyMessageBase()
     {
         timeout24Hours = 0;
         setState(State.initial);
@@ -85,7 +85,7 @@ public class DailyMessageBase
         return wasEventProcessed;
     }
 
-    public boolean timeoutwaitDayTosendDailyMessage()
+    public boolean timeoutwaitDayTosendHPM_DailyMessage()
     {
         boolean wasEventProcessed = false;
 
@@ -94,7 +94,7 @@ public class DailyMessageBase
         {
             case waitDay:
                 exitState();
-                setState(State.sendDailyMessage);
+                setState(State.sendHPM_DailyMessage);
                 wasEventProcessed = true;
                 break;
             default:
@@ -130,7 +130,7 @@ public class DailyMessageBase
         State aState = state;
         switch (aState)
         {
-            case sendDailyMessage:
+            case sendHPM_DailyMessage:
                 setState(State.waitDay);
                 wasEventProcessed = true;
                 break;
@@ -146,7 +146,7 @@ public class DailyMessageBase
         switch(state)
         {
             case waitDay:
-                stopTimeoutwaitDayTosendDailyMessageHandler();
+                stopTimeoutwaitDayTosendHPM_DailyMessageHandler();
                 break;
         }
     }
@@ -165,11 +165,11 @@ public class DailyMessageBase
             case waitDay:
                 // line 20 "model.ump"
                 stateNotify("waitDay");
-                startTimeoutwaitDayTosendDailyMessageHandler();
+                startTimeoutwaitDayTosendHPM_DailyMessageHandler();
                 break;
-            case sendDailyMessage:
+            case sendHPM_DailyMessage:
                 // line 30 "model.ump"
-                stateNotify("sendDailyMessage");
+                stateNotify("sendHPM_DailyMessage");
                 __autotransition1815__();
                 break;
             case endProtocol:
@@ -179,24 +179,24 @@ public class DailyMessageBase
         }
     }
 
-    private void startTimeoutwaitDayTosendDailyMessageHandler()
+    private void startTimeoutwaitDayTosendHPM_DailyMessageHandler()
     {
-        timeoutwaitDayTosendDailyMessageHandler = new TimedEventHandler(this,"timeoutwaitDayTosendDailyMessage",timeout24Hours);
+        timeoutwaitDayTosendHPM_DailyMessageHandler = new TimedEventHandler(this,"timeoutwaitDayTosendHPM_DailyMessage",timeout24Hours);
     }
 
-    private void stopTimeoutwaitDayTosendDailyMessageHandler()
+    private void stopTimeoutwaitDayTosendHPM_DailyMessageHandler()
     {
-        timeoutwaitDayTosendDailyMessageHandler.stop();
+        timeoutwaitDayTosendHPM_DailyMessageHandler.stop();
     }
 
     public static class TimedEventHandler extends TimerTask
     {
-        private DailyMessageBase controller;
+        private HPM_DailyMessageBase controller;
         private String timeoutMethodName;
         private double howLongInSeconds;
         private Timer timer;
 
-        public TimedEventHandler(DailyMessageBase aController, String aTimeoutMethodName, double aHowLongInSeconds)
+        public TimedEventHandler(HPM_DailyMessageBase aController, String aTimeoutMethodName, double aHowLongInSeconds)
         {
             controller = aController;
             timeoutMethodName = aTimeoutMethodName;
@@ -212,12 +212,12 @@ public class DailyMessageBase
 
         public void run ()
         {
-            if ("timeoutwaitDayTosendDailyMessage".equals(timeoutMethodName))
+            if ("timeoutwaitDayTosendHPM_DailyMessage".equals(timeoutMethodName))
             {
-                boolean shouldRestart = !controller.timeoutwaitDayTosendDailyMessage();
+                boolean shouldRestart = !controller.timeoutwaitDayTosendHPM_DailyMessage();
                 if (shouldRestart)
                 {
-                    controller.startTimeoutwaitDayTosendDailyMessageHandler();
+                    controller.startTimeoutwaitDayTosendHPM_DailyMessageHandler();
                 }
                 return;
             }

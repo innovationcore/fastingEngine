@@ -1,5 +1,5 @@
-package fasting.Protocols.Restricted;
-//%% NEW FILE RestrictedBase BEGINS HERE %%
+package fasting.Protocols.HPM_Baseline;
+//%% NEW FILE HPM_BaselineBase BEGINS HERE %%
 
 /*PLEASE DO NOT EDIT THIS CODE*/
 /*This code was generated using the UMPLE 1.32.1.6535.66c005ced modeling language!*/
@@ -11,43 +11,39 @@ import java.util.*;
  * UML State diagram for a library loan, represented in Umple
  */
 // line 3 "model.ump"
-// line 167 "model.ump"
-public class RestrictedBase
+// line 106 "model.ump"
+public class HPM_BaselineBase
 {
 
   //------------------------
   // MEMBER VARIABLES
   //------------------------
 
-  //RestrictedBase Attributes
-  private int startDeadline;
+  //HPM_BaselineBase Attributes
+  private int timeout24Hours;
   private int startWarnDeadline;
-  private int endDeadline;
   private int endWarnDeadline;
-  private int endOfEpisodeDeadline;
 
-  //RestrictedBase State Machines
-  public enum State { initial, waitStart, dayOffWait, warnStartCal, dayOffWarn, startcal, dayOffStartCal, missedStartCal, warnEndCal, dayOffWarnEndCal, endcal, missedEndCal, endOfEpisode, dayOffEndOfEpisode, resetEpisodeVariables, endProtocol }
+  //HPM_BaselineBase State Machines
+  public enum State { initial, waitStart, warnStartCal, startcal, warnEndCal, endcal, timeout24, endProtocol }
   private State state;
 
   //Helper Variables
   private TimedEventHandler timeoutwaitStartTowarnStartCalHandler;
-  private TimedEventHandler timeoutwarnStartCalTomissedStartCalHandler;
+  private TimedEventHandler timeoutwarnStartCalTotimeout24Handler;
   private TimedEventHandler timeoutstartcalTowarnEndCalHandler;
-  private TimedEventHandler timeoutwarnEndCalTomissedEndCalHandler;
-  private TimedEventHandler timeoutendOfEpisodeToresetEpisodeVariablesHandler;
+  private TimedEventHandler timeoutwarnEndCalTowaitStartHandler;
+  private TimedEventHandler timeoutendcalTowaitStartHandler;
 
   //------------------------
   // CONSTRUCTOR
   //------------------------
 
-  public RestrictedBase()
+  public HPM_BaselineBase()
   {
-    startDeadline = 0;
+    timeout24Hours = 0;
     startWarnDeadline = 0;
-    endDeadline = 0;
     endWarnDeadline = 0;
-    endOfEpisodeDeadline = 0;
     setState(State.initial);
   }
 
@@ -55,10 +51,10 @@ public class RestrictedBase
   // INTERFACE
   //------------------------
 
-  public boolean setStartDeadline(int aStartDeadline)
+  public boolean setTimeout24Hours(int aTimeout24Hours)
   {
     boolean wasSet = false;
-    startDeadline = aStartDeadline;
+    timeout24Hours = aTimeout24Hours;
     wasSet = true;
     return wasSet;
   }
@@ -71,14 +67,6 @@ public class RestrictedBase
     return wasSet;
   }
 
-  public boolean setEndDeadline(int aEndDeadline)
-  {
-    boolean wasSet = false;
-    endDeadline = aEndDeadline;
-    wasSet = true;
-    return wasSet;
-  }
-
   public boolean setEndWarnDeadline(int aEndWarnDeadline)
   {
     boolean wasSet = false;
@@ -87,17 +75,9 @@ public class RestrictedBase
     return wasSet;
   }
 
-  public boolean setEndOfEpisodeDeadline(int aEndOfEpisodeDeadline)
+  public int getTimeout24Hours()
   {
-    boolean wasSet = false;
-    endOfEpisodeDeadline = aEndOfEpisodeDeadline;
-    wasSet = true;
-    return wasSet;
-  }
-
-  public int getStartDeadline()
-  {
-    return startDeadline;
+    return timeout24Hours;
   }
 
   public int getStartWarnDeadline()
@@ -105,19 +85,9 @@ public class RestrictedBase
     return startWarnDeadline;
   }
 
-  public int getEndDeadline()
-  {
-    return endDeadline;
-  }
-
   public int getEndWarnDeadline()
   {
     return endWarnDeadline;
-  }
-
-  public int getEndOfEpisodeDeadline()
-  {
-    return endOfEpisodeDeadline;
   }
 
   public String getStateFullName()
@@ -149,7 +119,7 @@ public class RestrictedBase
     return wasEventProcessed;
   }
 
-  public boolean receivedWarnStartCal()
+  public boolean receivedWarnStart()
   {
     boolean wasEventProcessed = false;
 
@@ -190,8 +160,6 @@ public class RestrictedBase
         break;
       case startcal:
         exitState();
-        // line 73 "model.ump"
-        // Send Error about duplicate start
         setState(State.startcal);
         wasEventProcessed = true;
         break;
@@ -251,48 +219,9 @@ public class RestrictedBase
         setState(State.endProtocol);
         wasEventProcessed = true;
         break;
-      case endOfEpisode:
+      case endcal:
         exitState();
         setState(State.endProtocol);
-        wasEventProcessed = true;
-        break;
-      default:
-        // Other states do respond to this event
-    }
-
-    return wasEventProcessed;
-  }
-
-  public boolean receivedDayOff()
-  {
-    boolean wasEventProcessed = false;
-
-    State aState = state;
-    switch (aState)
-    {
-      case waitStart:
-        exitState();
-        setState(State.dayOffWait);
-        wasEventProcessed = true;
-        break;
-      case warnStartCal:
-        exitState();
-        setState(State.dayOffWarn);
-        wasEventProcessed = true;
-        break;
-      case startcal:
-        exitState();
-        setState(State.dayOffStartCal);
-        wasEventProcessed = true;
-        break;
-      case warnEndCal:
-        exitState();
-        setState(State.dayOffWarnEndCal);
-        wasEventProcessed = true;
-        break;
-      case endOfEpisode:
-        exitState();
-        setState(State.dayOffEndOfEpisode);
         wasEventProcessed = true;
         break;
       default:
@@ -321,25 +250,7 @@ public class RestrictedBase
     return wasEventProcessed;
   }
 
-  private boolean __autotransition1057__()
-  {
-    boolean wasEventProcessed = false;
-
-    State aState = state;
-    switch (aState)
-    {
-      case dayOffWait:
-        setState(State.waitStart);
-        wasEventProcessed = true;
-        break;
-      default:
-        // Other states do respond to this event
-    }
-
-    return wasEventProcessed;
-  }
-
-  public boolean timeoutwarnStartCalTomissedStartCal()
+  public boolean timeoutwarnStartCalTotimeout24()
   {
     boolean wasEventProcessed = false;
 
@@ -348,25 +259,7 @@ public class RestrictedBase
     {
       case warnStartCal:
         exitState();
-        setState(State.missedStartCal);
-        wasEventProcessed = true;
-        break;
-      default:
-        // Other states do respond to this event
-    }
-
-    return wasEventProcessed;
-  }
-
-  private boolean __autotransition1058__()
-  {
-    boolean wasEventProcessed = false;
-
-    State aState = state;
-    switch (aState)
-    {
-      case dayOffWarn:
-        setState(State.warnStartCal);
+        setState(State.timeout24);
         wasEventProcessed = true;
         break;
       default:
@@ -393,7 +286,7 @@ public class RestrictedBase
         setState(State.endcal);
         wasEventProcessed = true;
         break;
-      case endOfEpisode:
+      case endcal:
         exitState();
         setState(State.endcal);
         wasEventProcessed = true;
@@ -424,43 +317,7 @@ public class RestrictedBase
     return wasEventProcessed;
   }
 
-  private boolean __autotransition1059__()
-  {
-    boolean wasEventProcessed = false;
-
-    State aState = state;
-    switch (aState)
-    {
-      case dayOffStartCal:
-        setState(State.startcal);
-        wasEventProcessed = true;
-        break;
-      default:
-        // Other states do respond to this event
-    }
-
-    return wasEventProcessed;
-  }
-
-  private boolean __autotransition1060__()
-  {
-    boolean wasEventProcessed = false;
-
-    State aState = state;
-    switch (aState)
-    {
-      case missedStartCal:
-        setState(State.endOfEpisode);
-        wasEventProcessed = true;
-        break;
-      default:
-        // Other states do respond to this event
-    }
-
-    return wasEventProcessed;
-  }
-
-  public boolean timeoutwarnEndCalTomissedEndCal()
+  public boolean timeoutwarnEndCalTowaitStart()
   {
     boolean wasEventProcessed = false;
 
@@ -469,7 +326,7 @@ public class RestrictedBase
     {
       case warnEndCal:
         exitState();
-        setState(State.missedEndCal);
+        setState(State.waitStart);
         wasEventProcessed = true;
         break;
       default:
@@ -479,25 +336,7 @@ public class RestrictedBase
     return wasEventProcessed;
   }
 
-  private boolean __autotransition1061__()
-  {
-    boolean wasEventProcessed = false;
-
-    State aState = state;
-    switch (aState)
-    {
-      case dayOffWarnEndCal:
-        setState(State.warnEndCal);
-        wasEventProcessed = true;
-        break;
-      default:
-        // Other states do respond to this event
-    }
-
-    return wasEventProcessed;
-  }
-
-  private boolean __autotransition1062__()
+  public boolean timeoutendcalTowaitStart()
   {
     boolean wasEventProcessed = false;
 
@@ -505,44 +344,8 @@ public class RestrictedBase
     switch (aState)
     {
       case endcal:
-        setState(State.endOfEpisode);
-        wasEventProcessed = true;
-        break;
-      default:
-        // Other states do respond to this event
-    }
-
-    return wasEventProcessed;
-  }
-
-  private boolean __autotransition1063__()
-  {
-    boolean wasEventProcessed = false;
-
-    State aState = state;
-    switch (aState)
-    {
-      case missedEndCal:
-        setState(State.endOfEpisode);
-        wasEventProcessed = true;
-        break;
-      default:
-        // Other states do respond to this event
-    }
-
-    return wasEventProcessed;
-  }
-
-  public boolean timeoutendOfEpisodeToresetEpisodeVariables()
-  {
-    boolean wasEventProcessed = false;
-
-    State aState = state;
-    switch (aState)
-    {
-      case endOfEpisode:
         exitState();
-        setState(State.resetEpisodeVariables);
+        setState(State.waitStart);
         wasEventProcessed = true;
         break;
       default:
@@ -552,32 +355,14 @@ public class RestrictedBase
     return wasEventProcessed;
   }
 
-  private boolean __autotransition1064__()
+  private boolean __autotransition887__()
   {
     boolean wasEventProcessed = false;
 
     State aState = state;
     switch (aState)
     {
-      case dayOffEndOfEpisode:
-        setState(State.endOfEpisode);
-        wasEventProcessed = true;
-        break;
-      default:
-        // Other states do respond to this event
-    }
-
-    return wasEventProcessed;
-  }
-
-  private boolean __autotransition1065__()
-  {
-    boolean wasEventProcessed = false;
-
-    State aState = state;
-    switch (aState)
-    {
-      case resetEpisodeVariables:
+      case timeout24:
         setState(State.waitStart);
         wasEventProcessed = true;
         break;
@@ -596,16 +381,16 @@ public class RestrictedBase
         stopTimeoutwaitStartTowarnStartCalHandler();
         break;
       case warnStartCal:
-        stopTimeoutwarnStartCalTomissedStartCalHandler();
+        stopTimeoutwarnStartCalTotimeout24Handler();
         break;
       case startcal:
         stopTimeoutstartcalTowarnEndCalHandler();
         break;
       case warnEndCal:
-        stopTimeoutwarnEndCalTomissedEndCalHandler();
+        stopTimeoutwarnEndCalTowaitStartHandler();
         break;
-      case endOfEpisode:
-        stopTimeoutendOfEpisodeToresetEpisodeVariablesHandler();
+      case endcal:
+        stopTimeoutendcalTowaitStartHandler();
         break;
     }
   }
@@ -618,89 +403,52 @@ public class RestrictedBase
     switch(state)
     {
       case initial:
-        // line 16 "model.ump"
+        // line 13 "model.ump"
         // here we need to receive the message to start
         // Possibly send missed fasts messages
         stateNotify("initial");
         break;
       case waitStart:
-        // line 31 "model.ump"
+        // line 28 "model.ump"
         // here we need to receive the message to start
         // Possibly send missed fasts messages
         stateNotify("waitStart");
         startTimeoutwaitStartTowarnStartCalHandler();
         break;
-      case dayOffWait:
-        // line 44 "model.ump"
-        stateNotify("dayOffWait");
-        __autotransition1057__();
-        break;
       case warnStartCal:
-        // line 50 "model.ump"
+        // line 40 "model.ump"
+        // send a reminder messaage at noon
         stateNotify("warnStartCal");
-        startTimeoutwarnStartCalTomissedStartCalHandler();
-        break;
-      case dayOffWarn:
-        // line 62 "model.ump"
-        stateNotify("dayOffWarn");
-        __autotransition1058__();
+        startTimeoutwarnStartCalTotimeout24Handler();
         break;
       case startcal:
-        // line 68 "model.ump"
+        // line 51 "model.ump"
         // here we need to receive the message to start
         // Possibly send missed fasts messages
         stateNotify("startcal");
         startTimeoutstartcalTowarnEndCalHandler();
         break;
-      case dayOffStartCal:
-        // line 83 "model.ump"
-        stateNotify("dayOffStartCal");
-        __autotransition1059__();
-        break;
-      case missedStartCal:
-        // line 89 "model.ump"
-        stateNotify("missedStartCal");
-        __autotransition1060__();
-        break;
       case warnEndCal:
-        // line 95 "model.ump"
+        // line 64 "model.ump"
         stateNotify("warnEndCal");
-        startTimeoutwarnEndCalTomissedEndCalHandler();
-        break;
-      case dayOffWarnEndCal:
-        // line 105 "model.ump"
-        stateNotify("dayOffWarnEndCal");
-        __autotransition1061__();
+        startTimeoutwarnEndCalTowaitStartHandler();
         break;
       case endcal:
-        // line 112 "model.ump"
+        // line 73 "model.ump"
         // here we need to receive the message to start
         // Possibly send missed fasts messages
         stateNotify("endcal");
-        __autotransition1062__();
+        startTimeoutendcalTowaitStartHandler();
         break;
-      case missedEndCal:
-        // line 121 "model.ump"
-        stateNotify("missedEndCal");
-        __autotransition1063__();
-        break;
-      case endOfEpisode:
-        // line 130 "model.ump"
-        stateNotify("endOfEpisode");
-        startTimeoutendOfEpisodeToresetEpisodeVariablesHandler();
-        break;
-      case dayOffEndOfEpisode:
-        // line 141 "model.ump"
-        stateNotify("dayOffEndOfEpisode");
-        __autotransition1064__();
-        break;
-      case resetEpisodeVariables:
-        // line 147 "model.ump"
-        stateNotify("resetEpisodeVariables");
-        __autotransition1065__();
+      case timeout24:
+        // line 84 "model.ump"
+        // here we need to receive the message to start
+        // Possibly send missed fasts messages
+        stateNotify("timeout24");
+        __autotransition887__();
         break;
       case endProtocol:
-        // line 154 "model.ump"
+        // line 93 "model.ump"
         stateNotify("endProtocol");
         break;
     }
@@ -716,14 +464,14 @@ public class RestrictedBase
     timeoutwaitStartTowarnStartCalHandler.stop();
   }
 
-  private void startTimeoutwarnStartCalTomissedStartCalHandler()
+  private void startTimeoutwarnStartCalTotimeout24Handler()
   {
-    timeoutwarnStartCalTomissedStartCalHandler = new TimedEventHandler(this,"timeoutwarnStartCalTomissedStartCal",startDeadline);
+    timeoutwarnStartCalTotimeout24Handler = new TimedEventHandler(this,"timeoutwarnStartCalTotimeout24",timeout24Hours);
   }
 
-  private void stopTimeoutwarnStartCalTomissedStartCalHandler()
+  private void stopTimeoutwarnStartCalTotimeout24Handler()
   {
-    timeoutwarnStartCalTomissedStartCalHandler.stop();
+    timeoutwarnStartCalTotimeout24Handler.stop();
   }
 
   private void startTimeoutstartcalTowarnEndCalHandler()
@@ -736,34 +484,34 @@ public class RestrictedBase
     timeoutstartcalTowarnEndCalHandler.stop();
   }
 
-  private void startTimeoutwarnEndCalTomissedEndCalHandler()
+  private void startTimeoutwarnEndCalTowaitStartHandler()
   {
-    timeoutwarnEndCalTomissedEndCalHandler = new TimedEventHandler(this,"timeoutwarnEndCalTomissedEndCal",endDeadline);
+    timeoutwarnEndCalTowaitStartHandler = new TimedEventHandler(this,"timeoutwarnEndCalTowaitStart",timeout24Hours);
   }
 
-  private void stopTimeoutwarnEndCalTomissedEndCalHandler()
+  private void stopTimeoutwarnEndCalTowaitStartHandler()
   {
-    timeoutwarnEndCalTomissedEndCalHandler.stop();
+    timeoutwarnEndCalTowaitStartHandler.stop();
   }
 
-  private void startTimeoutendOfEpisodeToresetEpisodeVariablesHandler()
+  private void startTimeoutendcalTowaitStartHandler()
   {
-    timeoutendOfEpisodeToresetEpisodeVariablesHandler = new TimedEventHandler(this,"timeoutendOfEpisodeToresetEpisodeVariables",endOfEpisodeDeadline);
+    timeoutendcalTowaitStartHandler = new TimedEventHandler(this,"timeoutendcalTowaitStart",timeout24Hours);
   }
 
-  private void stopTimeoutendOfEpisodeToresetEpisodeVariablesHandler()
+  private void stopTimeoutendcalTowaitStartHandler()
   {
-    timeoutendOfEpisodeToresetEpisodeVariablesHandler.stop();
+    timeoutendcalTowaitStartHandler.stop();
   }
 
   public static class TimedEventHandler extends TimerTask
   {
-    private RestrictedBase controller;
+    private HPM_BaselineBase controller;
     private String timeoutMethodName;
     private double howLongInSeconds;
     private Timer timer;
 
-    public TimedEventHandler(RestrictedBase aController, String aTimeoutMethodName, double aHowLongInSeconds)
+    public TimedEventHandler(HPM_BaselineBase aController, String aTimeoutMethodName, double aHowLongInSeconds)
     {
       controller = aController;
       timeoutMethodName = aTimeoutMethodName;
@@ -788,12 +536,12 @@ public class RestrictedBase
         }
         return;
       }
-      if ("timeoutwarnStartCalTomissedStartCal".equals(timeoutMethodName))
+      if ("timeoutwarnStartCalTotimeout24".equals(timeoutMethodName))
       {
-        boolean shouldRestart = !controller.timeoutwarnStartCalTomissedStartCal();
+        boolean shouldRestart = !controller.timeoutwarnStartCalTotimeout24();
         if (shouldRestart)
         {
-          controller.startTimeoutwarnStartCalTomissedStartCalHandler();
+          controller.startTimeoutwarnStartCalTotimeout24Handler();
         }
         return;
       }
@@ -806,21 +554,21 @@ public class RestrictedBase
         }
         return;
       }
-      if ("timeoutwarnEndCalTomissedEndCal".equals(timeoutMethodName))
+      if ("timeoutwarnEndCalTowaitStart".equals(timeoutMethodName))
       {
-        boolean shouldRestart = !controller.timeoutwarnEndCalTomissedEndCal();
+        boolean shouldRestart = !controller.timeoutwarnEndCalTowaitStart();
         if (shouldRestart)
         {
-          controller.startTimeoutwarnEndCalTomissedEndCalHandler();
+          controller.startTimeoutwarnEndCalTowaitStartHandler();
         }
         return;
       }
-      if ("timeoutendOfEpisodeToresetEpisodeVariables".equals(timeoutMethodName))
+      if ("timeoutendcalTowaitStart".equals(timeoutMethodName))
       {
-        boolean shouldRestart = !controller.timeoutendOfEpisodeToresetEpisodeVariables();
+        boolean shouldRestart = !controller.timeoutendcalTowaitStart();
         if (shouldRestart)
         {
-          controller.startTimeoutendOfEpisodeToresetEpisodeVariablesHandler();
+          controller.startTimeoutendcalTowaitStartHandler();
         }
         return;
       }
@@ -830,12 +578,12 @@ public class RestrictedBase
   public void delete()
   {}
 
-  // line 161 "model.ump"
+  // line 100 "model.ump"
   public boolean stateNotify(String node){
     return true;
   }
 
-  // line 162 "model.ump"
+  // line 101 "model.ump"
   public int currentTime(){
     return 1;
   }
@@ -844,10 +592,8 @@ public class RestrictedBase
   public String toString()
   {
     return super.toString() + "["+
-            "startDeadline" + ":" + getStartDeadline()+ "," +
+            "timeout24Hours" + ":" + getTimeout24Hours()+ "," +
             "startWarnDeadline" + ":" + getStartWarnDeadline()+ "," +
-            "endDeadline" + ":" + getEndDeadline()+ "," +
-            "endWarnDeadline" + ":" + getEndWarnDeadline()+ "," +
-            "endOfEpisodeDeadline" + ":" + getEndOfEpisodeDeadline()+ "]";
+            "endWarnDeadline" + ":" + getEndWarnDeadline()+ "]";
   }
 }

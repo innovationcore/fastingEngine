@@ -1,11 +1,11 @@
-package fasting.Protocols.WeeklyMessage;
+package fasting.Protocols.HPM_WeeklyMessage;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import fasting.Launcher;
 import fasting.TimeUtils.TimezoneHelper;
-import fasting.Protocols.Control.Control;
-import fasting.Protocols.Baseline.Baseline;
+import fasting.Protocols.HPM_Control.HPM_Control;
+import fasting.Protocols.HPM_Baseline.HPM_Baseline;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,7 +15,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-public class WeeklyMessage extends WeeklyMessageBase {
+public class HPM_WeeklyMessage extends HPM_WeeklyMessageBase {
     private Type typeOfHashMap = new TypeToken<Map<String, Map<String,Long>>>() { }.getType();
 
     private Map<String, String> participantMap;
@@ -27,9 +27,9 @@ public class WeeklyMessage extends WeeklyMessageBase {
 
     private Gson gson;
     public ScheduledExecutorService uploadSave;
-    private static final Logger logger = LoggerFactory.getLogger(WeeklyMessage.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(HPM_WeeklyMessage.class.getName());
 
-    public WeeklyMessage(Map<String, String> participantMap) {
+    public HPM_WeeklyMessage(Map<String, String> participantMap) {
         this.gson = new Gson();
         this.participantMap = participantMap;
         this.stateMap = new HashMap<>();
@@ -57,7 +57,7 @@ public class WeeklyMessage extends WeeklyMessageBase {
 
                 }
             } catch (Exception ex) {
-                logger.error("protocols.WeeklyMessage Thread");
+                logger.error("protocols.HPM_WeeklyMessage Thread");
                 logger.error(ex.getMessage());
             }
         }, 30, 900, TimeUnit.SECONDS); //900 sec is 15 mins
@@ -87,10 +87,10 @@ public class WeeklyMessage extends WeeklyMessageBase {
                 String waitWeekMessage = participantMap.get("participant_uuid") + " created state machine: waitWeek timeout " + TZHelper.getDateFromAddingSeconds(seconds);
                 logger.info(waitWeekMessage);
                 break;
-            case sendWeeklyMessage:
-                String weeklyMessage = "Thank you for continuing to send us your \"STARTCAL\" and \"ENDCAL\" each day. Keep up the great work!";
-                logger.info(weeklyMessage);
-                Launcher.msgUtils.sendMessage(participantMap.get("number"), weeklyMessage);
+            case sendHPM_WeeklyMessage:
+                String HPM_weeklyMessage = "Thank you for continuing to send us your \"STARTCAL\" and \"ENDCAL\" each day. Keep up the great work!";
+                logger.info(HPM_weeklyMessage);
+                Launcher.msgUtils.sendMessage(participantMap.get("number"), HPM_weeklyMessage);
                 // wait 5 seconds, so multiple messages don't get sent at the same time
                 try { Thread.sleep(5000); } catch (InterruptedException e) { /* do nothing */ }
                 break;
@@ -111,10 +111,10 @@ public class WeeklyMessage extends WeeklyMessageBase {
             String protocolNameDB = Launcher.dbEngine.getProtocolFromParticipantId(participantMap.get("participant_uuid"));
 
             if (protocolNameDB.equals("Baseline")) {
-                Map<String, Baseline> baselineMap = Launcher.baselineWatcher.getBaselineMap();
+                Map<String, HPM_Baseline> baselineMap = Launcher.HPM_BaselineWatcher.getHPM_BaselineMap();
                 while (!baselineMap.containsKey(participantMap.get("participant_uuid"))) {
                     Thread.sleep(500);
-                    baselineMap = Launcher.baselineWatcher.getBaselineMap();
+                    baselineMap = Launcher.HPM_BaselineWatcher.getHPM_BaselineMap();
                 }
 
                 String currentState = baselineMap.get(participantMap.get("participant_uuid")).getState().toString();
@@ -134,10 +134,10 @@ public class WeeklyMessage extends WeeklyMessageBase {
                 }
 
             } else if (protocolNameDB.equals("Control")){
-                Map<String, Control> controlMap = Launcher.controlWatcher.getControlMap();
+                Map<String, HPM_Control> controlMap = Launcher.HPM_ControlWatcher.getHPM_ControlMap();
                 while (!controlMap.containsKey(participantMap.get("participant_uuid"))) {
                     Thread.sleep(500);
-                    controlMap = Launcher.controlWatcher.getControlMap();
+                    controlMap = Launcher.HPM_ControlWatcher.getHPM_ControlMap();
                 }
 
                 String currentState = controlMap.get(participantMap.get("participant_uuid")).getState().toString();
@@ -168,7 +168,7 @@ public class WeeklyMessage extends WeeklyMessageBase {
         if(gson != null) {
             Map<String,String> messageMap = new HashMap<>();
             messageMap.put("state",state);
-            messageMap.put("protocol", "WeeklyMessage");
+            messageMap.put("protocol", "HPM_WeeklyMessage");
             if (this.isRestoring) {
                 if(this.isReset) {
                     messageMap.put("RESET", "true");

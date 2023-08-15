@@ -1,4 +1,4 @@
-package fasting.Protocols.Control;
+package fasting.Protocols.HPM_Control;
 //%% NEW FILE ControlBase BEGINS HERE %%
 
 /*PLEASE DO NOT EDIT THIS CODE*/
@@ -12,19 +12,19 @@ import java.util.*;
  */
 // line 3 "model.ump"
 // line 107 "model.ump"
-public class ControlBase
+public class HPM_ControlBase
 {
 
   //------------------------
   // MEMBER VARIABLES
   //------------------------
 
-  //ControlBase Attributes
+  //HPM_ControlBase Attributes
   private int timeout24Hours;
   private int startWarnDeadline;
   private int endWarnDeadline;
 
-  //ControlBase State Machines
+  //HPM_ControlBase State Machines
   public enum State { initial, waitStart, warnStartCal, startcal, warnEndCal, endcal, timeout24, endProtocol }
   private State state;
 
@@ -39,7 +39,7 @@ public class ControlBase
   // CONSTRUCTOR
   //------------------------
 
-  public ControlBase()
+  public HPM_ControlBase()
   {
     timeout24Hours = 0;
     startWarnDeadline = 0;
@@ -506,12 +506,12 @@ public class ControlBase
 
   public static class TimedEventHandler extends TimerTask
   {
-    private ControlBase controller;
+    private HPM_ControlBase controller;
     private String timeoutMethodName;
     private double howLongInSeconds;
     private Timer timer;
 
-    public TimedEventHandler(ControlBase aController, String aTimeoutMethodName, double aHowLongInSeconds)
+    public TimedEventHandler(HPM_ControlBase aController, String aTimeoutMethodName, double aHowLongInSeconds)
     {
       controller = aController;
       timeoutMethodName = aTimeoutMethodName;
