@@ -43,8 +43,8 @@ public class HPM_WeeklyMessageWatcher {
         }
 
         //restart at beginning
-        List<Map<String,String>> participantMapList = Launcher.dbEngine.getParticipantMapByGroup("Control");
-        participantMapList.addAll(Launcher.dbEngine.getParticipantMapByGroup("Baseline"));
+        List<Map<String,String>> participantMapList = Launcher.dbEngine.getParticipantMapByGroup("Control", "HPM");
+        participantMapList.addAll(Launcher.dbEngine.getParticipantMapByGroup("Baseline", "HPM"));
         //Create person
         Map<String, String> addMap = getHashMapByParticipantUUID(participantMapList, participantId);
         HPM_WeeklyMessage p0 = new HPM_WeeklyMessage(addMap);
@@ -70,8 +70,8 @@ public class HPM_WeeklyMessageWatcher {
         public void run() {
             try {
                 synchronized (lockEpisodeReset) {
-                    List<Map<String,String>> participantMapList = Launcher.dbEngine.getParticipantMapByGroup("Control");
-                    participantMapList.addAll(Launcher.dbEngine.getParticipantMapByGroup("Baseline"));
+                    List<Map<String,String>> participantMapList = Launcher.dbEngine.getParticipantMapByGroup("Control", "HPM");
+                    participantMapList.addAll(Launcher.dbEngine.getParticipantMapByGroup("Baseline", "HPM"));
                     Map<String, String> weeklyUUIDs = new HashMap<>(); // this only stores the uuids from partMapList
                     List<String> participantsToAdd = new ArrayList<>();
                     List<String> participantsToRemove = new ArrayList<>();

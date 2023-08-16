@@ -210,7 +210,7 @@ public class DBEngine {
         return participantId;
     }
 
-    public List<Map<String,String>> getParticipantMapByGroup(String groupName) {
+    public List<Map<String,String>> getParticipantMapByGroup(String groupName, String study) {
         Connection conn = null;
         PreparedStatement stmt = null;
         ResultSet rs = null;
@@ -218,11 +218,12 @@ public class DBEngine {
         try {
             participantMaps = new ArrayList<>();
 
-            String queryString = "SELECT participant_uuid, participant_json FROM participants WHERE JSON_VALUE(participant_json, '$.group') = ?";
+            String queryString = "SELECT participant_uuid, participant_json FROM participants WHERE JSON_VALUE(participant_json, '$.group') = ? AND study = ?";
 
             conn = ds.getConnection();
             stmt = conn.prepareStatement(queryString);
             stmt.setString(1, groupName);
+            stmt.setString(2, study);
             rs = stmt.executeQuery();
 
             while (rs.next()) {
@@ -1116,6 +1117,34 @@ public class DBEngine {
             try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
         }
         return protocol;
+    }
+
+
+    public String getStudyFromParticipantId(String uuid) {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        String study = "";
+
+        try{
+            String query = "SELECT study FROM participants WHERE participant_uuid=?";
+            conn = ds.getConnection();
+            stmt = conn.prepareStatement(query);
+            stmt.setString(1, uuid);
+            rs = stmt.executeQuery();
+
+            if(rs.next()){
+                study = rs.getString("study");
+            }
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        } finally {
+            try { rs.close(); }   catch (Exception e) { /* Null Ignored */ }
+            try { stmt.close(); } catch (Exception e) { /* Null Ignored */ }
+            try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
+        }
+        return study;
     }
 
     /**

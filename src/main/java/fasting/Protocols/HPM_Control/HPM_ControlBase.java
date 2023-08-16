@@ -1,5 +1,5 @@
 package fasting.Protocols.HPM_Control;
-//%% NEW FILE ControlBase BEGINS HERE %%
+//%% NEW FILE HPM_ControlBase BEGINS HERE %%
 
 /*PLEASE DO NOT EDIT THIS CODE*/
 /*This code was generated using the UMPLE 1.32.1.6535.66c005ced modeling language!*/
@@ -8,10 +8,10 @@ package fasting.Protocols.HPM_Control;
 import java.util.*;
 
 /**
- * UML State diagram for a library loan, represented in Umple
+ * UML State diagram for HPM_Control, represented in Umple
  */
 // line 3 "model.ump"
-// line 107 "model.ump"
+// line 106 "model.ump"
 public class HPM_ControlBase
 {
 
@@ -355,7 +355,7 @@ public class HPM_ControlBase
     return wasEventProcessed;
   }
 
-  private boolean __autotransition901__()
+  private boolean __autotransition11905__()
   {
     boolean wasEventProcessed = false;
 
@@ -403,52 +403,50 @@ public class HPM_ControlBase
     switch(state)
     {
       case initial:
-        // line 13 "model.ump"
-        // here we need to receive the message to start
-        // Possibly send missed fasts messages
+        // line 12 "model.ump"
+        // entry point, don't do anything here
         stateNotify("initial");
         break;
       case waitStart:
-        // line 28 "model.ump"
-        // here we need to receive the message to start
-        // Possibly send missed fasts messages
+        // line 26 "model.ump"
+        // wait here until a startcal text is received
         stateNotify("waitStart");
         startTimeoutwaitStartTowarnStartCalHandler();
         break;
       case warnStartCal:
-        // line 40 "model.ump"
-        // send a reminder messaage at noon
+        // line 37 "model.ump"
+        // send a reminder messaage at a certain time
         stateNotify("warnStartCal");
         startTimeoutwarnStartCalTotimeout24Handler();
         break;
       case startcal:
-        // line 51 "model.ump"
-        // here we need to receive the message to start
-        // Possibly send missed fasts messages
+        // line 48 "model.ump"
+        // receive additional startcals and update
+        // starting time, also receive endcal
         stateNotify("startcal");
         startTimeoutstartcalTowarnEndCalHandler();
         break;
       case warnEndCal:
-        // line 65 "model.ump"
+        // line 63 "model.ump"
         stateNotify("warnEndCal");
         startTimeoutwarnEndCalTowaitStartHandler();
         break;
       case endcal:
-        // line 74 "model.ump"
-        // here we need to receive the message to start
-        // Possibly send missed fasts messages
+        // line 72 "model.ump"
+        // receive additional endcal messages and update
+        // end time
         stateNotify("endcal");
         startTimeoutendcalTowaitStartHandler();
         break;
       case timeout24:
-        // line 85 "model.ump"
-        // here we need to receive the message to start
-        // Possibly send missed fasts messages
+        // line 83 "model.ump"
+        // sends a message if startcal or endcal are not
+        // received for the day
         stateNotify("timeout24");
-        __autotransition901__();
+        __autotransition11905__();
         break;
       case endProtocol:
-        // line 94 "model.ump"
+        // line 93 "model.ump"
         stateNotify("endProtocol");
         break;
     }
@@ -578,12 +576,12 @@ public class HPM_ControlBase
   public void delete()
   {}
 
-  // line 101 "model.ump"
+  // line 100 "model.ump"
   public boolean stateNotify(String node){
     return true;
   }
 
-  // line 102 "model.ump"
+  // line 101 "model.ump"
   public int currentTime(){
     return 1;
   }

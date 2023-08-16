@@ -11,7 +11,7 @@ import java.util.*;
  * UML State diagram for a library loan, represented in Umple
  */
 // line 3 "model.ump"
-// line 167 "model.ump"
+// line 179 "model.ump"
 public class HPM_RestrictedBase
 {
 
@@ -190,8 +190,6 @@ public class HPM_RestrictedBase
         break;
       case startcal:
         exitState();
-        // line 73 "model.ump"
-        // Send Error about duplicate start
         setState(State.startcal);
         wasEventProcessed = true;
         break;
@@ -321,7 +319,7 @@ public class HPM_RestrictedBase
     return wasEventProcessed;
   }
 
-  private boolean __autotransition1057__()
+  private boolean __autotransition13048__()
   {
     boolean wasEventProcessed = false;
 
@@ -358,7 +356,7 @@ public class HPM_RestrictedBase
     return wasEventProcessed;
   }
 
-  private boolean __autotransition1058__()
+  private boolean __autotransition13049__()
   {
     boolean wasEventProcessed = false;
 
@@ -424,7 +422,7 @@ public class HPM_RestrictedBase
     return wasEventProcessed;
   }
 
-  private boolean __autotransition1059__()
+  private boolean __autotransition13050__()
   {
     boolean wasEventProcessed = false;
 
@@ -442,7 +440,7 @@ public class HPM_RestrictedBase
     return wasEventProcessed;
   }
 
-  private boolean __autotransition1060__()
+  private boolean __autotransition13051__()
   {
     boolean wasEventProcessed = false;
 
@@ -479,7 +477,7 @@ public class HPM_RestrictedBase
     return wasEventProcessed;
   }
 
-  private boolean __autotransition1061__()
+  private boolean __autotransition13052__()
   {
     boolean wasEventProcessed = false;
 
@@ -497,7 +495,7 @@ public class HPM_RestrictedBase
     return wasEventProcessed;
   }
 
-  private boolean __autotransition1062__()
+  private boolean __autotransition13053__()
   {
     boolean wasEventProcessed = false;
 
@@ -515,7 +513,7 @@ public class HPM_RestrictedBase
     return wasEventProcessed;
   }
 
-  private boolean __autotransition1063__()
+  private boolean __autotransition13054__()
   {
     boolean wasEventProcessed = false;
 
@@ -552,7 +550,7 @@ public class HPM_RestrictedBase
     return wasEventProcessed;
   }
 
-  private boolean __autotransition1064__()
+  private boolean __autotransition13055__()
   {
     boolean wasEventProcessed = false;
 
@@ -570,7 +568,7 @@ public class HPM_RestrictedBase
     return wasEventProcessed;
   }
 
-  private boolean __autotransition1065__()
+  private boolean __autotransition13056__()
   {
     boolean wasEventProcessed = false;
 
@@ -619,88 +617,97 @@ public class HPM_RestrictedBase
     {
       case initial:
         // line 16 "model.ump"
-        // here we need to receive the message to start
-        // Possibly send missed fasts messages
+        // entry point, don't do anything here
         stateNotify("initial");
         break;
       case waitStart:
-        // line 31 "model.ump"
-        // here we need to receive the message to start
-        // Possibly send missed fasts messages
+        // line 30 "model.ump"
+        // wait here until a startcal text is received
         stateNotify("waitStart");
         startTimeoutwaitStartTowarnStartCalHandler();
         break;
       case dayOffWait:
-        // line 44 "model.ump"
+        // line 42 "model.ump"
+        // receive "dayoff"
         stateNotify("dayOffWait");
-        __autotransition1057__();
+        __autotransition13048__();
         break;
       case warnStartCal:
-        // line 50 "model.ump"
+        // line 49 "model.ump"
+        // send a reminder message at a certain time
         stateNotify("warnStartCal");
         startTimeoutwarnStartCalTomissedStartCalHandler();
         break;
       case dayOffWarn:
-        // line 62 "model.ump"
+        // line 63 "model.ump"
         stateNotify("dayOffWarn");
-        __autotransition1058__();
+        __autotransition13049__();
         break;
       case startcal:
-        // line 68 "model.ump"
-        // here we need to receive the message to start
-        // Possibly send missed fasts messages
+        // line 69 "model.ump"
+        // receive additional startcals and update
+        // starting time, also receive endcal
         stateNotify("startcal");
         startTimeoutstartcalTowarnEndCalHandler();
         break;
       case dayOffStartCal:
         // line 83 "model.ump"
         stateNotify("dayOffStartCal");
-        __autotransition1059__();
+        __autotransition13050__();
         break;
       case missedStartCal:
         // line 89 "model.ump"
+        // If user doesn't send startcal during the day
+        // then send message and wait for restart
         stateNotify("missedStartCal");
-        __autotransition1060__();
+        __autotransition13051__();
         break;
       case warnEndCal:
-        // line 95 "model.ump"
+        // line 97 "model.ump"
+        // send warning message about endcal not being
+        // received
         stateNotify("warnEndCal");
         startTimeoutwarnEndCalTomissedEndCalHandler();
         break;
       case dayOffWarnEndCal:
-        // line 105 "model.ump"
+        // line 110 "model.ump"
         stateNotify("dayOffWarnEndCal");
-        __autotransition1061__();
+        __autotransition13052__();
         break;
       case endcal:
-        // line 112 "model.ump"
-        // here we need to receive the message to start
-        // Possibly send missed fasts messages
+        // line 117 "model.ump"
+        // receive additional endcal messages and update
+        // end time
         stateNotify("endcal");
-        __autotransition1062__();
+        __autotransition13053__();
         break;
       case missedEndCal:
-        // line 121 "model.ump"
+        // line 126 "model.ump"
+        // If user doesn't send endcal/stopcal
+        // during the day then send message and wait for
+        // restart
         stateNotify("missedEndCal");
-        __autotransition1063__();
+        __autotransition13054__();
         break;
       case endOfEpisode:
-        // line 130 "model.ump"
+        // line 138 "model.ump"
         stateNotify("endOfEpisode");
         startTimeoutendOfEpisodeToresetEpisodeVariablesHandler();
         break;
       case dayOffEndOfEpisode:
-        // line 141 "model.ump"
+        // line 150 "model.ump"
         stateNotify("dayOffEndOfEpisode");
-        __autotransition1064__();
+        __autotransition13055__();
         break;
       case resetEpisodeVariables:
-        // line 147 "model.ump"
+        // line 156 "model.ump"
+        // resets dayoff and other variables for the next
+        // day
         stateNotify("resetEpisodeVariables");
-        __autotransition1065__();
+        __autotransition13056__();
         break;
       case endProtocol:
-        // line 154 "model.ump"
+        // line 166 "model.ump"
         stateNotify("endProtocol");
         break;
     }
@@ -830,12 +837,12 @@ public class HPM_RestrictedBase
   public void delete()
   {}
 
-  // line 161 "model.ump"
+  // line 173 "model.ump"
   public boolean stateNotify(String node){
     return true;
   }
 
-  // line 162 "model.ump"
+  // line 174 "model.ump"
   public int currentTime(){
     return 1;
   }

@@ -71,12 +71,19 @@ public class Launcher {
 
 
 
-            //start protocols
+            //start HPM protocols
             HPM_RestrictedWatcher = new HPM_RestrictedWatcher();
             HPM_ControlWatcher = new HPM_ControlWatcher();
             HPM_BaselineWatcher = new HPM_BaselineWatcher();
             HPM_WeeklyMessageWatcher = new HPM_WeeklyMessageWatcher(); // only for Baseline/Control
             HPM_DailyMessageWatcher = new HPM_DailyMessageWatcher(); // only for TRE
+
+            //start CCW protocols
+//            CCW_RestrictedWatcher = new CCW_RestrictedWatcher();
+//            CCW_ControlWatcher = new CCW_ControlWatcher();
+//            CCW_BaselineWatcher = new CCW_BaselineWatcher();
+//            CCW_WeeklyMessageWatcher = new CCW_WeeklyMessageWatcher(); // only for Baseline/Control
+//            CCW_DailyMessageWatcher = new CCW_DailyMessageWatcher(); // only for TRE
 
         } catch (Exception ex) {
             ex.printStackTrace();

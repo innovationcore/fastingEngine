@@ -11,7 +11,6 @@ import java.util.*;
  * UML State diagram for a library loan, represented in Umple
  */
 // line 3 "model.ump"
-// line 50 "model.ump"
 public class HPM_WeeklyMessageBase
 {
 
@@ -23,11 +22,11 @@ public class HPM_WeeklyMessageBase
     private int timeout1Week;
 
     //HPM_WeeklyMessageBase State Machines
-    public enum State { initial, waitWeek, sendHPM_WeeklyMessage, endProtocol }
+    public enum State { initial, waitWeek, sendWeeklyMessage, endProtocol }
     private State state;
 
     //Helper Variables
-    private TimedEventHandler timeoutwaitWeekTosendHPM_WeeklyMessageHandler;
+    private TimedEventHandler timeoutwaitWeekTosendWeeklyMessageHandler;
 
     //------------------------
     // CONSTRUCTOR
@@ -85,25 +84,6 @@ public class HPM_WeeklyMessageBase
         return wasEventProcessed;
     }
 
-    public boolean timeoutwaitWeekTosendHPM_WeeklyMessage()
-    {
-        boolean wasEventProcessed = false;
-
-        State aState = state;
-        switch (aState)
-        {
-            case waitWeek:
-                exitState();
-                setState(State.sendHPM_WeeklyMessage);
-                wasEventProcessed = true;
-                break;
-            default:
-                // Other states do respond to this event
-        }
-
-        return wasEventProcessed;
-    }
-
     public boolean receivedEndProtocol()
     {
         boolean wasEventProcessed = false;
@@ -111,6 +91,10 @@ public class HPM_WeeklyMessageBase
         State aState = state;
         switch (aState)
         {
+            case initial:
+                setState(State.endProtocol);
+                wasEventProcessed = true;
+                break;
             case waitWeek:
                 exitState();
                 setState(State.endProtocol);
@@ -123,14 +107,33 @@ public class HPM_WeeklyMessageBase
         return wasEventProcessed;
     }
 
-    private boolean __autotransition100__()
+    public boolean timeoutwaitWeekTosendWeeklyMessage()
     {
         boolean wasEventProcessed = false;
 
         State aState = state;
         switch (aState)
         {
-            case sendHPM_WeeklyMessage:
+            case waitWeek:
+                exitState();
+                setState(State.sendWeeklyMessage);
+                wasEventProcessed = true;
+                break;
+            default:
+                // Other states do respond to this event
+        }
+
+        return wasEventProcessed;
+    }
+
+    private boolean __autotransition13090__()
+    {
+        boolean wasEventProcessed = false;
+
+        State aState = state;
+        switch (aState)
+        {
+            case sendWeeklyMessage:
                 setState(State.waitWeek);
                 wasEventProcessed = true;
                 break;
@@ -146,7 +149,7 @@ public class HPM_WeeklyMessageBase
         switch(state)
         {
             case waitWeek:
-                stopTimeoutwaitWeekTosendHPM_WeeklyMessageHandler();
+                stopTimeoutwaitWeekTosendWeeklyMessageHandler();
                 break;
         }
     }
@@ -160,33 +163,37 @@ public class HPM_WeeklyMessageBase
         {
             case initial:
                 // line 11 "model.ump"
+                // entrypoint
                 stateNotify("initial");
                 break;
             case waitWeek:
-                // line 20 "model.ump"
+                // line 22 "model.ump"
+                // wait here until a certain time of day on a
+                // certain day of the week
                 stateNotify("waitWeek");
-                startTimeoutwaitWeekTosendHPM_WeeklyMessageHandler();
+                startTimeoutwaitWeekTosendWeeklyMessageHandler();
                 break;
-            case sendHPM_WeeklyMessage:
-                // line 30 "model.ump"
-                stateNotify("sendHPM_WeeklyMessage");
-                __autotransition100__();
+            case sendWeeklyMessage:
+                // line 34 "model.ump"
+                // send weekly message to participant
+                stateNotify("sendWeeklyMessage");
+                __autotransition13090__();
                 break;
             case endProtocol:
-                // line 37 "model.ump"
+                // line 43 "model.ump"
                 stateNotify("endProtocol");
                 break;
         }
     }
 
-    private void startTimeoutwaitWeekTosendHPM_WeeklyMessageHandler()
+    private void startTimeoutwaitWeekTosendWeeklyMessageHandler()
     {
-        timeoutwaitWeekTosendHPM_WeeklyMessageHandler = new TimedEventHandler(this,"timeoutwaitWeekTosendHPM_WeeklyMessage",timeout1Week);
+        timeoutwaitWeekTosendWeeklyMessageHandler = new TimedEventHandler(this,"timeoutwaitWeekTosendWeeklyMessage",timeout1Week);
     }
 
-    private void stopTimeoutwaitWeekTosendHPM_WeeklyMessageHandler()
+    private void stopTimeoutwaitWeekTosendWeeklyMessageHandler()
     {
-        timeoutwaitWeekTosendHPM_WeeklyMessageHandler.stop();
+        timeoutwaitWeekTosendWeeklyMessageHandler.stop();
     }
 
     public static class TimedEventHandler extends TimerTask
@@ -212,12 +219,12 @@ public class HPM_WeeklyMessageBase
 
         public void run ()
         {
-            if ("timeoutwaitWeekTosendHPM_WeeklyMessage".equals(timeoutMethodName))
+            if ("timeoutwaitWeekTosendWeeklyMessage".equals(timeoutMethodName))
             {
-                boolean shouldRestart = !controller.timeoutwaitWeekTosendHPM_WeeklyMessage();
+                boolean shouldRestart = !controller.timeoutwaitWeekTosendWeeklyMessage();
                 if (shouldRestart)
                 {
-                    controller.startTimeoutwaitWeekTosendHPM_WeeklyMessageHandler();
+                    controller.startTimeoutwaitWeekTosendWeeklyMessageHandler();
                 }
                 return;
             }
@@ -227,12 +234,12 @@ public class HPM_WeeklyMessageBase
     public void delete()
     {}
 
-    // line 44 "model.ump"
+    // line 50 "model.ump"
     public boolean stateNotify(String node){
         return true;
     }
 
-    // line 45 "model.ump"
+    // line 51 "model.ump"
     public int currentTime(){
         return 1;
     }

@@ -1,21 +1,21 @@
 // UML State diagram for a library loan, represented in Umple
-class DailyMessageBase
-{
+class DailyMessageBase {
   Integer timeout24Hours = 0;
 
-
   state {
-
     initial {
+      // entrypoint
       entry / {
         stateNotify("initial");
       };
 
       //must be able to advance to any state
       receivedWaitDay -> waitDay;
+      receivedEndProtocol -> endProtocol;
     }
 
     waitDay {
+      // wait here until a certain time of day
       entry / {
         stateNotify("waitDay");
       };
@@ -27,12 +27,14 @@ class DailyMessageBase
 
     sendDailyMessage {
       entry / {
+        // send daily message to participant
         stateNotify("sendDailyMessage");
       } -> waitDay;
     }
 
     endProtocol {
-      // if participant is moved off protocol, or removed then enter inescapable state
+      // if participant is moved off protocol, or removed
+      // then enter inescapable state
       entry / {
         stateNotify("endProtocol");
       };
@@ -42,11 +44,4 @@ class DailyMessageBase
 
   boolean stateNotify(String node) {return true;}
   int currentTime() {return 1;}
-}
-
-namespace -;
-
-class DailyMessageBase
-{
-  position 50 30 109 45;
 }

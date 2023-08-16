@@ -75,10 +75,10 @@ public class HPM_DailyMessage extends HPM_DailyMessageBase {
                 String waitDayMessage = participantMap.get("participant_uuid") + " created state machine: timeout24Hours " + TZHelper.getDateFromAddingSeconds(seconds);
                 logger.info(waitDayMessage);
                 break;
-            case sendHPM_DailyMessage:
-                String HPM_dailyMessage = getRandomHPM_DailyMessage();
-                logger.info(HPM_dailyMessage);
-                Launcher.msgUtils.sendMessage(participantMap.get("number"), HPM_dailyMessage);
+            case sendDailyMessage:
+                String dailyMessage = getRandomDailyMessage();
+                logger.info(dailyMessage);
+                Launcher.msgUtils.sendMessage(participantMap.get("number"), dailyMessage);
                 // wait 5 seconds, so multiple messages don't get sent at the same time
                 try { Thread.sleep(5000); } catch (InterruptedException e) { /* do nothing */ }
                 break;
@@ -153,8 +153,8 @@ public class HPM_DailyMessage extends HPM_DailyMessageBase {
         }
     }
 
-    public String getRandomHPM_DailyMessage(){
-        final List<String> HPM_dailyMessages = Collections.unmodifiableList(
+    public String getRandomDailyMessage(){
+        final List<String> dailyMessages = Collections.unmodifiableList(
                 new ArrayList<String>() {{
                     add("Remember the golden rule: Once you end calories today, you need to be calorie free until tomorrow!");
                     add("Develop a plan to help you stay calorie free overnight.");
@@ -174,8 +174,8 @@ public class HPM_DailyMessage extends HPM_DailyMessageBase {
                     add("It's not just on game shows where it helps to phone a friend. Chatting with friends helps distract you AND relax at the end of the day.");
                     add("Remember to text ENDCAL when you have your last calorie tonight!");
                 }});
-        int rnd = new Random().nextInt(HPM_dailyMessages.size());
-        String message = HPM_dailyMessages.get(rnd);
+        int rnd = new Random().nextInt(dailyMessages.size());
+        String message = dailyMessages.get(rnd);
         if (message.contains("[NAME]")) {
             message = message.replace("[NAME]", participantMap.get("first_name"));
         }

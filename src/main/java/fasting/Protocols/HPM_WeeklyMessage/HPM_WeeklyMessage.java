@@ -87,10 +87,10 @@ public class HPM_WeeklyMessage extends HPM_WeeklyMessageBase {
                 String waitWeekMessage = participantMap.get("participant_uuid") + " created state machine: waitWeek timeout " + TZHelper.getDateFromAddingSeconds(seconds);
                 logger.info(waitWeekMessage);
                 break;
-            case sendHPM_WeeklyMessage:
-                String HPM_weeklyMessage = "Thank you for continuing to send us your \"STARTCAL\" and \"ENDCAL\" each day. Keep up the great work!";
-                logger.info(HPM_weeklyMessage);
-                Launcher.msgUtils.sendMessage(participantMap.get("number"), HPM_weeklyMessage);
+            case sendWeeklyMessage:
+                String weeklyMessage = "Thank you for continuing to send us your \"STARTCAL\" and \"ENDCAL\" each day. Keep up the great work!";
+                logger.info(weeklyMessage);
+                Launcher.msgUtils.sendMessage(participantMap.get("number"), weeklyMessage);
                 // wait 5 seconds, so multiple messages don't get sent at the same time
                 try { Thread.sleep(5000); } catch (InterruptedException e) { /* do nothing */ }
                 break;

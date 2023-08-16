@@ -33,8 +33,7 @@ public class MsgUtils {
         Boolean isMessagingDisabled = Launcher.config.getBooleanParam("disable_messaging");
         if (isMessagingDisabled) {
             logger.warn("Messaging is disabled. Messages will be saved, but not sent.");
-        }
-        else {
+        } else {
             Message message = Message.creator(
                         new PhoneNumber(textTo),
                         new PhoneNumber(textFrom),
@@ -45,6 +44,7 @@ public class MsgUtils {
         String messageId = UUID.randomUUID().toString();
         String participantId = Launcher.dbEngine.getParticipantIdFromPhoneNumber(textTo);
         String messageDirection = "outgoing";
+        String study = Launcher.dbEngine.getStudyFromParticipantId(participantId);
 
         Date date = new Date();
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
@@ -58,11 +58,10 @@ public class MsgUtils {
         logger.info(json_string);
 
         String insertQuery = "INSERT INTO messages " +
-                "(message_uuid, participant_uuid, TS, message_direction, message_json)" +
+                "(message_uuid, participant_uuid, TS, message_direction, message_json, study)" +
                 " VALUES ('" + messageId + "', '" +
                 participantId + "' ,'" + timestamp + "', '" +
-                messageDirection + "', '" + json_string +
-                "')";
+                messageDirection + "', '" + json_string + "', '"+ study +"')";
 
         Launcher.dbEngine.executeUpdate(insertQuery);
 

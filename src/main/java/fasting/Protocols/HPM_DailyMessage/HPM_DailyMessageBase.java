@@ -11,7 +11,6 @@ import java.util.*;
  * UML State diagram for a library loan, represented in Umple
  */
 // line 3 "model.ump"
-// line 50 "model.ump"
 public class HPM_DailyMessageBase
 {
 
@@ -23,11 +22,11 @@ public class HPM_DailyMessageBase
     private int timeout24Hours;
 
     //HPM_DailyMessageBase State Machines
-    public enum State { initial, waitDay, sendHPM_DailyMessage, endProtocol }
+    public enum State { initial, waitDay, sendDailyMessage, endProtocol }
     private State state;
 
     //Helper Variables
-    private TimedEventHandler timeoutwaitDayTosendHPM_DailyMessageHandler;
+    private TimedEventHandler timeoutwaitDayTosendDailyMessageHandler;
 
     //------------------------
     // CONSTRUCTOR
@@ -85,25 +84,6 @@ public class HPM_DailyMessageBase
         return wasEventProcessed;
     }
 
-    public boolean timeoutwaitDayTosendHPM_DailyMessage()
-    {
-        boolean wasEventProcessed = false;
-
-        State aState = state;
-        switch (aState)
-        {
-            case waitDay:
-                exitState();
-                setState(State.sendHPM_DailyMessage);
-                wasEventProcessed = true;
-                break;
-            default:
-                // Other states do respond to this event
-        }
-
-        return wasEventProcessed;
-    }
-
     public boolean receivedEndProtocol()
     {
         boolean wasEventProcessed = false;
@@ -111,6 +91,10 @@ public class HPM_DailyMessageBase
         State aState = state;
         switch (aState)
         {
+            case initial:
+                setState(State.endProtocol);
+                wasEventProcessed = true;
+                break;
             case waitDay:
                 exitState();
                 setState(State.endProtocol);
@@ -123,14 +107,33 @@ public class HPM_DailyMessageBase
         return wasEventProcessed;
     }
 
-    private boolean __autotransition1815__()
+    public boolean timeoutwaitDayTosendDailyMessage()
     {
         boolean wasEventProcessed = false;
 
         State aState = state;
         switch (aState)
         {
-            case sendHPM_DailyMessage:
+            case waitDay:
+                exitState();
+                setState(State.sendDailyMessage);
+                wasEventProcessed = true;
+                break;
+            default:
+                // Other states do respond to this event
+        }
+
+        return wasEventProcessed;
+    }
+
+    private boolean __autotransition11967__()
+    {
+        boolean wasEventProcessed = false;
+
+        State aState = state;
+        switch (aState)
+        {
+            case sendDailyMessage:
                 setState(State.waitDay);
                 wasEventProcessed = true;
                 break;
@@ -146,7 +149,7 @@ public class HPM_DailyMessageBase
         switch(state)
         {
             case waitDay:
-                stopTimeoutwaitDayTosendHPM_DailyMessageHandler();
+                stopTimeoutwaitDayTosendDailyMessageHandler();
                 break;
         }
     }
@@ -159,34 +162,35 @@ public class HPM_DailyMessageBase
         switch(state)
         {
             case initial:
-                // line 11 "model.ump"
+                // line 9 "model.ump"
                 stateNotify("initial");
                 break;
             case waitDay:
                 // line 20 "model.ump"
                 stateNotify("waitDay");
-                startTimeoutwaitDayTosendHPM_DailyMessageHandler();
+                startTimeoutwaitDayTosendDailyMessageHandler();
                 break;
-            case sendHPM_DailyMessage:
+            case sendDailyMessage:
                 // line 30 "model.ump"
-                stateNotify("sendHPM_DailyMessage");
-                __autotransition1815__();
+                // send daily message to participant
+                stateNotify("sendDailyMessage");
+                __autotransition11967__();
                 break;
             case endProtocol:
-                // line 37 "model.ump"
+                // line 39 "model.ump"
                 stateNotify("endProtocol");
                 break;
         }
     }
 
-    private void startTimeoutwaitDayTosendHPM_DailyMessageHandler()
+    private void startTimeoutwaitDayTosendDailyMessageHandler()
     {
-        timeoutwaitDayTosendHPM_DailyMessageHandler = new TimedEventHandler(this,"timeoutwaitDayTosendHPM_DailyMessage",timeout24Hours);
+        timeoutwaitDayTosendDailyMessageHandler = new TimedEventHandler(this,"timeoutwaitDayTosendDailyMessage",timeout24Hours);
     }
 
-    private void stopTimeoutwaitDayTosendHPM_DailyMessageHandler()
+    private void stopTimeoutwaitDayTosendDailyMessageHandler()
     {
-        timeoutwaitDayTosendHPM_DailyMessageHandler.stop();
+        timeoutwaitDayTosendDailyMessageHandler.stop();
     }
 
     public static class TimedEventHandler extends TimerTask
@@ -212,12 +216,12 @@ public class HPM_DailyMessageBase
 
         public void run ()
         {
-            if ("timeoutwaitDayTosendHPM_DailyMessage".equals(timeoutMethodName))
+            if ("timeoutwaitDayTosendDailyMessage".equals(timeoutMethodName))
             {
-                boolean shouldRestart = !controller.timeoutwaitDayTosendHPM_DailyMessage();
+                boolean shouldRestart = !controller.timeoutwaitDayTosendDailyMessage();
                 if (shouldRestart)
                 {
-                    controller.startTimeoutwaitDayTosendHPM_DailyMessageHandler();
+                    controller.startTimeoutwaitDayTosendDailyMessageHandler();
                 }
                 return;
             }
@@ -227,12 +231,12 @@ public class HPM_DailyMessageBase
     public void delete()
     {}
 
-    // line 44 "model.ump"
+    // line 46 "model.ump"
     public boolean stateNotify(String node){
         return true;
     }
 
-    // line 45 "model.ump"
+    // line 47 "model.ump"
     public int currentTime(){
         return 1;
     }

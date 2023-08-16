@@ -1,5 +1,5 @@
 // UML State diagram for a library loan, represented in Umple
-class RestrictedBase
+class HPM_RestrictedBase
 {
 
   Integer startDeadline = 0;
@@ -13,8 +13,7 @@ class RestrictedBase
 
     initial {
       entry / {
-        // here we need to receive the message to start
-        // Possibly send missed fasts messages
+        // entry point, don't do anything here
         stateNotify("initial");
       };
 
@@ -28,8 +27,7 @@ class RestrictedBase
 
     waitStart {
       entry / {
-        // here we need to receive the message to start
-        // Possibly send missed fasts messages
+        // wait here until a startcal text is received
         stateNotify("waitStart");
       };
 
@@ -41,12 +39,14 @@ class RestrictedBase
 
     dayOffWait {
       entry / {
+        // receive "dayoff"
         stateNotify("dayOffWait");
       } -> waitStart;
     }
 
      warnStartCal {
       entry / {
+        // send a reminder message at a certain time
         stateNotify("warnStartCal");
       };
 
@@ -58,6 +58,7 @@ class RestrictedBase
     }
 
     dayOffWarn {
+      // receive "dayoff"
       entry / {
         stateNotify("dayOffWarn");
       } -> warnStartCal;
@@ -65,13 +66,11 @@ class RestrictedBase
 
     startcal {
       entry / {
-        // here we need to receive the message to start
-        // Possibly send missed fasts messages
+        // receive additional startcals and update
+        // starting time, also receive endcal
         stateNotify("startcal");
       };
-      receivedStartCal -> / {
-          // Send Error about duplicate start
-      } startcal;
+      receivedStartCal -> startcal;
       receivedEndCal -> endcal;
       receivedDayOff -> dayOffStartCal;
       after(endWarnDeadline) -> warnEndCal;
@@ -79,6 +78,7 @@ class RestrictedBase
     }
 
     dayOffStartCal {
+      // receive "dayoff"
       entry / {
         stateNotify("dayOffStartCal");
       } -> startcal;
@@ -86,12 +86,16 @@ class RestrictedBase
 
     missedStartCal {
       entry / {
+        // If user doesn't send startcal during the day
+        // then send message and wait for restart
         stateNotify("missedStartCal");
       } -> endOfEpisode;
     }
 
     warnEndCal {
       entry / {
+        // send warning message about endcal not being
+        // received
         stateNotify("warnEndCal");
       };
       receivedEndCal -> endcal;
@@ -101,6 +105,7 @@ class RestrictedBase
     }
 
     dayOffWarnEndCal {
+      // receive "dayoff"
       entry / {
         stateNotify("dayOffWarnEndCal");
       } -> warnEndCal;
@@ -109,8 +114,8 @@ class RestrictedBase
 
     endcal {
       entry / {
-        // here we need to receive the message to start
-        // Possibly send missed fasts messages
+        // receive additional endcal messages and update
+        // end time
         stateNotify("endcal");
       } -> endOfEpisode;
     }
@@ -118,6 +123,9 @@ class RestrictedBase
 
     missedEndCal {
       entry / {
+        // If user doesn't send endcal/stopcal
+        // during the day then send message and wait for
+        // restart
         stateNotify("missedEndCal");
       } -> endOfEpisode;
 
@@ -137,6 +145,7 @@ class RestrictedBase
     }
 
     dayOffEndOfEpisode {
+      // receive "dayoff"
       entry / {
         stateNotify("dayOffEndOfEpisode");
       } -> endOfEpisode;
@@ -144,12 +153,15 @@ class RestrictedBase
 
     resetEpisodeVariables {
       entry / {
+        // resets dayoff and other variables for the next
+        // day
         stateNotify("resetEpisodeVariables");
       } -> waitStart;
     }
 
     endProtocol {
-      // if participant is moved off protocol, or removed then enter inescapable state
+      // if participant is moved off protocol, or removed
+      // then enter inescapable state
       entry / {
         stateNotify("endProtocol");
       };
@@ -159,11 +171,4 @@ class RestrictedBase
 
   boolean stateNotify(String node) {return true;}
   int currentTime() {return 1;}
-}
-
-namespace -;
-
-class RestrictedBase
-{
-  position 50 30 109 45;
 }

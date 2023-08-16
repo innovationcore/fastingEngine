@@ -115,7 +115,7 @@ public class HPM_RestrictedWatcher {
         }
 
         //restart at beginning
-        List<Map<String,String>> participantMapList = Launcher.dbEngine.getParticipantMapByGroup("TRE");
+        List<Map<String,String>> participantMapList = Launcher.dbEngine.getParticipantMapByGroup("TRE", "HPM");
         //Create person
         Map<String, String> addMap = getHashMapByParticipantUUID(participantMapList, participantId);
         HPM_Restricted p0 = new HPM_Restricted(addMap);
@@ -318,7 +318,7 @@ public class HPM_RestrictedWatcher {
         public void run() {
             try {
                 synchronized (lockEpisodeReset) {
-                    List<Map<String,String>> participantMapList = Launcher.dbEngine.getParticipantMapByGroup("TRE");
+                    List<Map<String,String>> participantMapList = Launcher.dbEngine.getParticipantMapByGroup("TRE", "HPM");
                     Map<String, String> HPM_restrictedUUIDs = new HashMap<>(); // this only stores the uuids from partMapList
                     List<String> participantsToAdd = new ArrayList<>();
                     List<String> participantsToRemove = new ArrayList<>();
