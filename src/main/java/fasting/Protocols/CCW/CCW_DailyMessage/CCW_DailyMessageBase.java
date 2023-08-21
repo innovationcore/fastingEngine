@@ -1,40 +1,41 @@
-package fasting.Protocols.HPM_WeeklyMessage;
-//%% NEW FILE HPM_WeeklyMessageBase BEGINS HERE %%
+package fasting.Protocols.CCW.CCW_DailyMessage;
+//%% NEW FILE CCW_DailyMessageBase BEGINS HERE %%
 
 /*PLEASE DO NOT EDIT THIS CODE*/
 /*This code was generated using the UMPLE 1.32.1.6535.66c005ced modeling language!*/
 
 
-import java.util.*;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * UML State diagram for a library loan, represented in Umple
  */
 // line 3 "model.ump"
-public class HPM_WeeklyMessageBase
+public class CCW_DailyMessageBase
 {
 
     //------------------------
     // MEMBER VARIABLES
     //------------------------
 
-    //HPM_WeeklyMessageBase Attributes
-    private int timeout1Week;
+    //CCW_DailyMessageBase Attributes
+    private int timeout24Hours;
 
-    //HPM_WeeklyMessageBase State Machines
-    public enum State { initial, waitWeek, sendWeeklyMessage, endProtocol }
+    //CCW_DailyMessageBase State Machines
+    public enum State { initial, waitDay, sendDailyMessage, endProtocol }
     private State state;
 
     //Helper Variables
-    private TimedEventHandler timeoutwaitWeekTosendWeeklyMessageHandler;
+    private TimedEventHandler timeoutwaitDayTosendDailyMessageHandler;
 
     //------------------------
     // CONSTRUCTOR
     //------------------------
 
-    public HPM_WeeklyMessageBase()
+    public CCW_DailyMessageBase()
     {
-        timeout1Week = 0;
+        timeout24Hours = 0;
         setState(State.initial);
     }
 
@@ -42,17 +43,17 @@ public class HPM_WeeklyMessageBase
     // INTERFACE
     //------------------------
 
-    public boolean setTimeout1Week(int aTimeout1Week)
+    public boolean setTimeout24Hours(int aTimeout24Hours)
     {
         boolean wasSet = false;
-        timeout1Week = aTimeout1Week;
+        timeout24Hours = aTimeout24Hours;
         wasSet = true;
         return wasSet;
     }
 
-    public int getTimeout1Week()
+    public int getTimeout24Hours()
     {
-        return timeout1Week;
+        return timeout24Hours;
     }
 
     public String getStateFullName()
@@ -66,7 +67,7 @@ public class HPM_WeeklyMessageBase
         return state;
     }
 
-    public boolean receivedWaitWeek()
+    public boolean receivedWaitDay()
     {
         boolean wasEventProcessed = false;
 
@@ -74,7 +75,7 @@ public class HPM_WeeklyMessageBase
         switch (aState)
         {
             case initial:
-                setState(State.waitWeek);
+                setState(State.waitDay);
                 wasEventProcessed = true;
                 break;
             default:
@@ -95,7 +96,7 @@ public class HPM_WeeklyMessageBase
                 setState(State.endProtocol);
                 wasEventProcessed = true;
                 break;
-            case waitWeek:
+            case waitDay:
                 exitState();
                 setState(State.endProtocol);
                 wasEventProcessed = true;
@@ -107,16 +108,16 @@ public class HPM_WeeklyMessageBase
         return wasEventProcessed;
     }
 
-    public boolean timeoutwaitWeekTosendWeeklyMessage()
+    public boolean timeoutwaitDayTosendDailyMessage()
     {
         boolean wasEventProcessed = false;
 
         State aState = state;
         switch (aState)
         {
-            case waitWeek:
+            case waitDay:
                 exitState();
-                setState(State.sendWeeklyMessage);
+                setState(State.sendDailyMessage);
                 wasEventProcessed = true;
                 break;
             default:
@@ -126,15 +127,15 @@ public class HPM_WeeklyMessageBase
         return wasEventProcessed;
     }
 
-    private boolean __autotransition13090__()
+    private boolean __autotransition11967__()
     {
         boolean wasEventProcessed = false;
 
         State aState = state;
         switch (aState)
         {
-            case sendWeeklyMessage:
-                setState(State.waitWeek);
+            case sendDailyMessage:
+                setState(State.waitDay);
                 wasEventProcessed = true;
                 break;
             default:
@@ -148,8 +149,8 @@ public class HPM_WeeklyMessageBase
     {
         switch(state)
         {
-            case waitWeek:
-                stopTimeoutwaitWeekTosendWeeklyMessageHandler();
+            case waitDay:
+                stopTimeoutwaitDayTosendDailyMessageHandler();
                 break;
         }
     }
@@ -162,48 +163,45 @@ public class HPM_WeeklyMessageBase
         switch(state)
         {
             case initial:
-                // line 11 "model.ump"
-                // entrypoint
+                // line 9 "model.ump"
                 stateNotify("initial");
                 break;
-            case waitWeek:
-                // line 22 "model.ump"
-                // wait here until a certain time of day on a
-                // certain day of the week
-                stateNotify("waitWeek");
-                startTimeoutwaitWeekTosendWeeklyMessageHandler();
+            case waitDay:
+                // line 20 "model.ump"
+                stateNotify("waitDay");
+                startTimeoutwaitDayTosendDailyMessageHandler();
                 break;
-            case sendWeeklyMessage:
-                // line 34 "model.ump"
-                // send weekly message to participant
-                stateNotify("sendWeeklyMessage");
-                __autotransition13090__();
+            case sendDailyMessage:
+                // line 30 "model.ump"
+                // send daily message to participant
+                stateNotify("sendDailyMessage");
+                __autotransition11967__();
                 break;
             case endProtocol:
-                // line 43 "model.ump"
+                // line 39 "model.ump"
                 stateNotify("endProtocol");
                 break;
         }
     }
 
-    private void startTimeoutwaitWeekTosendWeeklyMessageHandler()
+    private void startTimeoutwaitDayTosendDailyMessageHandler()
     {
-        timeoutwaitWeekTosendWeeklyMessageHandler = new TimedEventHandler(this,"timeoutwaitWeekTosendWeeklyMessage",timeout1Week);
+        timeoutwaitDayTosendDailyMessageHandler = new TimedEventHandler(this,"timeoutwaitDayTosendDailyMessage",timeout24Hours);
     }
 
-    private void stopTimeoutwaitWeekTosendWeeklyMessageHandler()
+    private void stopTimeoutwaitDayTosendDailyMessageHandler()
     {
-        timeoutwaitWeekTosendWeeklyMessageHandler.stop();
+        timeoutwaitDayTosendDailyMessageHandler.stop();
     }
 
     public static class TimedEventHandler extends TimerTask
     {
-        private HPM_WeeklyMessageBase controller;
+        private CCW_DailyMessageBase controller;
         private String timeoutMethodName;
         private double howLongInSeconds;
         private Timer timer;
 
-        public TimedEventHandler(HPM_WeeklyMessageBase aController, String aTimeoutMethodName, double aHowLongInSeconds)
+        public TimedEventHandler(CCW_DailyMessageBase aController, String aTimeoutMethodName, double aHowLongInSeconds)
         {
             controller = aController;
             timeoutMethodName = aTimeoutMethodName;
@@ -219,12 +217,12 @@ public class HPM_WeeklyMessageBase
 
         public void run ()
         {
-            if ("timeoutwaitWeekTosendWeeklyMessage".equals(timeoutMethodName))
+            if ("timeoutwaitDayTosendDailyMessage".equals(timeoutMethodName))
             {
-                boolean shouldRestart = !controller.timeoutwaitWeekTosendWeeklyMessage();
+                boolean shouldRestart = !controller.timeoutwaitDayTosendDailyMessage();
                 if (shouldRestart)
                 {
-                    controller.startTimeoutwaitWeekTosendWeeklyMessageHandler();
+                    controller.startTimeoutwaitDayTosendDailyMessageHandler();
                 }
                 return;
             }
@@ -234,12 +232,12 @@ public class HPM_WeeklyMessageBase
     public void delete()
     {}
 
-    // line 50 "model.ump"
+    // line 46 "model.ump"
     public boolean stateNotify(String node){
         return true;
     }
 
-    // line 51 "model.ump"
+    // line 47 "model.ump"
     public int currentTime(){
         return 1;
     }
@@ -248,6 +246,6 @@ public class HPM_WeeklyMessageBase
     public String toString()
     {
         return super.toString() + "["+
-                "timeout1Week" + ":" + getTimeout1Week()+ "]";
+                "timeout24Hours" + ":" + getTimeout24Hours()+ "]";
     }
 }

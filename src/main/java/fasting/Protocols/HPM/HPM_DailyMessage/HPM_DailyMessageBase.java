@@ -1,4 +1,4 @@
-package fasting.Protocols.HPM_DailyMessage;
+package fasting.Protocols.HPM.HPM_DailyMessage;
 //%% NEW FILE HPM_DailyMessageBase BEGINS HERE %%
 
 /*PLEASE DO NOT EDIT THIS CODE*/

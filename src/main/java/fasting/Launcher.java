@@ -4,12 +4,17 @@ import fasting.Configs.Config;
 import fasting.Configs.FileConfig;
 import fasting.Database.DBEngine;
 import fasting.MessagingUtils.MsgUtils;
-import fasting.Protocols.HPM_DailyMessage.HPM_DailyMessageWatcher;
 import fasting.Protocols.Testing;
-import fasting.Protocols.HPM_Restricted.HPM_RestrictedWatcher;
-import fasting.Protocols.HPM_Control.HPM_ControlWatcher;
-import fasting.Protocols.HPM_Baseline.HPM_BaselineWatcher;
-import fasting.Protocols.HPM_WeeklyMessage.HPM_WeeklyMessageWatcher;
+import fasting.Protocols.HPM.HPM_DailyMessage.HPM_DailyMessageWatcher;
+import fasting.Protocols.HPM.HPM_Restricted.HPM_RestrictedWatcher;
+import fasting.Protocols.HPM.HPM_Control.HPM_ControlWatcher;
+import fasting.Protocols.HPM.HPM_Baseline.HPM_BaselineWatcher;
+import fasting.Protocols.HPM.HPM_WeeklyMessage.HPM_WeeklyMessageWatcher;
+import fasting.Protocols.CCW.CCW_DailyMessage.CCW_DailyMessageWatcher;
+import fasting.Protocols.CCW.CCW_Restricted.CCW_RestrictedWatcher;
+import fasting.Protocols.CCW.CCW_Control.CCW_ControlWatcher;
+import fasting.Protocols.CCW.CCW_Baseline.CCW_BaselineWatcher;
+import fasting.Protocols.CCW.CCW_WeeklyMessage.CCW_WeeklyMessageWatcher;
 import fasting.TimeUtils.TimezoneHelper;
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
@@ -36,6 +41,11 @@ public class Launcher {
     public static HPM_BaselineWatcher HPM_BaselineWatcher;
     public static HPM_WeeklyMessageWatcher HPM_WeeklyMessageWatcher;
     public static HPM_DailyMessageWatcher HPM_DailyMessageWatcher;
+    public static CCW_RestrictedWatcher CCW_RestrictedWatcher;
+    public static CCW_ControlWatcher CCW_ControlWatcher;
+    public static CCW_BaselineWatcher CCW_BaselineWatcher;
+    public static CCW_WeeklyMessageWatcher CCW_WeeklyMessageWatcher;
+    public static CCW_DailyMessageWatcher CCW_DailyMessageWatcher;
     public static Testing testing;
     public static TimezoneHelper TZHelper;
 
@@ -79,11 +89,11 @@ public class Launcher {
             HPM_DailyMessageWatcher = new HPM_DailyMessageWatcher(); // only for TRE
 
             //start CCW protocols
-//            CCW_RestrictedWatcher = new CCW_RestrictedWatcher();
-//            CCW_ControlWatcher = new CCW_ControlWatcher();
-//            CCW_BaselineWatcher = new CCW_BaselineWatcher();
-//            CCW_WeeklyMessageWatcher = new CCW_WeeklyMessageWatcher(); // only for Baseline/Control
-//            CCW_DailyMessageWatcher = new CCW_DailyMessageWatcher(); // only for TRE
+            CCW_RestrictedWatcher = new CCW_RestrictedWatcher();
+            CCW_ControlWatcher = new CCW_ControlWatcher();
+            CCW_BaselineWatcher = new CCW_BaselineWatcher();
+            CCW_WeeklyMessageWatcher = new CCW_WeeklyMessageWatcher(); // only for Baseline/Control
+            CCW_DailyMessageWatcher = new CCW_DailyMessageWatcher(); // only for TRE
 
         } catch (Exception ex) {
             ex.printStackTrace();

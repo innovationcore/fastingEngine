@@ -1,30 +1,31 @@
-package fasting.Protocols.HPM_Baseline;
-//%% NEW FILE HPM_BaselineBase BEGINS HERE %%
+package fasting.Protocols.CCW.CCW_Control;
+//%% NEW FILE CCW_ControlBase BEGINS HERE %%
 
 /*PLEASE DO NOT EDIT THIS CODE*/
 /*This code was generated using the UMPLE 1.32.1.6535.66c005ced modeling language!*/
 
 
-import java.util.*;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
- * UML State diagram for HPM_Baseline, represented in Umple
+ * UML State diagram for CCW_Control, represented in Umple
  */
 // line 3 "model.ump"
 // line 106 "model.ump"
-public class HPM_BaselineBase
+public class CCW_ControlBase
 {
 
   //------------------------
   // MEMBER VARIABLES
   //------------------------
 
-  //HPM_BaselineBase Attributes
+  //CCW_ControlBase Attributes
   private int timeout24Hours;
   private int startWarnDeadline;
   private int endWarnDeadline;
 
-  //HPM_BaselineBase State Machines
+  //CCW_ControlBase State Machines
   public enum State { initial, waitStart, warnStartCal, startcal, warnEndCal, endcal, timeout24, endProtocol }
   private State state;
 
@@ -39,7 +40,7 @@ public class HPM_BaselineBase
   // CONSTRUCTOR
   //------------------------
 
-  public HPM_BaselineBase()
+  public CCW_ControlBase()
   {
     timeout24Hours = 0;
     startWarnDeadline = 0;
@@ -355,7 +356,7 @@ public class HPM_BaselineBase
     return wasEventProcessed;
   }
 
-  private boolean __autotransition11886__()
+  private boolean __autotransition11905__()
   {
     boolean wasEventProcessed = false;
 
@@ -443,7 +444,7 @@ public class HPM_BaselineBase
         // sends a message if startcal or endcal are not
         // received for the day
         stateNotify("timeout24");
-        __autotransition11886__();
+        __autotransition11905__();
         break;
       case endProtocol:
         // line 93 "model.ump"
@@ -504,12 +505,12 @@ public class HPM_BaselineBase
 
   public static class TimedEventHandler extends TimerTask
   {
-    private HPM_BaselineBase controller;
+    private CCW_ControlBase controller;
     private String timeoutMethodName;
     private double howLongInSeconds;
     private Timer timer;
 
-    public TimedEventHandler(HPM_BaselineBase aController, String aTimeoutMethodName, double aHowLongInSeconds)
+    public TimedEventHandler(CCW_ControlBase aController, String aTimeoutMethodName, double aHowLongInSeconds)
     {
       controller = aController;
       timeoutMethodName = aTimeoutMethodName;

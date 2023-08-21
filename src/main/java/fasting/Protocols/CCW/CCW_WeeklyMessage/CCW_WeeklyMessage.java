@@ -1,21 +1,23 @@
-package fasting.Protocols.HPM_WeeklyMessage;
+package fasting.Protocols.CCW.CCW_WeeklyMessage;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import fasting.Launcher;
+import fasting.Protocols.CCW.CCW_Baseline.CCW_Baseline;
+import fasting.Protocols.CCW.CCW_Control.CCW_Control;
 import fasting.TimeUtils.TimezoneHelper;
-import fasting.Protocols.HPM_Control.HPM_Control;
-import fasting.Protocols.HPM_Baseline.HPM_Baseline;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Type;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.TimeZone;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-public class HPM_WeeklyMessage extends HPM_WeeklyMessageBase {
+public class CCW_WeeklyMessage extends CCW_WeeklyMessageBase {
     private Type typeOfHashMap = new TypeToken<Map<String, Map<String,Long>>>() { }.getType();
 
     private Map<String, String> participantMap;
@@ -27,9 +29,9 @@ public class HPM_WeeklyMessage extends HPM_WeeklyMessageBase {
 
     private Gson gson;
     public ScheduledExecutorService uploadSave;
-    private static final Logger logger = LoggerFactory.getLogger(HPM_WeeklyMessage.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(CCW_WeeklyMessage.class.getName());
 
-    public HPM_WeeklyMessage(Map<String, String> participantMap) {
+    public CCW_WeeklyMessage(Map<String, String> participantMap) {
         this.gson = new Gson();
         this.participantMap = participantMap;
         this.stateMap = new HashMap<>();
@@ -57,7 +59,7 @@ public class HPM_WeeklyMessage extends HPM_WeeklyMessageBase {
 
                 }
             } catch (Exception ex) {
-                logger.error("protocols.HPM_WeeklyMessage Thread");
+                logger.error("protocols.CCW_WeeklyMessage Thread");
                 logger.error(ex.getMessage());
             }
         }, 30, 900, TimeUnit.SECONDS); //900 sec is 15 mins
@@ -111,10 +113,10 @@ public class HPM_WeeklyMessage extends HPM_WeeklyMessageBase {
             String protocolNameDB = Launcher.dbEngine.getProtocolFromParticipantId(participantMap.get("participant_uuid"));
 
             if (protocolNameDB.equals("Baseline")) {
-                Map<String, HPM_Baseline> baselineMap = Launcher.HPM_BaselineWatcher.getHPM_BaselineMap();
+                Map<String, CCW_Baseline> baselineMap = Launcher.CCW_BaselineWatcher.getCCW_BaselineMap();
                 while (!baselineMap.containsKey(participantMap.get("participant_uuid"))) {
                     Thread.sleep(500);
-                    baselineMap = Launcher.HPM_BaselineWatcher.getHPM_BaselineMap();
+                    baselineMap = Launcher.CCW_BaselineWatcher.getCCW_BaselineMap();
                 }
 
                 String currentState = baselineMap.get(participantMap.get("participant_uuid")).getState().toString();
@@ -134,10 +136,10 @@ public class HPM_WeeklyMessage extends HPM_WeeklyMessageBase {
                 }
 
             } else if (protocolNameDB.equals("Control")){
-                Map<String, HPM_Control> controlMap = Launcher.HPM_ControlWatcher.getHPM_ControlMap();
+                Map<String, CCW_Control> controlMap = Launcher.CCW_ControlWatcher.getCCW_ControlMap();
                 while (!controlMap.containsKey(participantMap.get("participant_uuid"))) {
                     Thread.sleep(500);
-                    controlMap = Launcher.HPM_ControlWatcher.getHPM_ControlMap();
+                    controlMap = Launcher.CCW_ControlWatcher.getCCW_ControlMap();
                 }
 
                 String currentState = controlMap.get(participantMap.get("participant_uuid")).getState().toString();
@@ -168,7 +170,7 @@ public class HPM_WeeklyMessage extends HPM_WeeklyMessageBase {
         if(gson != null) {
             Map<String,String> messageMap = new HashMap<>();
             messageMap.put("state",state);
-            messageMap.put("protocol", "HPM_WeeklyMessage");
+            messageMap.put("protocol", "CCW_WeeklyMessage");
             if (this.isRestoring) {
                 if(this.isReset) {
                     messageMap.put("RESET", "true");

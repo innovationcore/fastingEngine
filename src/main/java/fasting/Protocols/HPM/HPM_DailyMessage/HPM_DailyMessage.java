@@ -1,8 +1,8 @@
-package fasting.Protocols.HPM_DailyMessage;
+package fasting.Protocols.HPM.HPM_DailyMessage;
 
 import com.google.gson.Gson;
 import fasting.Launcher;
-import fasting.Protocols.HPM_Restricted.HPM_Restricted;
+import fasting.Protocols.HPM.HPM_Restricted.HPM_Restricted;
 import fasting.TimeUtils.TimezoneHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

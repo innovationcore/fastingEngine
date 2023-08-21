@@ -1,4 +1,4 @@
-package fasting.Protocols.HPM_Restricted;
+package fasting.Protocols.CCW.CCW_Restricted;
 
 import fasting.Launcher;
 import org.slf4j.Logger;
@@ -12,15 +12,15 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class HPM_RestrictedWatcher {
+public class CCW_RestrictedWatcher {
     private final Logger logger;
-    private final AtomicBoolean lockHPM_Restricted = new AtomicBoolean();
+    private final AtomicBoolean lockCCW_Restricted = new AtomicBoolean();
     private final AtomicBoolean lockEpisodeReset = new AtomicBoolean();
-    private final Map<String, HPM_Restricted> HPM_restrictedMap;
+    private final Map<String, CCW_Restricted> CCW_restrictedMap;
 
-    public HPM_RestrictedWatcher() {
-        this.logger = LoggerFactory.getLogger(HPM_RestrictedWatcher.class);
-        this.HPM_restrictedMap = Collections.synchronizedMap(new HashMap<>());
+    public CCW_RestrictedWatcher() {
+        this.logger = LoggerFactory.getLogger(CCW_RestrictedWatcher.class);
+        this.CCW_restrictedMap = Collections.synchronizedMap(new HashMap<>());
 
         //how long to wait before checking protocols
         long checkdelay = Launcher.config.getLongParam("checkdelay", 5000L);
@@ -29,7 +29,7 @@ public class HPM_RestrictedWatcher {
         //create timer
         ScheduledExecutorService checkTimer = Executors.newScheduledThreadPool(1);
         //set timer
-        checkTimer.scheduleAtFixedRate(new startHPM_Restricted(), checkdelay, checktimer, TimeUnit.MILLISECONDS);
+        checkTimer.scheduleAtFixedRate(new startCCW_Restricted(), checkdelay, checktimer, TimeUnit.MILLISECONDS);
     }
 
     public void incomingText(String participantId, Map<String,String> incomingMap) {
@@ -38,9 +38,9 @@ public class HPM_RestrictedWatcher {
             //From
             logger.info("Incoming number: " + incomingMap.get("From") + " parid: " + participantId);
 
-            synchronized (lockHPM_Restricted) {
-                if(HPM_restrictedMap.containsKey(participantId)) {
-                    HPM_restrictedMap.get(participantId).incomingText(incomingMap);
+            synchronized (lockCCW_Restricted) {
+                if(CCW_restrictedMap.containsKey(participantId)) {
+                    CCW_restrictedMap.get(participantId).incomingText(incomingMap);
                 }
 
             }
@@ -106,7 +106,7 @@ public class HPM_RestrictedWatcher {
 
     public void resetStateMachine(String participantId){
         // Remove participant from protocol
-        HPM_Restricted removed = HPM_restrictedMap.remove(participantId);
+        CCW_Restricted removed = CCW_restrictedMap.remove(participantId);
         if (removed != null) {
             removed.receivedEndProtocol();
             removed.uploadSave.shutdownNow();
@@ -115,22 +115,22 @@ public class HPM_RestrictedWatcher {
         }
 
         //restart at beginning
-        List<Map<String,String>> participantMapList = Launcher.dbEngine.getParticipantMapByGroup("TRE", "HPM");
+        List<Map<String,String>> participantMapList = Launcher.dbEngine.getParticipantMapByGroup("TRE", "CCW");
         //Create person
         Map<String, String> addMap = getHashMapByParticipantUUID(participantMapList, participantId);
-        HPM_Restricted p0 = new HPM_Restricted(addMap);
+        CCW_Restricted p0 = new CCW_Restricted(addMap);
 
         p0.restoreSaveState(true);
 
-        synchronized (lockHPM_Restricted) {
-            HPM_restrictedMap.put(participantId, p0);
+        synchronized (lockCCW_Restricted) {
+            CCW_restrictedMap.put(participantId, p0);
         }
     }
 
     public String moveToState(String participantId, String moveToState, String time) {
         String newState = "";
         try {
-            HPM_Restricted participant = HPM_restrictedMap.get(participantId);
+            CCW_Restricted participant = CCW_restrictedMap.get(participantId);
             switch (participant.getState()){
                 case initial:
                     if (moveToState.equals("waitStart")){
@@ -304,43 +304,43 @@ public class HPM_RestrictedWatcher {
     }
 
     public void updateTimeZone(String participantId, String tz) {
-        HPM_Restricted toUpdate = HPM_restrictedMap.get(participantId);
+        CCW_Restricted toUpdate = CCW_restrictedMap.get(participantId);
         logger.warn(participantId + ": changed TZ from " + toUpdate.TZHelper.getUserTimezone() + " to " + tz);
         toUpdate.TZHelper.setUserTimezone(tz);
     }
 
-    class startHPM_Restricted extends TimerTask {
+    class startCCW_Restricted extends TimerTask {
         private final Logger logger;
-        public startHPM_Restricted() {
-            logger = LoggerFactory.getLogger(startHPM_Restricted.class);
+        public startCCW_Restricted() {
+            logger = LoggerFactory.getLogger(startCCW_Restricted.class);
         }
 
         public void run() {
             try {
                 synchronized (lockEpisodeReset) {
-                    List<Map<String,String>> participantMapList = Launcher.dbEngine.getParticipantMapByGroup("TRE", "HPM");
-                    Map<String, String> HPM_restrictedUUIDs = new HashMap<>(); // this only stores the uuids from partMapList
+                    List<Map<String,String>> participantMapList = Launcher.dbEngine.getParticipantMapByGroup("TRE", "CCW");
+                    Map<String, String> CCW_restrictedUUIDs = new HashMap<>(); // this only stores the uuids from partMapList
                     List<String> participantsToAdd = new ArrayList<>();
                     List<String> participantsToRemove = new ArrayList<>();
 
                     for (Map<String, String> participantMap : participantMapList) {
-                        HPM_restrictedUUIDs.put(participantMap.get("participant_uuid"), "participant_uuid");
+                        CCW_restrictedUUIDs.put(participantMap.get("participant_uuid"), "participant_uuid");
                     }
 
-                    if (HPM_restrictedUUIDs.size() > HPM_restrictedMap.size()) {
-                        participantsToAdd = getMissingKeys(HPM_restrictedMap, HPM_restrictedUUIDs);
-                    } else if (HPM_restrictedUUIDs.size() < HPM_restrictedMap.size()) {
-                        participantsToRemove = getMissingKeys(HPM_restrictedMap, HPM_restrictedUUIDs);
+                    if (CCW_restrictedUUIDs.size() > CCW_restrictedMap.size()) {
+                        participantsToAdd = getMissingKeys(CCW_restrictedMap, CCW_restrictedUUIDs);
+                    } else if (CCW_restrictedUUIDs.size() < CCW_restrictedMap.size()) {
+                        participantsToRemove = getMissingKeys(CCW_restrictedMap, CCW_restrictedUUIDs);
                     } else {
                         // otherwise check if participant needs to be added
-                        if (!HPM_restrictedUUIDs.keySet().equals(HPM_restrictedMap.keySet())){
-                            for (String key: HPM_restrictedMap.keySet()){
-                                if (!HPM_restrictedUUIDs.containsKey(key)){
+                        if (!CCW_restrictedUUIDs.keySet().equals(CCW_restrictedMap.keySet())){
+                            for (String key: CCW_restrictedMap.keySet()){
+                                if (!CCW_restrictedUUIDs.containsKey(key)){
                                     participantsToRemove.add(key);
                                 }
                             }
-                            for (String key: HPM_restrictedUUIDs.keySet()) {
-                                if (!HPM_restrictedMap.containsKey(key)) {
+                            for (String key: CCW_restrictedUUIDs.keySet()) {
+                                if (!CCW_restrictedMap.containsKey(key)) {
                                     participantsToAdd.add(key);
                                 }
                             }
@@ -348,7 +348,7 @@ public class HPM_RestrictedWatcher {
                     }
 
                     for (String toRemove: participantsToRemove) {
-                        HPM_Restricted removed = HPM_restrictedMap.remove(toRemove);
+                        CCW_Restricted removed = CCW_restrictedMap.remove(toRemove);
                         if (removed != null) {
                             removed.receivedEndProtocol();
                             removed.uploadSave.shutdownNow();
@@ -362,13 +362,13 @@ public class HPM_RestrictedWatcher {
                         //Create person
                         Map<String, String> addMap = getHashMapByParticipantUUID(participantMapList, toAdd);
                         if (addMap.isEmpty()) { continue; }
-                        HPM_Restricted p0 = new HPM_Restricted(addMap);
+                        CCW_Restricted p0 = new CCW_Restricted(addMap);
 
                         logger.info("Restoring State for participant_uuid=" + toAdd);
                         p0.restoreSaveState(false);
 
-                        synchronized (lockHPM_Restricted) {
-                            HPM_restrictedMap.put(toAdd, p0);
+                        synchronized (lockCCW_Restricted) {
+                            CCW_restrictedMap.put(toAdd, p0);
                         }
                     }
                 }
@@ -396,8 +396,8 @@ public class HPM_RestrictedWatcher {
             try {
                 logger.error("RESET!!");
                 synchronized (lockEpisodeReset) {
-                    synchronized (lockHPM_Restricted) {
-                        HPM_restrictedMap.clear();
+                    synchronized (lockCCW_Restricted) {
+                        CCW_restrictedMap.clear();
                     }
                 }
 
@@ -414,11 +414,11 @@ public class HPM_RestrictedWatcher {
 
     }
 
-    public Map<String, HPM_Restricted> getHPM_RestrictedMap(){
-        return this.HPM_restrictedMap;
+    public Map<String, CCW_Restricted> getCCW_RestrictedMap(){
+        return this.CCW_restrictedMap;
     }
 
-    public List<String> getMissingKeys(Map<String, HPM_Restricted> map1, Map<String, String> map2) {
+    public List<String> getMissingKeys(Map<String, CCW_Restricted> map1, Map<String, String> map2) {
         List<String> keysNotInBoth = new ArrayList<>();
         for (String key : map1.keySet()) {
             if (!map2.containsKey(key)) {

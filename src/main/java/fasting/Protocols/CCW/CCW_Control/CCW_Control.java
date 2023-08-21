@@ -1,4 +1,4 @@
-package fasting.Protocols.HPM_Baseline;
+package fasting.Protocols.CCW.CCW_Control;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -8,12 +8,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Type;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.TimeZone;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-public class HPM_Baseline extends HPM_BaselineBase {
+public class CCW_Control extends CCW_ControlBase {
     private final Type typeOfHashMap = new TypeToken<Map<String, Map<String,Long>>>() { }.getType();
 
     //id, participant_uuid, phone_number, participant_type
@@ -27,9 +29,9 @@ public class HPM_Baseline extends HPM_BaselineBase {
     public String stateJSON;
     private final Gson gson;
     public ScheduledExecutorService uploadSave;
-    private static final Logger logger = LoggerFactory.getLogger(HPM_Baseline.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(CCW_Control.class.getName());
 
-    public HPM_Baseline(Map<String, String> participantMap) {
+    public CCW_Control(Map<String, String> participantMap) {
         this.gson = new Gson();
         this.participantMap = participantMap;
         this.stateMap = new HashMap<>();
@@ -61,12 +63,12 @@ public class HPM_Baseline extends HPM_BaselineBase {
                     }
                 }
             } catch (Exception ex) {
-                logger.error("protocols.HPM_Baseline Thread");
+                logger.error("protocols.Baseline Thread");
                 logger.error(ex.getMessage());
             }
         }, 30, 900, TimeUnit.SECONDS); //900 sec is 15 mins
 
-    } //HPM_Baseline
+    } // CCW_Control
 
     public void incomingText(Map<String,String> incomingMap) {
         this.incomingMap = incomingMap;
@@ -168,7 +170,7 @@ public class HPM_Baseline extends HPM_BaselineBase {
                         receivedEndCal();
                     } else {
                         Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Please send \"STARTCAL\" when you begin calories for " +
-                                                                                    "the day; \"ENDCAL\" when you are done with calories for the day.");
+                                "the day; \"ENDCAL\" when you are done with calories for the day.");
                     }
                     break;
                 case warnEndCal:
@@ -255,7 +257,6 @@ public class HPM_Baseline extends HPM_BaselineBase {
                     Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Text 270-402-2214 if you need help.");
                     break;
                 case endProtocol:
-                    Launcher.dbEngine.addProtocolNameToLog("HPM_Baseline", participantMap.get("participant_uuid"));
                     logger.warn(participantMap.get("participant_uuid") + " endProtocol unexpected message");
                     break;
                 default:
@@ -273,6 +274,7 @@ public class HPM_Baseline extends HPM_BaselineBase {
     private boolean isStartCal(String messageBody) {
         boolean isStart = false;
         try {
+
             isStart = messageBody.toLowerCase().contains("startcal");
 
         } catch (Exception ex) {
@@ -440,6 +442,7 @@ public class HPM_Baseline extends HPM_BaselineBase {
                         "when your calories finish at night! Let us know if you need help.");
                 break;
             case endProtocol:
+                Launcher.dbEngine.addProtocolNameToLog("CCW_Control", participantMap.get("participant_uuid"));
                 logger.warn(participantMap.get("participant_uuid") + " is not longer in protocol.");
                 break;
             default:
@@ -456,6 +459,8 @@ public class HPM_Baseline extends HPM_BaselineBase {
             if (isReset) {
                 this.isReset = true;
                 logger.info("restoreSaveState: resetting participant: " + participantMap.get("participant_uuid"));
+                int timeout24 = TZHelper.getSecondsTo359am();
+                setTimeout24Hours(timeout24);
                 receivedWaitStart(); // initial to waitStart
                 this.isReset = false;
             }
@@ -468,7 +473,7 @@ public class HPM_Baseline extends HPM_BaselineBase {
                     Map<String, Long> timerMap = saveStateMap.get("timers");
 
                     int stateIndex = (int) timerMap.get("stateIndex").longValue();
-                    String stateName = State.values()[stateIndex].toString(); // out of bounds
+                    String stateName = State.values()[stateIndex].toString();
 
                     long saveCurrentTime = timerMap.get("currentTime");
 
@@ -506,6 +511,7 @@ public class HPM_Baseline extends HPM_BaselineBase {
                             break;
                         case startcal:
                             this.isRestoring = true;
+                            //reset endWarnDeadline
                             long unixTS = Launcher.dbEngine.getStartCalTime(participantMap.get("participant_uuid"));
                             if (unixTS == 0) {
                                 unixTS = TZHelper.getUnixTimestampNow();
@@ -543,7 +549,6 @@ public class HPM_Baseline extends HPM_BaselineBase {
         } catch (Exception ex) {
             logger.error("restoreSaveState");
             logger.error(ex.getMessage());
-            ex.printStackTrace();
         }
     }
 
@@ -551,14 +556,13 @@ public class HPM_Baseline extends HPM_BaselineBase {
         if(gson != null) {
             Map<String,String> messageMap = new HashMap<>();
             messageMap.put("state",state);
-            messageMap.put("protocol", "HPM_Baseline");
+            messageMap.put("protocol", "CCW_Control");
             if (this.isRestoring) {
-                messageMap.put("restored", "true");
+                messageMap.put("restored","true");
             }
             if (this.isReset) {
-                messageMap.put("RESET", "true");
+                messageMap.put("RESET","true");
             }
-
             String json_string = gson.toJson(messageMap);
 
             String insertQuery = "INSERT INTO state_log " +

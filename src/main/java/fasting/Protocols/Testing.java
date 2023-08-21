@@ -1,6 +1,6 @@
 package fasting.Protocols;
-import fasting.Protocols.HPM_Restricted.HPM_Restricted;
-import fasting.Protocols.HPM_Restricted.HPM_RestrictedBase;
+import fasting.Protocols.HPM.HPM_Restricted.HPM_Restricted;
+import fasting.Protocols.HPM.HPM_Restricted.HPM_RestrictedBase;
 import fasting.TimeUtils.TimezoneHelper;
 import fasting.MessagingUtils.MsgUtils;
 

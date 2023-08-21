@@ -1,4 +1,4 @@
-package fasting.Protocols.HPM_Restricted;
+package fasting.Protocols.HPM.HPM_Restricted;
 
 import fasting.TimeUtils.TimezoneHelper;
 import com.google.gson.Gson;

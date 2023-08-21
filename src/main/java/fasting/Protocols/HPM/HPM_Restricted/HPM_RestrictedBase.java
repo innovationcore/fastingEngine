@@ -1,4 +1,4 @@
-package fasting.Protocols.HPM_Restricted;
+package fasting.Protocols.HPM.HPM_Restricted;
 //%% NEW FILE HPM_RestrictedBase BEGINS HERE %%
 
 /*PLEASE DO NOT EDIT THIS CODE*/

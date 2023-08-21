@@ -1,4 +1,4 @@
-package fasting.Protocols.HPM_DailyMessage;
+package fasting.Protocols.CCW.CCW_DailyMessage;
 
 import fasting.Launcher;
 import org.slf4j.Logger;
@@ -12,15 +12,15 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class HPM_DailyMessageWatcher {
+public class CCW_DailyMessageWatcher {
     private final Logger logger;
-    private final AtomicBoolean lockHPM_DailyMessage = new AtomicBoolean();
+    private final AtomicBoolean lockCCW_DailyMessage = new AtomicBoolean();
     private final AtomicBoolean lockEpisodeReset = new AtomicBoolean();
-    private final Map<String, HPM_DailyMessage> HPM_dailyMessageMap;
+    private final Map<String, CCW_DailyMessage> CCW_dailyMessageMap;
 
-    public HPM_DailyMessageWatcher() {
-        this.logger = LoggerFactory.getLogger(HPM_DailyMessageWatcher.class);
-        this.HPM_dailyMessageMap = Collections.synchronizedMap(new HashMap<>());
+    public CCW_DailyMessageWatcher() {
+        this.logger = LoggerFactory.getLogger(CCW_DailyMessageWatcher.class);
+        this.CCW_dailyMessageMap = Collections.synchronizedMap(new HashMap<>());
 
         //how long to wait before checking protocols
         long checkdelay = Launcher.config.getLongParam("checkdelay", 5000L);
@@ -29,12 +29,12 @@ public class HPM_DailyMessageWatcher {
         //create timer
         ScheduledExecutorService checkTimer = Executors.newScheduledThreadPool(1);
         //set timer
-        checkTimer.scheduleAtFixedRate(new startHPM_DailyMessage(), checkdelay, checktimer, TimeUnit.MILLISECONDS);
+        checkTimer.scheduleAtFixedRate(new startCCW_DailyMessage(), checkdelay, checktimer, TimeUnit.MILLISECONDS);
     }
 
     public void resetStateMachine(String participantId){
         // Remove participant from protocol
-        HPM_DailyMessage removed = HPM_dailyMessageMap.remove(participantId);
+        CCW_DailyMessage removed = CCW_dailyMessageMap.remove(participantId);
         if (removed != null) {
             removed.receivedEndProtocol();
             removed.uploadSave.shutdownNow();
@@ -43,33 +43,33 @@ public class HPM_DailyMessageWatcher {
         }
 
         //restart at beginning
-        List<Map<String,String>> participantMapList = Launcher.dbEngine.getParticipantMapByGroup("TRE", "HPM");
+        List<Map<String,String>> participantMapList = Launcher.dbEngine.getParticipantMapByGroup("TRE", "CCW");
         //Create person
         Map<String, String> addMap = getHashMapByParticipantUUID(participantMapList, participantId);
-        HPM_DailyMessage p0 = new HPM_DailyMessage(addMap);
+        CCW_DailyMessage p0 = new CCW_DailyMessage(addMap);
         p0.restoreSaveState(true);
 
-        synchronized (lockHPM_DailyMessage) {
-            HPM_dailyMessageMap.put(participantId, p0);
+        synchronized (lockCCW_DailyMessage) {
+            CCW_dailyMessageMap.put(participantId, p0);
         }
     }
 
     public void updateTimeZone(String participantId, String tz) {
-        HPM_DailyMessage toUpdate = HPM_dailyMessageMap.get(participantId);
+        CCW_DailyMessage toUpdate = CCW_dailyMessageMap.get(participantId);
         logger.warn(participantId + ": changed TZ from " + toUpdate.TZHelper.getUserTimezone() + " to " + tz);
         toUpdate.TZHelper.setUserTimezone(tz);
     }
 
-    class startHPM_DailyMessage extends TimerTask {
+    class startCCW_DailyMessage extends TimerTask {
         private final Logger logger;
-        public startHPM_DailyMessage() {
-            logger = LoggerFactory.getLogger(startHPM_DailyMessage.class);
+        public startCCW_DailyMessage() {
+            logger = LoggerFactory.getLogger(startCCW_DailyMessage.class);
         }
 
         public void run() {
             try {
                 synchronized (lockEpisodeReset) {
-                    List<Map<String, String>> participantMapList = Launcher.dbEngine.getParticipantMapByGroup("TRE", "HPM");
+                    List<Map<String, String>> participantMapList = Launcher.dbEngine.getParticipantMapByGroup("TRE", "CCW");
                     Map<String, String> dailyUUIDs = new HashMap<>(); // this only stores the uuids from partMapList
                     List<String> participantsToAdd = new ArrayList<>();
                     List<String> participantsToRemove = new ArrayList<>();
@@ -78,20 +78,20 @@ public class HPM_DailyMessageWatcher {
                         dailyUUIDs.put(participantMap.get("participant_uuid"), "participant_uuid");
                     }
 
-                    if (dailyUUIDs.size() > HPM_dailyMessageMap.size()) {
-                        participantsToAdd = getMissingKeys(HPM_dailyMessageMap, dailyUUIDs);
-                    } else if (dailyUUIDs.size() < HPM_dailyMessageMap.size()) {
-                        participantsToRemove = getMissingKeys(HPM_dailyMessageMap, dailyUUIDs);
+                    if (dailyUUIDs.size() > CCW_dailyMessageMap.size()) {
+                        participantsToAdd = getMissingKeys(CCW_dailyMessageMap, dailyUUIDs);
+                    } else if (dailyUUIDs.size() < CCW_dailyMessageMap.size()) {
+                        participantsToRemove = getMissingKeys(CCW_dailyMessageMap, dailyUUIDs);
                     } else {
                         // otherwise check if participant needs to be added
-                        if (!dailyUUIDs.keySet().equals(HPM_dailyMessageMap.keySet())) {
-                            for (String key : HPM_dailyMessageMap.keySet()) {
+                        if (!dailyUUIDs.keySet().equals(CCW_dailyMessageMap.keySet())) {
+                            for (String key : CCW_dailyMessageMap.keySet()) {
                                 if (!dailyUUIDs.containsKey(key)) {
                                     participantsToRemove.add(key);
                                 }
                             }
                             for (String key : dailyUUIDs.keySet()) {
-                                if (!HPM_dailyMessageMap.containsKey(key)) {
+                                if (!CCW_dailyMessageMap.containsKey(key)) {
                                     participantsToAdd.add(key);
                                 }
                             }
@@ -99,7 +99,7 @@ public class HPM_DailyMessageWatcher {
                     }
 
                     for (String toRemove : participantsToRemove) {
-                        HPM_DailyMessage removed = HPM_dailyMessageMap.remove(toRemove);
+                        CCW_DailyMessage removed = CCW_dailyMessageMap.remove(toRemove);
                         if (removed != null) {
                             removed.receivedEndProtocol();
                             removed.uploadSave.shutdownNow();
@@ -115,13 +115,13 @@ public class HPM_DailyMessageWatcher {
                         if (addMap.isEmpty()) {
                             continue;
                         }
-                        HPM_DailyMessage p0 = new HPM_DailyMessage(addMap);
+                        CCW_DailyMessage p0 = new CCW_DailyMessage(addMap);
 
                         logger.info("Restoring State for participant_uuid=" + toAdd);
                         p0.restoreSaveState(false);
 
-                        synchronized (lockHPM_DailyMessage) {
-                            HPM_dailyMessageMap.put(toAdd, p0);
+                        synchronized (lockCCW_DailyMessage) {
+                            CCW_dailyMessageMap.put(toAdd, p0);
                         }
                     }
                 }
@@ -148,8 +148,8 @@ public class HPM_DailyMessageWatcher {
             try {
                 logger.error("RESET!!");
                 synchronized (lockEpisodeReset) {
-                    synchronized (lockHPM_DailyMessage) {
-                        HPM_dailyMessageMap.clear();
+                    synchronized (lockCCW_DailyMessage) {
+                        CCW_dailyMessageMap.clear();
                     }
                 }
 
@@ -166,7 +166,7 @@ public class HPM_DailyMessageWatcher {
 
     }
 
-    public List<String> getMissingKeys(Map<String, HPM_DailyMessage> map1, Map<String, String> map2) {
+    public List<String> getMissingKeys(Map<String, CCW_DailyMessage> map1, Map<String, String> map2) {
         List<String> keysNotInBoth = new ArrayList<>();
         for (String key : map1.keySet()) {
             if (!map2.containsKey(key)) {

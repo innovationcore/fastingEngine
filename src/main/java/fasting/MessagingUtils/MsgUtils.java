@@ -18,33 +18,45 @@ import java.io.PrintWriter;
 public class MsgUtils {
     // Find your Account SID and Auth Token at twilio.com/console
     // and set the environment variables. See http://twil.io/secure
-    private String textFrom;
-    private Logger logger;
-    private Gson gson;
+    private final String textFromHPM;
+    private final String textFromCCW;
+    private final Logger logger;
+    private final Gson gson;
 
     public MsgUtils() {
         logger = LoggerFactory.getLogger(MsgUtils.class);
-        textFrom = Launcher.config.getStringParam("twilio_from_number");
+        textFromHPM = Launcher.config.getStringParam("twilio_from_number_HPM");
+        textFromCCW = Launcher.config.getStringParam("twilio_from_number_CCW");
         gson = new Gson();
         Twilio.init(Launcher.config.getStringParam("twilio_account_sid"), Launcher.config.getStringParam("twilio_auth_token"));
     }
 
     public void sendMessage(String textTo, String body) {
+        String participantId = Launcher.dbEngine.getParticipantIdFromPhoneNumber(textTo);
+        String study = Launcher.dbEngine.getStudyFromParticipantId(participantId);
         Boolean isMessagingDisabled = Launcher.config.getBooleanParam("disable_messaging");
+
         if (isMessagingDisabled) {
             logger.warn("Messaging is disabled. Messages will be saved, but not sent.");
         } else {
-            Message message = Message.creator(
-                        new PhoneNumber(textTo),
-                        new PhoneNumber(textFrom),
-                        body)
+            if (study.equals("HPM")){
+                // you can set the below equal to a Message object for later use
+                Message.creator(
+                    new PhoneNumber(textTo),
+                    new PhoneNumber(textFromHPM),
+                    body)
                 .create();
+            } else if (study.equals("CCW")) {
+                Message.creator(
+                    new PhoneNumber(textTo),
+                    new PhoneNumber(textFromCCW),
+                    body)
+                .create();
+            }
         }
 
         String messageId = UUID.randomUUID().toString();
-        String participantId = Launcher.dbEngine.getParticipantIdFromPhoneNumber(textTo);
         String messageDirection = "outgoing";
-        String study = Launcher.dbEngine.getStudyFromParticipantId(participantId);
 
         Date date = new Date();
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
@@ -92,16 +104,16 @@ public class MsgUtils {
                 //send to state machine
                 Launcher.HPM_RestrictedWatcher.incomingText(participantId, formsMap);
 
-                Map<String,String> responce = new HashMap<>();
-                responce.put("status","ok");
-                responseString = gson.toJson(responce);
+                Map<String,String> response = new HashMap<>();
+                response.put("status","ok");
+                responseString = gson.toJson(response);
                 return responseString;
 
             } else {
-                Map<String,String> responce = new HashMap<>();
-                responce.put("status","error");
-                responce.put("status_desc","participant not found");
-                responseString = gson.toJson(responce);
+                Map<String,String> response = new HashMap<>();
+                response.put("status","error");
+                response.put("status_desc","participant not found");
+                responseString = gson.toJson(response);
                 return responseString;
             }
 

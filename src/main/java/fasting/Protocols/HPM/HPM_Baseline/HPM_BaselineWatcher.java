@@ -1,4 +1,4 @@
-package fasting.Protocols.HPM_Baseline;
+package fasting.Protocols.HPM.HPM_Baseline;
 
 import fasting.Launcher;
 import org.slf4j.Logger;

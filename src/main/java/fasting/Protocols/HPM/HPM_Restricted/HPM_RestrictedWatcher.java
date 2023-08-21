@@ -1,4 +1,4 @@
-package fasting.Protocols.HPM_Control;
+package fasting.Protocols.HPM.HPM_Restricted;
 
 import fasting.Launcher;
 import org.slf4j.Logger;
@@ -12,26 +12,24 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class HPM_ControlWatcher {
+public class HPM_RestrictedWatcher {
     private final Logger logger;
-    private final ScheduledExecutorService checkTimer;
-    private final AtomicBoolean lockHPM_Control = new AtomicBoolean();
+    private final AtomicBoolean lockHPM_Restricted = new AtomicBoolean();
     private final AtomicBoolean lockEpisodeReset = new AtomicBoolean();
+    private final Map<String, HPM_Restricted> HPM_restrictedMap;
 
-    private final Map<String, HPM_Control> HPM_controlMap;
-
-    public HPM_ControlWatcher() {
-        this.logger = LoggerFactory.getLogger(HPM_ControlWatcher.class);
-        this.HPM_controlMap = Collections.synchronizedMap(new HashMap<>());
+    public HPM_RestrictedWatcher() {
+        this.logger = LoggerFactory.getLogger(HPM_RestrictedWatcher.class);
+        this.HPM_restrictedMap = Collections.synchronizedMap(new HashMap<>());
 
         //how long to wait before checking protocols
         long checkdelay = Launcher.config.getLongParam("checkdelay", 5000L);
         long checktimer = Launcher.config.getLongParam("checktimer", 30000L);
 
         //create timer
-        checkTimer = Executors.newScheduledThreadPool(1);
+        ScheduledExecutorService checkTimer = Executors.newScheduledThreadPool(1);
         //set timer
-        checkTimer.scheduleAtFixedRate(new startHPM_Control(), checkdelay, checktimer, TimeUnit.MILLISECONDS);
+        checkTimer.scheduleAtFixedRate(new startHPM_Restricted(), checkdelay, checktimer, TimeUnit.MILLISECONDS);
     }
 
     public void incomingText(String participantId, Map<String,String> incomingMap) {
@@ -40,9 +38,9 @@ public class HPM_ControlWatcher {
             //From
             logger.info("Incoming number: " + incomingMap.get("From") + " parid: " + participantId);
 
-            synchronized (lockHPM_Control) {
-                if(HPM_controlMap.containsKey(participantId)) {
-                    HPM_controlMap.get(participantId).incomingText(incomingMap);
+            synchronized (lockHPM_Restricted) {
+                if(HPM_restrictedMap.containsKey(participantId)) {
+                    HPM_restrictedMap.get(participantId).incomingText(incomingMap);
                 }
 
             }
@@ -68,22 +66,24 @@ public class HPM_ControlWatcher {
                     validNextStates = "waitStart,warnStartCal,startcal,warnEndCal,endProtocol";
                     break;
                 case "waitStart":
-                    validNextStates = "warnStartCal,startcal,endProtocol";
+                    validNextStates = "warnStartCal,startcal,dayOffWait,endProtocol";
                     break;
                 case "warnStartCal":
-                    validNextStates = "timeout24,startcal,endProtocol";
+                    validNextStates = "startcal,missedStartCal,dayOffWarn,endProtocol";
                     break;
                 case "startcal":
-                    validNextStates = "startcal,endcal,warnEndCal,endProtocol";
+                    validNextStates = "startcal,endcal,warnEndCal,dayOffStartCal,endProtocol";
+                    break;
+                case "missedStartCal":
+                case "endcal":
+                case "missedEndCal":
+                    validNextStates = "endOfEpisode";
                     break;
                 case "warnEndCal":
-                    validNextStates = "waitStart,endcal,endProtocol";
+                    validNextStates = "endcal,missedEndCal,dayOffWarnEndCal,endProtocol";
                     break;
-                case "endcal":
-                    validNextStates = "endcal,waitStart,endProtocol";
-                    break;
-                case "timeout24":
-                    validNextStates = "waitStart";
+                case "endOfEpisode":
+                    validNextStates = "resetEpisodeVariables,dayOffEndOfEpisode,endcal,endProtocol";
                     break;
                 case "endProtocol":
                     validNextStates = "";
@@ -106,7 +106,7 @@ public class HPM_ControlWatcher {
 
     public void resetStateMachine(String participantId){
         // Remove participant from protocol
-        HPM_Control removed = HPM_controlMap.remove(participantId);
+        HPM_Restricted removed = HPM_restrictedMap.remove(participantId);
         if (removed != null) {
             removed.receivedEndProtocol();
             removed.uploadSave.shutdownNow();
@@ -115,30 +115,29 @@ public class HPM_ControlWatcher {
         }
 
         //restart at beginning
-        List<Map<String,String>> participantMapList = Launcher.dbEngine.getParticipantMapByGroup("HPM_Control", "HPM");
+        List<Map<String,String>> participantMapList = Launcher.dbEngine.getParticipantMapByGroup("TRE", "HPM");
         //Create person
         Map<String, String> addMap = getHashMapByParticipantUUID(participantMapList, participantId);
-        HPM_Control p0 = new HPM_Control(addMap);
+        HPM_Restricted p0 = new HPM_Restricted(addMap);
 
         p0.restoreSaveState(true);
 
-        synchronized (lockHPM_Control) {
-            HPM_controlMap.put(participantId, p0);
+        synchronized (lockHPM_Restricted) {
+            HPM_restrictedMap.put(participantId, p0);
         }
     }
 
     public String moveToState(String participantId, String moveToState, String time) {
         String newState = "";
         try {
-            HPM_Control participant = HPM_controlMap.get(participantId);
+            HPM_Restricted participant = HPM_restrictedMap.get(participantId);
             switch (participant.getState()){
-                //waitStart,warnStartCal,startcal,warnEndCal,endProtocol
                 case initial:
                     if (moveToState.equals("waitStart")){
                         participant.receivedWaitStart();
                         newState = "waitStart";
                     } else if (moveToState.equals("warnStartCal")) {
-                        participant.receivedWarnStart();
+                        participant.receivedWarnStartCal();
                         newState = "warnStartCal";
                     } else if (moveToState.equals("startcal")) {
                         participant.receivedStartCal();
@@ -146,56 +145,47 @@ public class HPM_ControlWatcher {
                     } else if (moveToState.equals("warnEndCal")) {
                         participant.recievedWarnEndCal();
                         newState = "warnEndCal";
-                    } else if (moveToState.equals("endProtocol")) {
-                        participant.receivedEndProtocol();
-                        newState = "endProtocol";
                     } else {
                         // invalid state
                         newState = "initial invalid";
-                        break;
                     }
                     break;
-                //warnStartCal,startcal,endProtocol
                 case waitStart:
-                    if (moveToState.equals("startcal")) {
-                        long timestamp = participant.TZHelper.parseTimeWebsite(time);
-                        Launcher.dbEngine.saveStartCalTimeCreateTemp(participantId, timestamp);
-                        participant.receivedStartCal();
-                        Launcher.dbEngine.removeTempStartCal(participantId);
-                        newState = "startcal";
-                    } else if (moveToState.equals("warnStartCal")) {
+                    if (moveToState.equals("warnStartCal")){
                         participant.timeoutwaitStartTowarnStartCal();
                         newState = "warnStartCal";
-                    } else if (moveToState.equals("endProtocol")) {
-                        participant.receivedEndProtocol();
-                        newState = "endProtocol";
-                    } else {
-                        // invalid state
-                        newState = "waitstart invalid";
-                        break;
-                    }
-                    break;
-                // timeout24,startcal,endProtocol
-                case warnStartCal:
-                    if(moveToState.equals("timeout24")){
-                        participant.timeoutwarnStartCalTotimeout24();
-                        newState = "timeout24";
                     } else if (moveToState.equals("startcal")) {
                         long timestamp = participant.TZHelper.parseTimeWebsite(time);
                         Launcher.dbEngine.saveStartCalTimeCreateTemp(participantId, timestamp);
                         participant.receivedStartCal();
                         Launcher.dbEngine.removeTempStartCal(participantId);
                         newState = "startcal";
-                    } else if (moveToState.equals("endProtocol")){
-                        participant.receivedEndProtocol();
-                        newState = "endProtocol";
+                    } else if (moveToState.equals("dayOffWait")) {
+                        participant.receivedDayOff();
+                        newState = "dayOffWait";
                     } else {
-                        newState = "warnStartCal invalid";
                         // invalid state
-                        break;
+                        newState = "waitstart invalid";
                     }
                     break;
-                // startcal,endcal,warnEndCal,endProtocol
+                case warnStartCal:
+                    if (moveToState.equals("startcal")) {
+                        long timestamp = participant.TZHelper.parseTimeWebsite(time);
+                        Launcher.dbEngine.saveStartCalTimeCreateTemp(participantId, timestamp);
+                        participant.receivedStartCal();
+                        Launcher.dbEngine.removeTempStartCal(participantId);
+                        newState = "startcal";
+                    } else if (moveToState.equals("missedStartCal")) {
+                        participant.timeoutwarnStartCalTomissedStartCal();
+                        newState = "missedStartCal";
+                    } else if (moveToState.equals("dayOffWarn")) {
+                        participant.receivedDayOff();
+                        newState = "dayOffWarn";
+                    } else {
+                        newState = "warnstart invalid";
+                        // invalid state
+                    }
+                    break;
                 case startcal:
                     if (moveToState.equals("startcal")){
                         long timestamp = participant.TZHelper.parseTimeWebsite(time);
@@ -209,58 +199,90 @@ public class HPM_ControlWatcher {
                         participant.receivedEndCal();
                         Launcher.dbEngine.removeTempEndCal(participantId);
                         newState = "endcal";
-                    } else if (moveToState.equals("warnEndCal")) {
+                    } else if (moveToState.equals("warnEndCal")){
                         participant.timeoutstartcalTowarnEndCal();
                         newState = "warnEndCal";
-                    } else if (moveToState.equals("endProtocol")) {
-                        participant.receivedEndProtocol();
-                        newState = "endProtocol";
+                    } else if (moveToState.equals("dayOffStartCal")) {
+                        participant.receivedDayOff();
+                        newState = "dayOffStartCal";
                     } else {
                         newState = "startcal invalid";
                         // invalid state
-                        break;
                     }
                     break;
-                // waitStart,endcal,endProtocol
+                case missedStartCal:
+                    if (moveToState.equals("endOfEpisode")){ 
+                        // nothing needs to happen here because it will move to next state immediately
+                        newState = "endOfEpisode";
+                    } else {
+                        // invalid state
+                        newState = "missedstartcal invalid";
+                    }
+                    break;
                 case warnEndCal:
-                    if (moveToState.equals("waitStart")){
-                        participant.timeoutwarnEndCalTowaitStart();
-                        newState = "waitStart";
-                    } else if (moveToState.equals("endcal")){
-                        participant.receivedEndCal();
+                    if (moveToState.equals("endcal")) {
+                        long timestamp = participant.TZHelper.parseTimeWebsite(time);
+                        Launcher.dbEngine.saveEndCalTimeCreateTemp(participantId, timestamp);
+                        participant.receivedEndCal(); // needs to create endcal state before saving time
+                        Launcher.dbEngine.removeTempEndCal(participantId);
                         newState = "endcal";
-                    } else if (moveToState.equals("endProtocol")){
-                        participant.receivedEndProtocol();
-                        newState = "endProtocol";
+                    } else if (moveToState.equals("missedEndCal")){ 
+                        participant.timeoutwarnEndCalTomissedEndCal();
+                        newState = "missedEndCal";
+                    } else if (moveToState.equals("dayOffWarnEndCal")) {
+                        participant.receivedDayOff();
+                        newState = "dayOffWarnEndCal";
                     } else {
                         // invalid state
                         newState = "warnEndCal invalid";
-                        break;
                     }
-                // endcal,waitStart,endProtocol
+                    break;
                 case endcal:
-                    if (moveToState.equals("endcal")){
+                    if (moveToState.equals("endOfEpisode")) {
+                        // nothing needs to happen here because it will move to next state immediately
+                        newState = "endOfEpisode";
+                    } else {
+                        // invalid state
+                        newState = "endcal invalid";
+                    }
+                    break;
+                case missedEndCal:
+                    if (moveToState.equals("endOfEpisode")){ 
+                        // nothing needs to happen here because it will move to next state immediately
+                        newState = "endOfEpisode";
+                    } else {
+                        // invalid state
+                        newState = "missedEndCal invalid";
+
+                    }
+                    break;
+                case endOfEpisode:
+                    if (moveToState.equals("resetEpisodeVariables")){
+                        participant.timeoutendOfEpisodeToresetEpisodeVariables();
+                        newState = "resetEpisodeVariables";
+                    } else if (moveToState.equals("dayOffEndOfEpisode")) {
+                        participant.receivedDayOff();
+                        newState = "dayOffEndOfEpisode";
+                    } else if (moveToState.equals("endcal")){
                         long timestamp = participant.TZHelper.parseTimeWebsite(time);
                         Launcher.dbEngine.saveEndCalTimeCreateTemp(participantId, timestamp);
                         participant.receivedEndCal();
                         Launcher.dbEngine.removeTempEndCal(participantId);
                         newState = "endcal";
-                    } else if (moveToState.equals("waitStart")) {
-                        participant.timeoutendcalTowaitStart();
+                    } else {
+                        // invalid state
+                        newState = "endOfEpisode invalid";
+                    }
+                    break;
+                case resetEpisodeVariables:
+                    if(moveToState.equals("waitStart")){
+                        // nothing needs to happen, moves immediately to waitstart
                         newState = "waitStart";
                     } else {
                         // invalid state
-                        newState = "endcal invalid";
-                        break;
+                        newState = "resetEpisodeVariables invalid";
                     }
                     break;
-                case timeout24:
-                    if (moveToState.equals("waitStart")) {
-                        newState = "waitStart";
-                    } else {
-                        newState = "timeout24 invalid";
-                        break;
-                    }
                 case endProtocol:
                     // no states to move to
                     newState = "endProtocol invalid";
@@ -282,43 +304,43 @@ public class HPM_ControlWatcher {
     }
 
     public void updateTimeZone(String participantId, String tz) {
-        HPM_Control toUpdate = HPM_controlMap.get(participantId);
+        HPM_Restricted toUpdate = HPM_restrictedMap.get(participantId);
         logger.warn(participantId + ": changed TZ from " + toUpdate.TZHelper.getUserTimezone() + " to " + tz);
         toUpdate.TZHelper.setUserTimezone(tz);
     }
 
-    class startHPM_Control extends TimerTask {
+    class startHPM_Restricted extends TimerTask {
         private final Logger logger;
-        public startHPM_Control() {
-            logger = LoggerFactory.getLogger(startHPM_Control.class);
+        public startHPM_Restricted() {
+            logger = LoggerFactory.getLogger(startHPM_Restricted.class);
         }
 
         public void run() {
             try {
                 synchronized (lockEpisodeReset) {
-                    List<Map<String,String>> participantMapList = Launcher.dbEngine.getParticipantMapByGroup("HPM_Control", "HPM");
-                    Map<String, String> HPM_controlUUIDs = new HashMap<>(); // this only stores the uuids from partMapList
+                    List<Map<String,String>> participantMapList = Launcher.dbEngine.getParticipantMapByGroup("TRE", "HPM");
+                    Map<String, String> HPM_restrictedUUIDs = new HashMap<>(); // this only stores the uuids from partMapList
                     List<String> participantsToAdd = new ArrayList<>();
                     List<String> participantsToRemove = new ArrayList<>();
 
                     for (Map<String, String> participantMap : participantMapList) {
-                        HPM_controlUUIDs.put(participantMap.get("participant_uuid"), "participant_uuid");
+                        HPM_restrictedUUIDs.put(participantMap.get("participant_uuid"), "participant_uuid");
                     }
 
-                    if (HPM_controlUUIDs.size() > HPM_controlMap.size()) {
-                        participantsToAdd = getMissingKeys(HPM_controlMap, HPM_controlUUIDs);
-                    } else if (HPM_controlUUIDs.size() < HPM_controlMap.size()) {
-                        participantsToRemove = getMissingKeys(HPM_controlMap, HPM_controlUUIDs);
+                    if (HPM_restrictedUUIDs.size() > HPM_restrictedMap.size()) {
+                        participantsToAdd = getMissingKeys(HPM_restrictedMap, HPM_restrictedUUIDs);
+                    } else if (HPM_restrictedUUIDs.size() < HPM_restrictedMap.size()) {
+                        participantsToRemove = getMissingKeys(HPM_restrictedMap, HPM_restrictedUUIDs);
                     } else {
                         // otherwise check if participant needs to be added
-                        if (!HPM_controlUUIDs.keySet().equals(HPM_controlMap.keySet())){
-                            for (String key: HPM_controlMap.keySet()){
-                                if (!HPM_controlUUIDs.containsKey(key)){
+                        if (!HPM_restrictedUUIDs.keySet().equals(HPM_restrictedMap.keySet())){
+                            for (String key: HPM_restrictedMap.keySet()){
+                                if (!HPM_restrictedUUIDs.containsKey(key)){
                                     participantsToRemove.add(key);
                                 }
                             }
-                            for (String key: HPM_controlUUIDs.keySet()) {
-                                if (!HPM_controlMap.containsKey(key)) {
+                            for (String key: HPM_restrictedUUIDs.keySet()) {
+                                if (!HPM_restrictedMap.containsKey(key)) {
                                     participantsToAdd.add(key);
                                 }
                             }
@@ -326,7 +348,7 @@ public class HPM_ControlWatcher {
                     }
 
                     for (String toRemove: participantsToRemove) {
-                        HPM_Control removed = HPM_controlMap.remove(toRemove);
+                        HPM_Restricted removed = HPM_restrictedMap.remove(toRemove);
                         if (removed != null) {
                             removed.receivedEndProtocol();
                             removed.uploadSave.shutdownNow();
@@ -340,13 +362,13 @@ public class HPM_ControlWatcher {
                         //Create person
                         Map<String, String> addMap = getHashMapByParticipantUUID(participantMapList, toAdd);
                         if (addMap.isEmpty()) { continue; }
-                        HPM_Control p0 = new HPM_Control(addMap);
+                        HPM_Restricted p0 = new HPM_Restricted(addMap);
 
                         logger.info("Restoring State for participant_uuid=" + toAdd);
                         p0.restoreSaveState(false);
 
-                        synchronized (lockHPM_Control) {
-                            HPM_controlMap.put(toAdd, p0);
+                        synchronized (lockHPM_Restricted) {
+                            HPM_restrictedMap.put(toAdd, p0);
                         }
                     }
                 }
@@ -374,8 +396,8 @@ public class HPM_ControlWatcher {
             try {
                 logger.error("RESET!!");
                 synchronized (lockEpisodeReset) {
-                    synchronized (lockHPM_Control) {
-                        HPM_controlMap.clear();
+                    synchronized (lockHPM_Restricted) {
+                        HPM_restrictedMap.clear();
                     }
                 }
 
@@ -392,12 +414,11 @@ public class HPM_ControlWatcher {
 
     }
 
-    public Map<String, HPM_Control> getHPM_ControlMap(){
-        return this.HPM_controlMap;
+    public Map<String, HPM_Restricted> getHPM_RestrictedMap(){
+        return this.HPM_restrictedMap;
     }
 
-
-    public List<String> getMissingKeys(Map<String, HPM_Control> map1, Map<String, String> map2) {
+    public List<String> getMissingKeys(Map<String, HPM_Restricted> map1, Map<String, String> map2) {
         List<String> keysNotInBoth = new ArrayList<>();
         for (String key : map1.keySet()) {
             if (!map2.containsKey(key)) {
@@ -420,4 +441,5 @@ public class HPM_ControlWatcher {
         }
         return new HashMap<>();
     }
+
 } //class 
