@@ -18,32 +18,44 @@ import java.io.PrintWriter;
 public class MsgUtils {
     // Find your Account SID and Auth Token at twilio.com/console
     // and set the environment variables. See http://twil.io/secure
-    private String textFrom;
-    private Logger logger;
-    private Gson gson;
+    private final String textFromHPM;
+    private final String textFromCCW;
+    private final Logger logger;
+    private final Gson gson;
 
     public MsgUtils() {
         logger = LoggerFactory.getLogger(MsgUtils.class);
-        textFrom = Launcher.config.getStringParam("twilio_from_number");
+        textFromHPM = Launcher.config.getStringParam("twilio_from_number_HPM");
+        textFromCCW = Launcher.config.getStringParam("twilio_from_number_CCW");
         gson = new Gson();
         Twilio.init(Launcher.config.getStringParam("twilio_account_sid"), Launcher.config.getStringParam("twilio_auth_token"));
     }
 
     public void sendMessage(String textTo, String body) {
+        String participantId = Launcher.dbEngine.getParticipantIdFromPhoneNumber(textTo);
+        String study = Launcher.dbEngine.getStudyFromParticipantId(participantId);
         Boolean isMessagingDisabled = Launcher.config.getBooleanParam("disable_messaging");
+
         if (isMessagingDisabled) {
             logger.warn("Messaging is disabled. Messages will be saved, but not sent.");
-        }
-        else {
-            Message message = Message.creator(
-                        new PhoneNumber(textTo),
-                        new PhoneNumber(textFrom),
-                        body)
+        } else {
+            if (study.equals("HPM")){
+                // you can set the below equal to a Message object for later use
+                Message.creator(
+                    new PhoneNumber(textTo),
+                    new PhoneNumber(textFromHPM),
+                    body)
                 .create();
+            } else if (study.equals("CCW")) {
+                Message.creator(
+                    new PhoneNumber(textTo),
+                    new PhoneNumber(textFromCCW),
+                    body)
+                .create();
+            }
         }
 
         String messageId = UUID.randomUUID().toString();
-        String participantId = Launcher.dbEngine.getParticipantIdFromPhoneNumber(textTo);
         String messageDirection = "outgoing";
 
         Date date = new Date();
@@ -58,11 +70,10 @@ public class MsgUtils {
         logger.info(json_string);
 
         String insertQuery = "INSERT INTO messages " +
-                "(message_uuid, participant_uuid, TS, message_direction, message_json)" +
+                "(message_uuid, participant_uuid, TS, message_direction, message_json, study)" +
                 " VALUES ('" + messageId + "', '" +
                 participantId + "' ,'" + timestamp + "', '" +
-                messageDirection + "', '" + json_string +
-                "')";
+                messageDirection + "', '" + json_string + "', '"+ study +"')";
 
         Launcher.dbEngine.executeUpdate(insertQuery);
 
@@ -91,18 +102,18 @@ public class MsgUtils {
                 Launcher.dbEngine.executeUpdate(insertQuery);
 
                 //send to state machine
-                Launcher.restrictedWatcher.incomingText(participantId, formsMap);
+                Launcher.HPM_RestrictedWatcher.incomingText(participantId, formsMap);
 
-                Map<String,String> responce = new HashMap<>();
-                responce.put("status","ok");
-                responseString = gson.toJson(responce);
+                Map<String,String> response = new HashMap<>();
+                response.put("status","ok");
+                responseString = gson.toJson(response);
                 return responseString;
 
             } else {
-                Map<String,String> responce = new HashMap<>();
-                responce.put("status","error");
-                responce.put("status_desc","participant not found");
-                responseString = gson.toJson(responce);
+                Map<String,String> response = new HashMap<>();
+                response.put("status","error");
+                response.put("status_desc","participant not found");
+                responseString = gson.toJson(response);
                 return responseString;
             }
 

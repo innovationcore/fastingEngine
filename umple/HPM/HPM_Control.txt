@@ -1,0 +1,101 @@
+// UML State diagram for HPM_Control, represented in Umple
+class HPM_ControlBase
+{
+  Integer timeout24Hours = 0;
+  Integer startWarnDeadline = 0;
+  Integer endWarnDeadline = 0;
+
+
+  state {
+    initial {
+      entry / {
+        // entry point, don't do anything here
+        stateNotify("initial");
+      };
+
+      //must be able to advance to any state with a timer
+      receivedWaitStart -> waitStart;
+      receivedWarnStart -> warnStartCal;
+      receivedStartCal -> startcal;
+      recievedWarnEndCal -> warnEndCal;
+      receivedEndProtocol -> endProtocol;
+    }
+
+    waitStart {
+      entry / {
+        // wait here until a startcal text is received
+        stateNotify("waitStart");
+      };
+
+      receivedStartCal -> startcal;
+      after(startWarnDeadline) -> warnStartCal;
+      receivedEndProtocol -> endProtocol;
+    }
+
+    warnStartCal {
+      entry/ {
+    	// send a reminder messaage at a certain time
+        stateNotify("warnStartCal");
+      };
+
+      receivedStartCal -> startcal;
+      after(timeout24Hours) -> timeout24;
+      receivedEndProtocol -> endProtocol;
+    }
+
+    startcal {
+      entry / {
+        // receive additional startcals and update
+        // starting time, also receive endcal
+        stateNotify("startcal");
+      };
+
+        receivedStartCal -> startcal;
+        receivedEndCal -> endcal;
+        after(endWarnDeadline) -> warnEndCal;
+        receivedEndProtocol -> endProtocol;
+    }
+
+    warnEndCal {
+      // send a reminder message to send endcal at a
+      // certain time
+      entry / {
+        stateNotify("warnEndCal");
+      };
+      receivedEndCal -> endcal;
+      after(timeout24Hours) -> waitStart;
+      receivedEndProtocol -> endProtocol;
+    }
+
+    endcal {
+      entry / {
+        // receive additional endcal messages and update
+        // end time
+        stateNotify("endcal");
+      };
+        receivedEndCal -> endcal;
+        after(timeout24Hours) -> waitStart;
+        receivedEndProtocol -> endProtocol;
+    }
+
+    timeout24 {
+      entry / {
+        // sends a message if startcal or endcal are not
+        // received for the day
+        stateNotify("timeout24");
+      } -> waitStart;
+    }
+
+    endProtocol {
+      // if participant is moved off protocol, or removed
+      // then enter inescapable state
+      entry / {
+        stateNotify("endProtocol");
+      };
+    }
+
+  }
+
+  boolean stateNotify(String node) {return true;}
+  int currentTime() {return 1;}
+}

@@ -1,6 +1,6 @@
 package fasting.Protocols;
-import fasting.Protocols.Restricted.Restricted;
-import fasting.Protocols.Restricted.RestrictedBase;
+import fasting.Protocols.HPM.HPM_Restricted.HPM_Restricted;
+import fasting.Protocols.HPM.HPM_Restricted.HPM_RestrictedBase;
 import fasting.TimeUtils.TimezoneHelper;
 import fasting.MessagingUtils.MsgUtils;
 
@@ -27,7 +27,7 @@ public class Testing {
         try {
             logger.info("Creating P0");
             //Create dummy person
-            Restricted p0 = new Restricted(gson.fromJson("{'first_name':'Sam','last_name':'A','number':'+18596844789','group':'TRE','time_zone':'America/Louisville','participant_uuid':'7C52EFDD-8E85-4D86-BCF3-C636242CF2F7'}", Map.class));
+            HPM_Restricted p0 = new HPM_Restricted(gson.fromJson("{'first_name':'Sam','last_name':'A','number':'+18596844789','group':'TRE','time_zone':'America/Louisville','participant_uuid':'7C52EFDD-8E85-4D86-BCF3-C636242CF2F7'}", Map.class));
             TimezoneHelper TZHelper = new TimezoneHelper("America/Louisville", "America/New_York");
             //set short deadline for cal end
 
@@ -76,7 +76,7 @@ public class Testing {
         try {
             logger.info("Creating P0");
             //Create dummy person
-            Restricted p0 = new Restricted(gson.fromJson("{'first_name':'Sam','last_name':'A','number':'+18596844789','group':'Baseline','time_zone':'America/Louisville','participant_uuid':'7C52EFDD-8E85-4D86-BCF3-C636242CF2F7'}", Map.class));
+            HPM_Restricted p0 = new HPM_Restricted(gson.fromJson("{'first_name':'Sam','last_name':'A','number':'+18596844789','group':'Baseline','time_zone':'America/Louisville','participant_uuid':'7C52EFDD-8E85-4D86-BCF3-C636242CF2F7'}", Map.class));
             //set short deadline for cal end
 
             p0.setStartWarnDeadline(2);
@@ -86,7 +86,7 @@ public class Testing {
             logger.info("p0 state: " + p0.getState());
             logger.info("Set WaitStart P0");
             p0.receivedWaitStart();
-            while(!(p0.getState() == RestrictedBase.State.endOfEpisode)) {
+            while(!(p0.getState() == HPM_RestrictedBase.State.endOfEpisode)) {
                 //logger.info("p0 state: " + p0.getState());
                 Thread.sleep(1000);
                 //p0.receivedStartCal();
@@ -105,7 +105,7 @@ public class Testing {
 
             logger.info("Creating P0");
             //Create dummy person
-            Restricted p0 = new Restricted(gson.fromJson("{'first_name':'Sam','last_name':'A','number':'+18596844789','group':'Baseline','time_zone':'America/Louisville','participant_uuid':'7C52EFDD-8E85-4D86-BCF3-C636242CF2F7'}", Map.class));
+            HPM_Restricted p0 = new HPM_Restricted(gson.fromJson("{'first_name':'Sam','last_name':'A','number':'+18596844789','group':'Baseline','time_zone':'America/Louisville','participant_uuid':'7C52EFDD-8E85-4D86-BCF3-C636242CF2F7'}", Map.class));
             //set short deadline for cal end
 
             p0.setStartWarnDeadline(2);
@@ -120,7 +120,7 @@ public class Testing {
             p0.receivedStartCal();
             logger.info("p0 state: " + p0.getState());
 
-            while(!(p0.getState() == RestrictedBase.State.endOfEpisode)) {
+            while(!(p0.getState() == HPM_RestrictedBase.State.endOfEpisode)) {
                 //logger.info("p0 state: " + p0.getState());
                 Thread.sleep(1000);
                 logger.info("Waiting for endCal");

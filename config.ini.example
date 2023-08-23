@@ -11,5 +11,7 @@ db_password=pass
 
 twilio_account_sid=0
 twilio_auth_token=0
-twilio_from_number=0
+
+twilio_from_number_HPM=0
+twilio_from_number_CCW=0
 

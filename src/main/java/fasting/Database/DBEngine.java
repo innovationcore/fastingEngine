@@ -22,33 +22,12 @@ public class DBEngine {
         try {
             gson = new Gson();
             //Driver needs to be identified in order to load the namespace in the JVM
-            //String dbDriver = "com.mysql.cj.jdbc.Driver";
             String dbDriver = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
-
             Class.forName(dbDriver).newInstance();
 
-            //String dbConnectionString = "jdbc:mysql://" + Launcher.config.getStringParam("db_host") + "/" + Launcher.config.getStringParam("db_name") + "?" + "user=" + Launcher.config.getStringParam("db_user") + "&password=" + Launcher.config.getStringParam("db_password");
             String dbConnectionString = "jdbc:sqlserver://" + Launcher.config.getStringParam("db_host") +":"+ 1433 + ";databaseName=" + Launcher.config.getStringParam("db_name") + ";encrypt=false";
-
-            //ds = setupDataSource(dbConnectionString);
             ds = setupDataSource(dbConnectionString, Launcher.config.getStringParam("db_user"), Launcher.config.getStringParam("db_password"));
-
-            /*
-            if(!databaseExist(databaseName)) {
-                System.out.println("No fasting.database, creating " + databaseName);
-                initDB();
-            } else {
-                System.out.println("Database found, removing " + databaseName);
-                delete(Paths.get(databaseName).toFile());
-                System.out.println("Creating " + databaseName);
-                initDB();
-            }
-             */
-
-            //initDB();
-        }
-
-        catch (Exception ex) {
+        } catch (Exception ex) {
             ex.printStackTrace();
         }
 
@@ -150,39 +129,6 @@ public class DBEngine {
     }
 
 
-    public List<Map<String,String>> getParticipant(String ParticipantType) {
-        Connection conn = null;
-        PreparedStatement stmt = null;
-        ResultSet rs = null;
-        List<Map<String,String>> participantMapList = null;
-        try {
-            participantMapList = new ArrayList<>();
-            String queryString = "SELECT id, participant_id, phone_number, participant_type FROM fasting.participants " +
-                    "WHERE participant_type = ?";
-
-            conn = ds.getConnection();
-            stmt = conn.prepareStatement(queryString);
-            stmt.setString(1, ParticipantType);
-            rs = stmt.executeQuery();
-
-            while (rs.next()) {
-                Map<String, String> accessMap = new HashMap<>();
-                accessMap.put("id", rs.getString("id"));
-                accessMap.put("participant_id", rs.getString("participant_id"));
-                accessMap.put("phone_number", rs.getString("phone_number"));
-                accessMap.put("participant_type", rs.getString("participant_type"));
-                participantMapList.add(accessMap);
-            }
-        } catch(Exception ex) {
-            ex.printStackTrace();
-        } finally {
-            try { rs.close(); }   catch (Exception e) { /* Null Ignored */ }
-            try { stmt.close(); } catch (Exception e) { /* Null Ignored */ }
-            try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
-        }
-        return participantMapList;
-    }
-
     public String getParticipantIdFromPhoneNumber(String PhoneNumber) {
         Connection conn = null;
         PreparedStatement stmt = null;
@@ -210,7 +156,7 @@ public class DBEngine {
         return participantId;
     }
 
-    public List<Map<String,String>> getParticipantMapByGroup(String groupName) {
+    public List<Map<String,String>> getParticipantMapByGroup(String groupName, String study) {
         Connection conn = null;
         PreparedStatement stmt = null;
         ResultSet rs = null;
@@ -218,11 +164,12 @@ public class DBEngine {
         try {
             participantMaps = new ArrayList<>();
 
-            String queryString = "SELECT participant_uuid, participant_json FROM participants WHERE JSON_VALUE(participant_json, '$.group') = ?";
+            String queryString = "SELECT participant_uuid, participant_json FROM participants WHERE JSON_VALUE(participant_json, '$.group') = ? AND study = ?";
 
             conn = ds.getConnection();
             stmt = conn.prepareStatement(queryString);
             stmt.setString(1, groupName);
+            stmt.setString(2, study);
             rs = stmt.executeQuery();
 
             while (rs.next()) {
@@ -241,34 +188,6 @@ public class DBEngine {
         }
 
         return participantMaps;
-    }
-
-
-    public String getParticipantIdFromPhoneNumberOld(String PhoneNumber) {
-        Connection conn = null;
-        PreparedStatement stmt = null;
-        ResultSet rs = null;
-        String participantId = null;
-        try {
-            String queryString = "SELECT id, participant_id, phone_number, participant_type FROM fasting.participants " +
-                    "WHERE phone_number = ?";
-
-            conn = ds.getConnection();
-            stmt = conn.prepareStatement(queryString);
-            stmt.setString(1, PhoneNumber);
-            rs = stmt.executeQuery();
-            if (rs.next()) {
-                participantId = rs.getString("participant_id");
-            }
-
-        } catch(Exception ex) {
-            ex.printStackTrace();
-        } finally {
-            try { rs.close(); }   catch (Exception e) { /* Null Ignored */ }
-            try { stmt.close(); } catch (Exception e) { /* Null Ignored */ }
-            try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
-        }
-        return participantId;
     }
 
 
@@ -1116,6 +1035,34 @@ public class DBEngine {
             try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
         }
         return protocol;
+    }
+
+
+    public String getStudyFromParticipantId(String uuid) {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        String study = "";
+
+        try{
+            String query = "SELECT study FROM participants WHERE participant_uuid=?";
+            conn = ds.getConnection();
+            stmt = conn.prepareStatement(query);
+            stmt.setString(1, uuid);
+            rs = stmt.executeQuery();
+
+            if(rs.next()){
+                study = rs.getString("study");
+            }
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        } finally {
+            try { rs.close(); }   catch (Exception e) { /* Null Ignored */ }
+            try { stmt.close(); } catch (Exception e) { /* Null Ignored */ }
+            try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
+        }
+        return study;
     }
 
     /**
