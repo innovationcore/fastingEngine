@@ -75,9 +75,8 @@ public class Launcher {
             startServer();
 
             //testing
-//            TimezoneHelper TZHelper = new TimezoneHelper("America/Louisville","Etc/UTC");
-//            System.out.println(TZHelper.getSecondsToFriday5pm());
-//            System.out.println(TZHelper.getSecondsTo5pm());
+//            TimezoneHelper TZHelper = new TimezoneHelper("America/Los_Angeles","Etc/UTC");
+//            System.out.println(TZHelper.getTimeIn10Hours(1692820800));
 
 
 

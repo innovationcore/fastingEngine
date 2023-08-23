@@ -483,7 +483,33 @@ public class TimezoneHelper {
         }
         long secondsUntilNoon = Duration.between(nowUserLocalTime, userLocalTimeNoon).getSeconds();
         return (int) secondsUntilNoon;
+    }
 
+    /**
+     * Gets the time string in 10 hours
+     * @param startTS the start time in epoch seconds
+     * @return string time in 10 hours
+     */
+    public String getTimeIn10Hours(long startTS) {
+        // Convert epoch seconds to milliseconds
+        long startTimeMillis = startTS * 1000;
+
+        // Calculate the time 10 hours later
+        long endTimeMillis = startTimeMillis + (10 * 60 * 60 * 1000);
+
+        // Create a TimeZone object based on the provided timezoneId
+        TimeZone timezone = TimeZone.getTimeZone(this.userTimezone);
+
+        // Create a Date object from the calculated time
+        Date endTime = new Date(endTimeMillis);
+
+        // Format the date to the desired format
+        SimpleDateFormat dateFormat = new SimpleDateFormat("h:mm a");
+        dateFormat.setTimeZone(timezone);
+
+        String formattedTime = dateFormat.format(endTime);
+
+        return formattedTime;
     }
 
     /**

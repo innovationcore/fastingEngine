@@ -109,7 +109,7 @@ public class CCW_Restricted extends CCW_RestrictedBase {
                             }
                         } else {
                             // if just sent startcal make sure its not startcal9:45 or something similar
-                            if (startCalSplit[0].length() > 8){
+                            if (startCalSplit[0].length() > 8) {
                                 Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your STARTCAL time was not understood. Please send \"STARTCAL\" again with your starting time. For example, \"STARTCAL 7:30 am\".");
                                 break;
                             }
@@ -463,6 +463,10 @@ public class CCW_Restricted extends CCW_RestrictedBase {
                 //save state info
                 stateJSON = saveStateJSON();
                 Launcher.dbEngine.uploadSaveState(stateJSON, participantMap.get("participant_uuid"));
+
+                // if startcal time is good, send message with when they should send their endcal time
+                String time10HoursLater = TZHelper.getTimeIn10Hours(unixTS);
+                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Thank you for sending your STARTCAL! Be sure to finish your last calorie today by " + time10HoursLater);
                 break;
             case missedStartCal:
                 String missedStartCalMessage = "We haven't heard from you in a while. Remember to text \"STARTCAL\" when your calories start " +
