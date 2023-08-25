@@ -170,7 +170,7 @@ public class CCW_WeeklyMessage extends CCW_WeeklyMessageBase {
         if(gson != null) {
             Map<String,String> messageMap = new HashMap<>();
             messageMap.put("state",state);
-            messageMap.put("protocol", "CCW_WeeklyMessage");
+            messageMap.put("protocol", "WeeklyMessage");
             if (this.isRestoring) {
                 if(this.isReset) {
                     messageMap.put("RESET", "true");

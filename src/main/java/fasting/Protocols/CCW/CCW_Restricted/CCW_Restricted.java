@@ -466,7 +466,9 @@ public class CCW_Restricted extends CCW_RestrictedBase {
 
                 // if startcal time is good, send message with when they should send their endcal time
                 String time10HoursLater = TZHelper.getTimeIn10Hours(unixTS);
-                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Thank you for sending your STARTCAL! Be sure to finish your last calorie today by " + time10HoursLater);
+                if (!this.pauseMessages) {
+                    Launcher.msgUtils.sendMessage(participantMap.get("number"), "Thank you for sending your STARTCAL! Be sure to finish your last calorie today by " + time10HoursLater + ".");
+                }
                 break;
             case missedStartCal:
                 String missedStartCalMessage = "We haven't heard from you in a while. Remember to text \"STARTCAL\" when your calories start " +
@@ -933,10 +935,10 @@ public class CCW_Restricted extends CCW_RestrictedBase {
         // this is a list of responses for when a participant sends endcal
         final List<String> successMessages = Collections.unmodifiableList(
         new ArrayList<String>() {{
-            add("You ended your time-restricted eating [SHORT] too short. Your success rate is now [SUCCESS]. Try planning ahead for how you will end your TRE.");
-            add("You ended your time-restricted eating too short! [NAME], your success rate is now [SUCCESS]. Have small snacks or meals ready so you can stay on time.");
-            add("[NAME], you ended your time-restricted eating too short! Your success rate is now [SUCCESS]. If you need help, get a family member to help you end your fasting time!");
-            add("You ended your time-restricted eating too short. Your success rate is now [SUCCESS]. Try putting Post-Its on your fridge and cupboards to help you remember your target End Calories time!");
+            add("Oops, you ended your time-restricted eating [SHORT] too short. Your success rate is now [SUCCESS]. Try planning ahead for how you will end your TRE.");
+            add("Oops, you ended your time-restricted eating too short! [NAME], your success rate is now [SUCCESS]. Have small snacks or meals ready so you can stay on time.");
+            add("Oops, [NAME], you ended your time-restricted eating too short! Your success rate is now [SUCCESS]. If you need help, get a family member to help you end your fasting time!");
+            add("Oops, you ended your time-restricted eating too short. Your success rate is now [SUCCESS]. Try putting Post-Its on your fridge and cupboards to help you remember your target End Calories time!");
         }});
         int rnd = new Random().nextInt(successMessages.size());
         String message = successMessages.get(rnd);
@@ -966,10 +968,10 @@ public class CCW_Restricted extends CCW_RestrictedBase {
         // this is a list of responses for when a participant sends endcal
         final List<String> successMessages = Collections.unmodifiableList(
         new ArrayList<String>() {{
-            add("You ended your TRE too late. Your success rate is now [SUCCESS]. Try planning ahead for how you will end calories earlier.");
-            add("You slipped up and ended too late. Your success rate is now [SUCCESS]. Let's get back on track tomorrow!");
-            add("[NAME], you exceeded the target eating window! Your success rate is now [SUCCESS]. If you need help, get a family member to help you end your calories on time!");
-            add("You slipped up and consumed calories for too long. Your success rate is now [SUCCESS]. Let's get back on track tomorrow!");
+            add("Oops, you ended your TRE too late. Your success rate is now [SUCCESS]. Try planning ahead for how you will end calories earlier.");
+            add("Oops, you slipped up and ended too late. Your success rate is now [SUCCESS]. Let's get back on track tomorrow!");
+            add("Oops, [NAME], you exceeded the target eating window! Your success rate is now [SUCCESS]. If you need help, get a family member to help you end your calories on time!");
+            add("Oops, you slipped up and consumed calories for too long. Your success rate is now [SUCCESS]. Let's get back on track tomorrow!");
         }});
         int rnd = new Random().nextInt(successMessages.size());
         String message = successMessages.get(rnd);
@@ -994,9 +996,9 @@ public class CCW_Restricted extends CCW_RestrictedBase {
         // this is a list of responses for when a participant sends endcal
         final List<String> successMessages = Collections.unmodifiableList(
         new ArrayList<String>() {{
-            add("You ended your time-restricted eating too late. Try to keep your calories before 8pm.");
-            add("You ended your time-restricted eating after 8pm. Try planning ahead for how you will end your daily calories earlier.");
-            add("You ended your time-restricted eating after 8pm. Try using a recurring alarm or a family member to help you end calories earlier.");
+            add("Oops, you ended your time-restricted eating too late. Try to keep your calories before 8pm.");
+            add("Oops, you ended your time-restricted eating after 8pm. Try planning ahead for how you will end your daily calories earlier.");
+            add("Oops, you ended your time-restricted eating after 8pm. Try using a recurring alarm or a family member to help you end calories earlier.");
         }});
         int rnd = new Random().nextInt(successMessages.size());
         return successMessages.get(rnd);

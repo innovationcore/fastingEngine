@@ -556,7 +556,7 @@ public class CCW_Control extends CCW_ControlBase {
         if(gson != null) {
             Map<String,String> messageMap = new HashMap<>();
             messageMap.put("state",state);
-            messageMap.put("protocol", "CCW_Control");
+            messageMap.put("protocol", "Control");
             if (this.isRestoring) {
                 messageMap.put("restored","true");
             }

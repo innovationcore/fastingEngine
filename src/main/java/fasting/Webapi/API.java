@@ -116,7 +116,7 @@ public class API {
                 String json_string = gson.toJson(formsMap);
 
                 String insertQuery = "INSERT INTO messages " +
-                        "(message_uuid, participant_uuid, TS, message_direction, message_json)" +
+                        "(message_uuid, participant_uuid, TS, message_direction, study, message_json)" +
                         " VALUES ('" + messageId + "', '" +
                         participantId + "' , GETUTCDATE(), '" +
                         messageDirection + "', 'CCW', '" + json_string +

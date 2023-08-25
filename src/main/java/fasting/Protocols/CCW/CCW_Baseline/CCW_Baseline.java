@@ -553,7 +553,7 @@ public class CCW_Baseline extends CCW_BaselineBase {
         if(gson != null) {
             Map<String,String> messageMap = new HashMap<>();
             messageMap.put("state",state);
-            messageMap.put("protocol", "CCW_Baseline");
+            messageMap.put("protocol", "Baseline");
             if (this.isRestoring) {
                 messageMap.put("restored", "true");
             }
