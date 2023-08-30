@@ -115,7 +115,7 @@ public class HPM_ControlWatcher {
         }
 
         //restart at beginning
-        List<Map<String,String>> participantMapList = Launcher.dbEngine.getParticipantMapByGroup("HPM_Control", "HPM");
+        List<Map<String,String>> participantMapList = Launcher.dbEngine.getParticipantMapByGroup("Control", "HPM");
         //Create person
         Map<String, String> addMap = getHashMapByParticipantUUID(participantMapList, participantId);
         HPM_Control p0 = new HPM_Control(addMap);
@@ -296,7 +296,7 @@ public class HPM_ControlWatcher {
         public void run() {
             try {
                 synchronized (lockEpisodeReset) {
-                    List<Map<String,String>> participantMapList = Launcher.dbEngine.getParticipantMapByGroup("HPM_Control", "HPM");
+                    List<Map<String,String>> participantMapList = Launcher.dbEngine.getParticipantMapByGroup("Control", "HPM");
                     Map<String, String> HPM_controlUUIDs = new HashMap<>(); // this only stores the uuids from partMapList
                     List<String> participantsToAdd = new ArrayList<>();
                     List<String> participantsToRemove = new ArrayList<>();

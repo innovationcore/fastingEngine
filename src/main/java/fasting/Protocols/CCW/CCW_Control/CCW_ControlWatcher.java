@@ -115,7 +115,7 @@ public class CCW_ControlWatcher {
         }
 
         //restart at beginning
-        List<Map<String,String>> participantMapList = Launcher.dbEngine.getParticipantMapByGroup("CCW_Control", "CCW");
+        List<Map<String,String>> participantMapList = Launcher.dbEngine.getParticipantMapByGroup("Control", "CCW");
         //Create person
         Map<String, String> addMap = getHashMapByParticipantUUID(participantMapList, participantId);
         CCW_Control p0 = new CCW_Control(addMap);
@@ -296,7 +296,7 @@ public class CCW_ControlWatcher {
         public void run() {
             try {
                 synchronized (lockEpisodeReset) {
-                    List<Map<String,String>> participantMapList = Launcher.dbEngine.getParticipantMapByGroup("CCW_Control", "CCW");
+                    List<Map<String,String>> participantMapList = Launcher.dbEngine.getParticipantMapByGroup("Control", "CCW");
                     Map<String, String> CCW_controlUUIDs = new HashMap<>(); // this only stores the uuids from partMapList
                     List<String> participantsToAdd = new ArrayList<>();
                     List<String> participantsToRemove = new ArrayList<>();
