@@ -46,18 +46,20 @@ public class API {
                 Map<String, String> formsMap = convertMultiToRegularMap(formParams);
                 String json_string = gson.toJson(formsMap);
 
+                // get either HPM or CCW study
+                String participantStudy = Launcher.dbEngine.getStudyFromParticipantId(participantId);
+
                 String insertQuery = "INSERT INTO messages " +
                         "(message_uuid, participant_uuid, TS, message_direction, study, message_json)" +
                         " VALUES ('" + messageId + "', '" +
                         participantId + "' , GETUTCDATE(), '" +
-                        messageDirection + "', 'HPM', '" + json_string +
+                        messageDirection + "', '" + participantStudy + "', '" + json_string +
                         "')";
 
                 //record incoming
                 Launcher.dbEngine.executeUpdate(insertQuery);
 
                 //send to state machine
-                String participantStudy = Launcher.dbEngine.getStudyFromParticipantId(participantId);
                 String enrollment = Launcher.dbEngine.getEnrollmentUUID(participantId);
                 String enrollmentName = Launcher.dbEngine.getEnrollmentName(enrollment);
                 if (participantStudy.equals("HPM")) {
