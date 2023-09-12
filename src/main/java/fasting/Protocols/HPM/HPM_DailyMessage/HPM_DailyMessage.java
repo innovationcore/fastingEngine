@@ -70,7 +70,7 @@ public class HPM_DailyMessage extends HPM_DailyMessageBase {
                 break;
             case waitDay:
                 // 24 Hour timer set
-                int seconds = TZHelper.getSecondsTo5pm();
+                int seconds = TZHelper.getSecondsTo8pm();
                 setTimeout24Hours(seconds);
                 String waitDayMessage = participantMap.get("participant_uuid") + " created state machine: timeout24Hours " + TZHelper.getDateFromAddingSeconds(seconds);
                 logger.info(waitDayMessage);
@@ -108,13 +108,13 @@ public class HPM_DailyMessage extends HPM_DailyMessageBase {
                 String currentState = restrictedMap.get(participantMap.get("participant_uuid")).getState().toString();
                 if(isReset){
                     this.isReset = true;
-                    int seconds = TZHelper.getSecondsTo5pm();
+                    int seconds = TZHelper.getSecondsTo8pm();
                     setTimeout24Hours(seconds);
                     receivedWaitDay();
                     this.isReset = false;
                 } else {
                     if (!currentState.equals("endProtocol")) {
-                        int seconds = TZHelper.getSecondsTo5pm();
+                        int seconds = TZHelper.getSecondsTo8pm();
                         setTimeout24Hours(seconds);
                         receivedWaitDay();
                     }

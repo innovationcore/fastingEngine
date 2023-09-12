@@ -1,9 +1,9 @@
 package fasting.Protocols.CCW.CCW_Restricted;
 
+import fasting.TimeUtils.TimezoneHelper;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import fasting.Launcher;
-import fasting.TimeUtils.TimezoneHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,12 +69,12 @@ public class CCW_Restricted extends CCW_RestrictedBase {
                     }
                 }
             } catch (Exception ex) {
-                logger.error("protocols.CCW_Restricted Thread");
+                logger.error("protocols.HPM_Restricted Thread");
                 logger.error(ex.getMessage());
             }
         }, 30, 900, TimeUnit.SECONDS); //900 sec is 15 mins
 
-    } // CCW_restricted
+    } // HPM_restricted
 
     public void incomingText(Map<String,String> incomingMap) {
         this.incomingMap = incomingMap;
@@ -109,7 +109,7 @@ public class CCW_Restricted extends CCW_RestrictedBase {
                             }
                         } else {
                             // if just sent startcal make sure its not startcal9:45 or something similar
-                            if (startCalSplit[0].length() > 8) {
+                            if (startCalSplit[0].length() > 8){
                                 Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your STARTCAL time was not understood. Please send \"STARTCAL\" again with your starting time. For example, \"STARTCAL 7:30 am\".");
                                 break;
                             }
@@ -117,7 +117,7 @@ public class CCW_Restricted extends CCW_RestrictedBase {
                         receivedStartCal();
                     } else {
                         Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Please send \"STARTCAL\" when you begin calories for " +
-                                                                                    "the day; \"ENDCAL\" when you are done with calories for the day.");
+                                "the day; \"ENDCAL\" when you are done with calories for the day.");
                     }
                     break;
                 case startcal:
@@ -157,14 +157,14 @@ public class CCW_Restricted extends CCW_RestrictedBase {
                         }
                         if (isBetween3AMand3PM) {
                             Launcher.msgUtils.sendMessage(participantMap.get("number"), "We don't recommend that you end calories this early in the day. " +
-                                                                                        "Try again in the evening. Text 270-402-2214 if you want to receive " +
-                                                                                        "a call about how to manage TRE safely.");
+                                    "Try again in the evening. Text 270-402-2214 if you want to receive " +
+                                    "a call about how to manage TRE safely.");
                         } else {
                             receivedEndCal();
                         }
                     } else {
                         Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Please send \"STARTCAL\" when you begin calories for " +
-                                                                                    "the day; \"ENDCAL\" when you are done with calories for the day.");
+                                "the day; \"ENDCAL\" when you are done with calories for the day.");
                     }
                     break;
                 case missedStartCal:
@@ -207,15 +207,15 @@ public class CCW_Restricted extends CCW_RestrictedBase {
                         if (isBetween3AMand3PM){
                             if(!this.isDayOff){
                                 Launcher.msgUtils.sendMessage(participantMap.get("number"), "We don't recommend that you end calories this early in the day. " +
-                                                                                        "Try again in the evening. Text 270-402-2214 if you want to receive " +
-                                                                                        "a call about how to manage TRE safely.");
+                                        "Try again in the evening. Text 270-402-2214 if you want to receive " +
+                                        "a call about how to manage TRE safely.");
                             }
                         } else {
                             receivedEndCal();
                         }
                     } else {
                         Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Please send \"STARTCAL\" when you begin calories for " +
-                                                                                    "the day; \"ENDCAL\" when you are done with calories for the day. ");
+                                "the day; \"ENDCAL\" when you are done with calories for the day. ");
                     }
                     break;
                 case endcal:
@@ -252,15 +252,15 @@ public class CCW_Restricted extends CCW_RestrictedBase {
                         if (isBetween3AMand3PM){
                             if(!this.isDayOff){
                                 Launcher.msgUtils.sendMessage(participantMap.get("number"), "We don't recommend that you end calories this early in the day. " +
-                                                                                        "Try again in the evening. Text 270-402-2214 if you want to receive " +
-                                                                                        "a call about how to manage TRE safely.");
+                                        "Try again in the evening. Text 270-402-2214 if you want to receive " +
+                                        "a call about how to manage TRE safely.");
                             }
                         } else {
                             receivedEndCal();
                         }
                     } else {
                         Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Please send \"STARTCAL\" when you begin calories for " +
-                                                                                    "the day; \"ENDCAL\" when you are done with calories for the day.");
+                                "the day; \"ENDCAL\" when you are done with calories for the day.");
                     }
                     break;
                 case missedEndCal:
@@ -388,7 +388,7 @@ public class CCW_Restricted extends CCW_RestrictedBase {
         long unixTS;
 
         logState(state);
-    
+
         if(stateMap != null) {
             stateMap.put(state, System.currentTimeMillis() / 1000);
         }
@@ -441,7 +441,7 @@ public class CCW_Restricted extends CCW_RestrictedBase {
                 setEndWarnDeadline(secondsTo2059pm);
                 String startCalMessage = participantMap.get("participant_uuid") + " thanks for sending startcal: endwarndeadline timeout " + TZHelper.getDateFromAddingSeconds(secondsTo2059pm);
                 logger.info(startCalMessage);
-                
+
                 // update startcal time in state_log
                 if (incomingMap == null) {
                     unixTS = Launcher.dbEngine.getStartCalTime(participantMap.get("participant_uuid"));
@@ -459,20 +459,14 @@ public class CCW_Restricted extends CCW_RestrictedBase {
                 }
 
                 Launcher.dbEngine.saveStartCalTime(participantMap.get("participant_uuid"), unixTS);
-                
+
                 //save state info
                 stateJSON = saveStateJSON();
                 Launcher.dbEngine.uploadSaveState(stateJSON, participantMap.get("participant_uuid"));
-
-                // if startcal time is good, send message with when they should send their endcal time
-                String time10HoursLater = TZHelper.getTimeIn10Hours(unixTS);
-                if (!this.pauseMessages) {
-                    Launcher.msgUtils.sendMessage(participantMap.get("number"), "Thank you for sending your STARTCAL! Be sure to finish your last calorie today by " + time10HoursLater + ".");
-                }
                 break;
             case missedStartCal:
                 String missedStartCalMessage = "We haven't heard from you in a while. Remember to text \"STARTCAL\" when your calories start " +
-                                                "in the morning and \"ENDCAL\" when your calories finish at night! Let us know if you need help.";
+                        "in the morning and \"ENDCAL\" when your calories finish at night! Let us know if you need help.";
                 logNoEndCal();
                 if (getDaysWithoutEndCal() >= 2){ // if it has been 2 days without startcal, text this
                     missedStartCalMessage = "We haven't heard from you in a while. Text our study team at 270-402-2214 if you're struggling to stick with the time-restricted eating.";
@@ -542,22 +536,18 @@ public class CCW_Restricted extends CCW_RestrictedBase {
                 int validTRE = TZHelper.determineGoodFastTime(startTime, endTime);
 
                 if (validTRE == -1){
-                    if (!this.pauseMessages){
+                    if (!this.pauseMessages && !this.isDayOff){
                         // update the success rate
-                        if (!this.isDayOff) {
-                            Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false, isRepeat);
-                        }
+                        Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false, isRepeat);
 
                         String before9Msg = pickRandomLess9TRE(startTime, endTime);
                         System.out.println(before9Msg);
                         Launcher.msgUtils.sendMessage(participantMap.get("number"), before9Msg);
                     }
                 } else if (validTRE == 1) {
-                    if (!this.pauseMessages){
+                    if (!this.pauseMessages && !this.isDayOff){
                         // update the success rate
-                        if (!this.isDayOff) {
-                            Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false, isRepeat);
-                        }
+                        Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false, isRepeat);
 
                         String after11Msg = pickRandomGreater11TRE();
                         Launcher.msgUtils.sendMessage(participantMap.get("number"), after11Msg);
@@ -565,22 +555,20 @@ public class CCW_Restricted extends CCW_RestrictedBase {
                 } else {
                     if (!this.pauseMessages){
                         // update the success rate
-                        if(TZHelper.isAfter8PM(endTime)){
-                            if (!this.isDayOff) {
-                                Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false, isRepeat);
-                            }
+                        if(TZHelper.isAfter8PM(endTime) && !this.isDayOff){
+                            Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false, isRepeat);
                             String after8PMMsg = randomAfter8PMMessage();
                             Launcher.msgUtils.sendMessage(participantMap.get("number"), after8PMMsg);
                             String neutralMsg = pickNeutralTRE();
                             Launcher.msgUtils.sendMessage(participantMap.get("number"), neutralMsg);
-                        } else {
+                        } else{
                             if (!this.isDayOff) {
                                 Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), true, isRepeat);
-                            }
 
-                            this.wasSucessfulFast = true;
-                            String successMsg = pickRandomSuccessTRE();
-                            Launcher.msgUtils.sendMessage(participantMap.get("number"), successMsg);
+                                this.wasSucessfulFast = true;
+                                String successMsg = pickRandomSuccessTRE();
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), successMsg);
+                            }
                         }
                     }
                 }
@@ -602,7 +590,7 @@ public class CCW_Restricted extends CCW_RestrictedBase {
                     resetNoEndCal();
                 }
                 if (!this.pauseMessages && !this.isDayOff){
-                        Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false, false);
+                    Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false, false);
                 }
                 //save state info
                 stateJSON = saveStateJSON();
@@ -650,7 +638,7 @@ public class CCW_Restricted extends CCW_RestrictedBase {
                 logger.info(participantMap.get("participant_uuid") + " DayOff in WarnEndCal");
                 break;
             case dayOffEndOfEpisode:
-                if (this.isDayOff == true) {
+                if (this.isDayOff) {
                     logger.warn(participantMap.get("participant_uuid") + " REPEATED DayOff in endOfEpisode");
                     Launcher.msgUtils.sendMessage(participantMap.get("number"), "You have already sent \"DAYOFF\" for today.");
                     break;
@@ -881,9 +869,9 @@ public class CCW_Restricted extends CCW_RestrictedBase {
     public String pickNeutralTRE(){
         // this is a list of responses for when a participant sends endcal
         final List<String> neutralMessages = Collections.unmodifiableList(
-            new ArrayList<String>() {{
-                add("Your overall success rate is now [SUCCESS].");
-            }});
+                new ArrayList<String>() {{
+                    add("Your overall success rate is now [SUCCESS].");
+                }});
         int rnd = new Random().nextInt(neutralMessages.size());
         String message = neutralMessages.get(rnd);
         if (message.contains("[SUCCESS]")) {

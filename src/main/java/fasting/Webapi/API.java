@@ -30,7 +30,7 @@ public class API {
     @Path("/incoming")
     @Consumes({MediaType.APPLICATION_FORM_URLENCODED})
     @Produces(MediaType.APPLICATION_JSON)
-    public Response incomingTextHPM(MultivaluedMap<String, String> formParams) {
+    public Response incomingText(MultivaluedMap<String, String> formParams) {
 
         String responseString;
         try {
@@ -57,16 +57,27 @@ public class API {
                 Launcher.dbEngine.executeUpdate(insertQuery);
 
                 //send to state machine
+                String participantStudy = Launcher.dbEngine.getStudyFromParticipantId(participantId);
                 String enrollment = Launcher.dbEngine.getEnrollmentUUID(participantId);
                 String enrollmentName = Launcher.dbEngine.getEnrollmentName(enrollment);
-                if (enrollmentName.equals("TRE")) {
-                    Launcher.HPM_RestrictedWatcher.incomingText(participantId, formsMap);
-                } else if (enrollmentName.equals("Baseline")) {
-                    Launcher.HPM_BaselineWatcher.incomingText(participantId, formsMap);
-                } else if (enrollmentName.equals("Control")) {
-                    Launcher.HPM_ControlWatcher.incomingText(participantId, formsMap);
+                if (participantStudy.equals("HPM")) {
+                    if (enrollmentName.equals("TRE")) {
+                        Launcher.HPM_RestrictedWatcher.incomingText(participantId, formsMap);
+                    } else if (enrollmentName.equals("Baseline")) {
+                        Launcher.HPM_BaselineWatcher.incomingText(participantId, formsMap);
+                    } else if (enrollmentName.equals("Control")) {
+                        Launcher.HPM_ControlWatcher.incomingText(participantId, formsMap);
+                    }
+                } else if (participantStudy.equals("CCW")){
+                    if (enrollmentName.equals("TRE")) {
+                        Launcher.CCW_RestrictedWatcher.incomingText(participantId, formsMap);
+                    } else if (enrollmentName.equals("Baseline")) {
+                        Launcher.CCW_BaselineWatcher.incomingText(participantId, formsMap);
+                    } else if (enrollmentName.equals("Control")) {
+                        Launcher.CCW_ControlWatcher.incomingText(participantId, formsMap);
+                    }
                 } else {
-                    logger.error("Text from participant not enrolled in any HPM protocol");
+                    logger.error("Text from participant not enrolled in any HPM or CCW protocol");
                 }
 
                 Map<String,String> responce = new HashMap<>();
@@ -95,74 +106,74 @@ public class API {
         return Response.ok(responseString).header("Access-Control-Allow-Origin", "*").build();
     }
 
-    @POST
-    @Path("/incoming6658")
-    @Consumes({MediaType.APPLICATION_FORM_URLENCODED})
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response incomingTextCCW(MultivaluedMap<String, String> formParams) {
-
-        String responseString;
-        try {
-
-            String messageId = UUID.randomUUID().toString();
-            String participantId = Launcher.dbEngine.getParticipantIdFromPhoneNumber(formParams.get("From").get(0));
-
-            if (participantId != null) {
-                String messageDirection = "incoming";
-                //logger.error(gson.toJson(convertMultiToRegularMap(formParams)));
-
-
-                Map<String, String> formsMap = convertMultiToRegularMap(formParams);
-                String json_string = gson.toJson(formsMap);
-
-                String insertQuery = "INSERT INTO messages " +
-                        "(message_uuid, participant_uuid, TS, message_direction, study, message_json)" +
-                        " VALUES ('" + messageId + "', '" +
-                        participantId + "' , GETUTCDATE(), '" +
-                        messageDirection + "', 'CCW', '" + json_string +
-                        "')";
-
-                //record incoming
-                Launcher.dbEngine.executeUpdate(insertQuery);
-
-                //send to state machine
-                String enrollment = Launcher.dbEngine.getEnrollmentUUID(participantId);
-                String enrollmentName = Launcher.dbEngine.getEnrollmentName(enrollment);
-                if (enrollmentName.equals("TRE")) {
-                    Launcher.CCW_RestrictedWatcher.incomingText(participantId, formsMap);
-                } else if (enrollmentName.equals("Baseline")) {
-                    Launcher.CCW_BaselineWatcher.incomingText(participantId, formsMap);
-                } else if (enrollmentName.equals("Control")) {
-                    Launcher.CCW_ControlWatcher.incomingText(participantId, formsMap);
-                } else {
-                    logger.error("Text from participant not enrolled in any CCW protocol");
-                }
-
-                Map<String,String> response = new HashMap<>();
-                response.put("status","ok");
-                responseString = gson.toJson(response);
-
-            } else {
-                Map<String,String> response = new HashMap<>();
-                response.put("status","error");
-                response.put("status_desc","participant not found");
-                responseString = gson.toJson(response);
-            }
-
-        } catch (Exception ex) {
-
-            StringWriter sw = new StringWriter();
-            ex.printStackTrace(new PrintWriter(sw));
-            String exceptionAsString = sw.toString();
-            ex.printStackTrace();
-            logger.error("incomingText6658");
-            logger.error(exceptionAsString);
-
-            return Response.status(500).entity(exceptionAsString).build();
-        }
-        //return accesslog data
-        return Response.ok(responseString).header("Access-Control-Allow-Origin", "*").build();
-    }
+//    @POST
+//    @Path("/incoming6658")
+//    @Consumes({MediaType.APPLICATION_FORM_URLENCODED})
+//    @Produces(MediaType.APPLICATION_JSON)
+//    public Response incomingTextCCW(MultivaluedMap<String, String> formParams) {
+//
+//        String responseString;
+//        try {
+//
+//            String messageId = UUID.randomUUID().toString();
+//            String participantId = Launcher.dbEngine.getParticipantIdFromPhoneNumber(formParams.get("From").get(0));
+//
+//            if (participantId != null) {
+//                String messageDirection = "incoming";
+//                //logger.error(gson.toJson(convertMultiToRegularMap(formParams)));
+//
+//
+//                Map<String, String> formsMap = convertMultiToRegularMap(formParams);
+//                String json_string = gson.toJson(formsMap);
+//
+//                String insertQuery = "INSERT INTO messages " +
+//                        "(message_uuid, participant_uuid, TS, message_direction, study, message_json)" +
+//                        " VALUES ('" + messageId + "', '" +
+//                        participantId + "' , GETUTCDATE(), '" +
+//                        messageDirection + "', 'CCW', '" + json_string +
+//                        "')";
+//
+//                //record incoming
+//                Launcher.dbEngine.executeUpdate(insertQuery);
+//
+//                //send to state machine
+//                String enrollment = Launcher.dbEngine.getEnrollmentUUID(participantId);
+//                String enrollmentName = Launcher.dbEngine.getEnrollmentName(enrollment);
+//                if (enrollmentName.equals("TRE")) {
+//                    Launcher.CCW_RestrictedWatcher.incomingText(participantId, formsMap);
+//                } else if (enrollmentName.equals("Baseline")) {
+//                    Launcher.CCW_BaselineWatcher.incomingText(participantId, formsMap);
+//                } else if (enrollmentName.equals("Control")) {
+//                    Launcher.CCW_ControlWatcher.incomingText(participantId, formsMap);
+//                } else {
+//                    logger.error("Text from participant not enrolled in any CCW protocol");
+//                }
+//
+//                Map<String,String> response = new HashMap<>();
+//                response.put("status","ok");
+//                responseString = gson.toJson(response);
+//
+//            } else {
+//                Map<String,String> response = new HashMap<>();
+//                response.put("status","error");
+//                response.put("status_desc","participant not found");
+//                responseString = gson.toJson(response);
+//            }
+//
+//        } catch (Exception ex) {
+//
+//            StringWriter sw = new StringWriter();
+//            ex.printStackTrace(new PrintWriter(sw));
+//            String exceptionAsString = sw.toString();
+//            ex.printStackTrace();
+//            logger.error("incomingText6658");
+//            logger.error(exceptionAsString);
+//
+//            return Response.status(500).entity(exceptionAsString).build();
+//        }
+//        //return accesslog data
+//        return Response.ok(responseString).header("Access-Control-Allow-Origin", "*").build();
+//    }
 
     @GET
     @Path("/check")

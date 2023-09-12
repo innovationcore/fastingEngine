@@ -516,17 +516,17 @@ public class TimezoneHelper {
      * return the seconds until 5pm in user's timezone
      * @return seconds
      */
-    public int getSecondsTo5pm() {
+    public int getSecondsTo8pm() {
         Instant nowUTC = Instant.now();
         ZoneId userTZ = ZoneId.of(this.userTimezone);
         ZonedDateTime nowUserTimezone = ZonedDateTime.ofInstant(nowUTC, userTZ);
         LocalDateTime nowUserLocalTime = nowUserTimezone.toLocalDateTime();
-        LocalDateTime userLocalTime5pm = LocalDateTime.of(nowUserLocalTime.getYear(), nowUserLocalTime.getMonth(), nowUserLocalTime.getDayOfMonth(), 17, 0, 0);
-        long secondsUntil5pm = Duration.between(nowUserLocalTime, userLocalTime5pm).getSeconds();
-        if (secondsUntil5pm < 0) {
-            secondsUntil5pm += SEC_IN_DAY;
+        LocalDateTime userLocalTime5pm = LocalDateTime.of(nowUserLocalTime.getYear(), nowUserLocalTime.getMonth(), nowUserLocalTime.getDayOfMonth(), 20, 0, 0);
+        long secondsUntil8pm = Duration.between(nowUserLocalTime, userLocalTime5pm).getSeconds();
+        if (secondsUntil8pm < 0) {
+            secondsUntil8pm += SEC_IN_DAY;
         }
-        return (int) secondsUntil5pm;
+        return (int) secondsUntil8pm;
     }
 
     /**

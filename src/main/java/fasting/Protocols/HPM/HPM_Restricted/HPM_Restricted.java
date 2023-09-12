@@ -536,22 +536,18 @@ public class HPM_Restricted extends HPM_RestrictedBase {
                 int validTRE = TZHelper.determineGoodFastTime(startTime, endTime);
 
                 if (validTRE == -1){
-                    if (!this.pauseMessages){
+                    if (!this.pauseMessages && !this.isDayOff){
                         // update the success rate
-                        if (!this.isDayOff) {
-                            Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false, isRepeat);
-                        }
+                        Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false, isRepeat);
 
                         String before9Msg = pickRandomLess9TRE(startTime, endTime);
                         System.out.println(before9Msg);
                         Launcher.msgUtils.sendMessage(participantMap.get("number"), before9Msg);
                     }
                 } else if (validTRE == 1) {
-                    if (!this.pauseMessages){
+                    if (!this.pauseMessages && !this.isDayOff){
                         // update the success rate
-                        if (!this.isDayOff) {
-                            Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false, isRepeat);
-                        }
+                        Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false, isRepeat);
 
                         String after11Msg = pickRandomGreater11TRE();
                         Launcher.msgUtils.sendMessage(participantMap.get("number"), after11Msg);
@@ -559,22 +555,20 @@ public class HPM_Restricted extends HPM_RestrictedBase {
                 } else {
                     if (!this.pauseMessages){
                         // update the success rate
-                        if(TZHelper.isAfter8PM(endTime)){
-                            if (!this.isDayOff) {
-                                Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false, isRepeat);
-                            }
+                        if(TZHelper.isAfter8PM(endTime) && !this.isDayOff){
+                            Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false, isRepeat);
                             String after8PMMsg = randomAfter8PMMessage();
                             Launcher.msgUtils.sendMessage(participantMap.get("number"), after8PMMsg);
                             String neutralMsg = pickNeutralTRE();
                             Launcher.msgUtils.sendMessage(participantMap.get("number"), neutralMsg);
-                        } else {
+                        } else{
                             if (!this.isDayOff) {
                                 Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), true, isRepeat);
-                            }
 
-                            this.wasSucessfulFast = true;
-                            String successMsg = pickRandomSuccessTRE();
-                            Launcher.msgUtils.sendMessage(participantMap.get("number"), successMsg);
+                                this.wasSucessfulFast = true;
+                                String successMsg = pickRandomSuccessTRE();
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), successMsg);
+                            }
                         }
                     }
                 }
@@ -644,7 +638,7 @@ public class HPM_Restricted extends HPM_RestrictedBase {
                 logger.info(participantMap.get("participant_uuid") + " DayOff in WarnEndCal");
                 break;
             case dayOffEndOfEpisode:
-                if (this.isDayOff == true) {
+                if (this.isDayOff) {
                     logger.warn(participantMap.get("participant_uuid") + " REPEATED DayOff in endOfEpisode");
                     Launcher.msgUtils.sendMessage(participantMap.get("number"), "You have already sent \"DAYOFF\" for today.");
                     break;
