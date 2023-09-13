@@ -29,6 +29,7 @@ public class CCW_Restricted extends CCW_RestrictedBase {
     private int endcalRepeats;
 
     private boolean wasSucessfulFast;
+    private int numberOfCyclesInProtocol; // keeps a count of the number of cycles that a participant has been in
     public String stateJSON;
     private final Gson gson;
     public ScheduledExecutorService uploadSave;
@@ -46,6 +47,9 @@ public class CCW_Restricted extends CCW_RestrictedBase {
 
         // this initializes the user's and machine's timezone
         this.TZHelper = new TimezoneHelper(participantMap.get("time_zone"), TimeZone.getDefault().getID());
+
+        // get number of days in protocol
+        this.numberOfCyclesInProtocol = Launcher.dbEngine.getNumberOfCycles(participantMap.get("participant_uuid"));
 
         //create timer
         this.uploadSave = Executors.newScheduledThreadPool(1);

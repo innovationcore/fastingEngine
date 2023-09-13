@@ -1115,4 +1115,32 @@ public class DBEngine {
         }
         return tz;
     }
+
+    public int getNumberOfCycles(String participantUUID) {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        int numCycles = 0;
+
+        try {
+            String query = "SELECT COUNT(participant_uuid) AS numCycles FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'resetEpisodeVariables';";
+            conn = ds.getConnection();
+            stmt = conn.prepareStatement(query);
+            stmt.setString(1, participantUUID);
+            rs = stmt.executeQuery();
+
+            if(rs.next()){
+                numCycles = rs.getInt("numCycles");
+            } else {
+                numCycles = 0;
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        } finally {
+            try { rs.close(); }   catch (Exception e) { /* Null Ignored */ }
+            try { stmt.close(); } catch (Exception e) { /* Null Ignored */ }
+            try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
+        }
+        return numCycles;
+    }
 }
