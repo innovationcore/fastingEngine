@@ -14,6 +14,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public class CCW_Restricted extends CCW_RestrictedBase {
+    private final int TRIAL_PERIOD = 7; // days
     private final Type typeOfHashMap = new TypeToken<Map<String, Map<String,Long>>>() { }.getType();
 
     //id, participant_uuid, phone_number, participant_type
@@ -393,10 +394,10 @@ public class CCW_Restricted extends CCW_RestrictedBase {
 
         logState(state);
 
-        if(stateMap != null) {
+        if (stateMap != null) {
             stateMap.put(state, System.currentTimeMillis() / 1000);
         }
-        if(startTimestamp == 0) {
+        if (startTimestamp == 0) {
             startTimestamp = System.currentTimeMillis() / 1000;
         } else {
             stateJSON = saveStateJSON();
@@ -407,6 +408,7 @@ public class CCW_Restricted extends CCW_RestrictedBase {
                 //no timers
                 break;
             case waitStart:
+                this.numberOfCyclesInProtocol = Launcher.dbEngine.getNumberOfCycles(participantMap.get("participant_uuid"));
                 //setting warn timer
                 int startWarnDiff =  TZHelper.getSecondsTo1159am();
                 if(startWarnDiff <= 0) {
@@ -478,7 +480,9 @@ public class CCW_Restricted extends CCW_RestrictedBase {
                 }
                 if (!this.pauseMessages && !this.isDayOff) {
                     Launcher.msgUtils.sendMessage(participantMap.get("number"), missedStartCalMessage);
-                    Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false, false);
+                    if (this.numberOfCyclesInProtocol >= this.TRIAL_PERIOD) {
+                        Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false, false);
+                    }
                 }
                 logger.warn(missedStartCalMessage);
                 //save state info
@@ -542,16 +546,19 @@ public class CCW_Restricted extends CCW_RestrictedBase {
                 if (validTRE == -1){
                     if (!this.pauseMessages && !this.isDayOff){
                         // update the success rate
-                        Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false, isRepeat);
+                        if (this.numberOfCyclesInProtocol >= this.TRIAL_PERIOD) {
+                            Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false, isRepeat);
+                        }
 
                         String before9Msg = pickRandomLess9TRE(startTime, endTime);
-                        System.out.println(before9Msg);
                         Launcher.msgUtils.sendMessage(participantMap.get("number"), before9Msg);
                     }
                 } else if (validTRE == 1) {
                     if (!this.pauseMessages && !this.isDayOff){
                         // update the success rate
-                        Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false, isRepeat);
+                        if (this.numberOfCyclesInProtocol >= this.TRIAL_PERIOD) {
+                            Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false, isRepeat);
+                        }
 
                         String after11Msg = pickRandomGreater11TRE();
                         Launcher.msgUtils.sendMessage(participantMap.get("number"), after11Msg);
@@ -560,18 +567,24 @@ public class CCW_Restricted extends CCW_RestrictedBase {
                     if (!this.pauseMessages){
                         // update the success rate
                         if(TZHelper.isAfter8PM(endTime) && !this.isDayOff){
-                            Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false, isRepeat);
+                            if (this.numberOfCyclesInProtocol >= this.TRIAL_PERIOD) {
+                                Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false, isRepeat);
+                            }
                             String after8PMMsg = randomAfter8PMMessage();
                             Launcher.msgUtils.sendMessage(participantMap.get("number"), after8PMMsg);
-                            String neutralMsg = pickNeutralTRE();
-                            Launcher.msgUtils.sendMessage(participantMap.get("number"), neutralMsg);
+                            if (this.numberOfCyclesInProtocol >= this.TRIAL_PERIOD) {
+                                String neutralMsg = pickNeutralTRE();
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), neutralMsg);
+                            }
                         } else{
-                            if (!this.isDayOff) {
+                            if (!this.isDayOff && this.numberOfCyclesInProtocol >= this.TRIAL_PERIOD) {
                                 Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), true, isRepeat);
 
                                 this.wasSucessfulFast = true;
-                                String successMsg = pickRandomSuccessTRE();
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), successMsg);
+                                if (this.numberOfCyclesInProtocol >= this.TRIAL_PERIOD) {
+                                    String successMsg = pickRandomSuccessTRE();
+                                    Launcher.msgUtils.sendMessage(participantMap.get("number"), successMsg);
+                                }
                             }
                         }
                     }
@@ -593,7 +606,7 @@ public class CCW_Restricted extends CCW_RestrictedBase {
                     }
                     resetNoEndCal();
                 }
-                if (!this.pauseMessages && !this.isDayOff){
+                if (!this.pauseMessages && !this.isDayOff && this.numberOfCyclesInProtocol >= this.TRIAL_PERIOD){
                     Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false, false);
                 }
                 //save state info
@@ -925,13 +938,26 @@ public class CCW_Restricted extends CCW_RestrictedBase {
 
     public String pickRandomLess9TRE(long startTime, long endTime){
         // this is a list of responses for when a participant sends endcal
-        final List<String> successMessages = Collections.unmodifiableList(
-        new ArrayList<String>() {{
-            add("Oops, you ended your time-restricted eating [SHORT] too short. Your success rate is now [SUCCESS]. Try planning ahead for how you will end your TRE.");
-            add("Oops, you ended your time-restricted eating too short! [NAME], your success rate is now [SUCCESS]. Have small snacks or meals ready so you can stay on time.");
-            add("Oops, [NAME], you ended your time-restricted eating too short! Your success rate is now [SUCCESS]. If you need help, get a family member to help you end your fasting time!");
-            add("Oops, you ended your time-restricted eating too short. Your success rate is now [SUCCESS]. Try putting Post-Its on your fridge and cupboards to help you remember your target End Calories time!");
-        }});
+        final List<String> successMessages;
+        if (this.numberOfCyclesInProtocol < this.TRIAL_PERIOD) {
+            successMessages = Collections.unmodifiableList(
+                    new ArrayList<String>() {{
+                        add("Oops, you ended your time-restricted eating [SHORT] too short. Try planning ahead for how you will end your TRE.");
+                        add("Oops, you ended your time-restricted eating too short! Have small snacks or meals ready so you can stay on time.");
+                        add("Oops, [NAME], you ended your time-restricted eating too short! If you need help, get a family member to help you end your fasting time!");
+                        add("Oops, you ended your time-restricted eating too short. Try putting Post-Its on your fridge and cupboards to help you remember your target End Calories time!");
+                    }}
+            );
+        } else {
+            successMessages = Collections.unmodifiableList(
+                    new ArrayList<String>() {{
+                        add("Oops, you ended your time-restricted eating [SHORT] too short. Your success rate is now [SUCCESS]. Try planning ahead for how you will end your TRE.");
+                        add("Oops, you ended your time-restricted eating too short! [NAME], your success rate is now [SUCCESS]. Have small snacks or meals ready so you can stay on time.");
+                        add("Oops, [NAME], you ended your time-restricted eating too short! Your success rate is now [SUCCESS]. If you need help, get a family member to help you end your fasting time!");
+                        add("Oops, you ended your time-restricted eating too short. Your success rate is now [SUCCESS]. Try putting Post-Its on your fridge and cupboards to help you remember your target End Calories time!");
+                    }}
+            );
+        }
         int rnd = new Random().nextInt(successMessages.size());
         String message = successMessages.get(rnd);
         if (message.contains("[NAME]")) {
@@ -958,13 +984,26 @@ public class CCW_Restricted extends CCW_RestrictedBase {
 
     public String pickRandomGreater11TRE(){
         // this is a list of responses for when a participant sends endcal
-        final List<String> successMessages = Collections.unmodifiableList(
-        new ArrayList<String>() {{
-            add("Oops, you ended your TRE too late. Your success rate is now [SUCCESS]. Try planning ahead for how you will end calories earlier.");
-            add("Oops, you slipped up and ended too late. Your success rate is now [SUCCESS]. Let's get back on track tomorrow!");
-            add("Oops, [NAME], you exceeded the target eating window! Your success rate is now [SUCCESS]. If you need help, get a family member to help you end your calories on time!");
-            add("Oops, you slipped up and consumed calories for too long. Your success rate is now [SUCCESS]. Let's get back on track tomorrow!");
-        }});
+        final List<String> successMessages;
+        if (this.numberOfCyclesInProtocol < this.TRIAL_PERIOD) {
+            successMessages = Collections.unmodifiableList(
+                    new ArrayList<String>() {{
+                        add("Oops, you ended your TRE too late. Try planning ahead for how you will end calories earlier.");
+                        add("Oops, you slipped up and ended too late. Let's get back on track tomorrow!");
+                        add("Oops, [NAME], you exceeded the target eating window! If you need help, get a family member to help you end your calories on time!");
+                        add("Oops, you slipped up and consumed calories for too long. Let's get back on track tomorrow!");
+                    }}
+            );
+        } else {
+            successMessages = Collections.unmodifiableList(
+                    new ArrayList<String>() {{
+                        add("Oops, you ended your TRE too late. Your success rate is now [SUCCESS]. Try planning ahead for how you will end calories earlier.");
+                        add("Oops, you slipped up and ended too late. Your success rate is now [SUCCESS]. Let's get back on track tomorrow!");
+                        add("Oops, [NAME], you exceeded the target eating window! Your success rate is now [SUCCESS]. If you need help, get a family member to help you end your calories on time!");
+                        add("Oops, you slipped up and consumed calories for too long. Your success rate is now [SUCCESS]. Let's get back on track tomorrow!");
+                    }}
+            );
+        }
         int rnd = new Random().nextInt(successMessages.size());
         String message = successMessages.get(rnd);
         if (message.contains("[NAME]")) {

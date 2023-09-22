@@ -14,6 +14,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public class HPM_Restricted extends HPM_RestrictedBase {
+    private final int TRIAL_PERIOD = 7; // days
     private final Type typeOfHashMap = new TypeToken<Map<String, Map<String,Long>>>() { }.getType();
 
     //id, participant_uuid, phone_number, participant_type
@@ -29,6 +30,7 @@ public class HPM_Restricted extends HPM_RestrictedBase {
     private int endcalRepeats;
 
     private boolean wasSucessfulFast;
+    private int numberOfCyclesInProtocol; // keeps a count of the number of cycles that a participant has been in
     public String stateJSON;
     private final Gson gson;
     public ScheduledExecutorService uploadSave;
@@ -46,6 +48,9 @@ public class HPM_Restricted extends HPM_RestrictedBase {
 
         // this initializes the user's and machine's timezone
         this.TZHelper = new TimezoneHelper(participantMap.get("time_zone"), TimeZone.getDefault().getID());
+
+        // get number of days in protocol
+        this.numberOfCyclesInProtocol = Launcher.dbEngine.getNumberOfCycles(participantMap.get("participant_uuid"));
 
         //create timer
         this.uploadSave = Executors.newScheduledThreadPool(1);
@@ -117,7 +122,7 @@ public class HPM_Restricted extends HPM_RestrictedBase {
                         receivedStartCal();
                     } else {
                         Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Please send \"STARTCAL\" when you begin calories for " +
-                                                                                    "the day; \"ENDCAL\" when you are done with calories for the day.");
+                                "the day; \"ENDCAL\" when you are done with calories for the day.");
                     }
                     break;
                 case startcal:
@@ -157,14 +162,14 @@ public class HPM_Restricted extends HPM_RestrictedBase {
                         }
                         if (isBetween3AMand3PM) {
                             Launcher.msgUtils.sendMessage(participantMap.get("number"), "We don't recommend that you end calories this early in the day. " +
-                                                                                        "Try again in the evening. Text 270-402-2214 if you want to receive " +
-                                                                                        "a call about how to manage TRE safely.");
+                                    "Try again in the evening. Text 270-402-2214 if you want to receive " +
+                                    "a call about how to manage TRE safely.");
                         } else {
                             receivedEndCal();
                         }
                     } else {
                         Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Please send \"STARTCAL\" when you begin calories for " +
-                                                                                    "the day; \"ENDCAL\" when you are done with calories for the day.");
+                                "the day; \"ENDCAL\" when you are done with calories for the day.");
                     }
                     break;
                 case missedStartCal:
@@ -207,15 +212,15 @@ public class HPM_Restricted extends HPM_RestrictedBase {
                         if (isBetween3AMand3PM){
                             if(!this.isDayOff){
                                 Launcher.msgUtils.sendMessage(participantMap.get("number"), "We don't recommend that you end calories this early in the day. " +
-                                                                                        "Try again in the evening. Text 270-402-2214 if you want to receive " +
-                                                                                        "a call about how to manage TRE safely.");
+                                        "Try again in the evening. Text 270-402-2214 if you want to receive " +
+                                        "a call about how to manage TRE safely.");
                             }
                         } else {
                             receivedEndCal();
                         }
                     } else {
                         Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Please send \"STARTCAL\" when you begin calories for " +
-                                                                                    "the day; \"ENDCAL\" when you are done with calories for the day. ");
+                                "the day; \"ENDCAL\" when you are done with calories for the day. ");
                     }
                     break;
                 case endcal:
@@ -252,15 +257,15 @@ public class HPM_Restricted extends HPM_RestrictedBase {
                         if (isBetween3AMand3PM){
                             if(!this.isDayOff){
                                 Launcher.msgUtils.sendMessage(participantMap.get("number"), "We don't recommend that you end calories this early in the day. " +
-                                                                                        "Try again in the evening. Text 270-402-2214 if you want to receive " +
-                                                                                        "a call about how to manage TRE safely.");
+                                        "Try again in the evening. Text 270-402-2214 if you want to receive " +
+                                        "a call about how to manage TRE safely.");
                             }
                         } else {
                             receivedEndCal();
                         }
                     } else {
                         Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Please send \"STARTCAL\" when you begin calories for " +
-                                                                                    "the day; \"ENDCAL\" when you are done with calories for the day.");
+                                "the day; \"ENDCAL\" when you are done with calories for the day.");
                     }
                     break;
                 case missedEndCal:
@@ -388,11 +393,11 @@ public class HPM_Restricted extends HPM_RestrictedBase {
         long unixTS;
 
         logState(state);
-    
-        if(stateMap != null) {
+
+        if (stateMap != null) {
             stateMap.put(state, System.currentTimeMillis() / 1000);
         }
-        if(startTimestamp == 0) {
+        if (startTimestamp == 0) {
             startTimestamp = System.currentTimeMillis() / 1000;
         } else {
             stateJSON = saveStateJSON();
@@ -403,6 +408,7 @@ public class HPM_Restricted extends HPM_RestrictedBase {
                 //no timers
                 break;
             case waitStart:
+                this.numberOfCyclesInProtocol = Launcher.dbEngine.getNumberOfCycles(participantMap.get("participant_uuid"));
                 //setting warn timer
                 int startWarnDiff =  TZHelper.getSecondsTo1159am();
                 if(startWarnDiff <= 0) {
@@ -441,7 +447,7 @@ public class HPM_Restricted extends HPM_RestrictedBase {
                 setEndWarnDeadline(secondsTo2059pm);
                 String startCalMessage = participantMap.get("participant_uuid") + " thanks for sending startcal: endwarndeadline timeout " + TZHelper.getDateFromAddingSeconds(secondsTo2059pm);
                 logger.info(startCalMessage);
-                
+
                 // update startcal time in state_log
                 if (incomingMap == null) {
                     unixTS = Launcher.dbEngine.getStartCalTime(participantMap.get("participant_uuid"));
@@ -459,14 +465,14 @@ public class HPM_Restricted extends HPM_RestrictedBase {
                 }
 
                 Launcher.dbEngine.saveStartCalTime(participantMap.get("participant_uuid"), unixTS);
-                
+
                 //save state info
                 stateJSON = saveStateJSON();
                 Launcher.dbEngine.uploadSaveState(stateJSON, participantMap.get("participant_uuid"));
                 break;
             case missedStartCal:
                 String missedStartCalMessage = "We haven't heard from you in a while. Remember to text \"STARTCAL\" when your calories start " +
-                                                "in the morning and \"ENDCAL\" when your calories finish at night! Let us know if you need help.";
+                        "in the morning and \"ENDCAL\" when your calories finish at night! Let us know if you need help.";
                 logNoEndCal();
                 if (getDaysWithoutEndCal() >= 2){ // if it has been 2 days without startcal, text this
                     missedStartCalMessage = "We haven't heard from you in a while. Text our study team at 270-402-2214 if you're struggling to stick with the time-restricted eating.";
@@ -474,7 +480,9 @@ public class HPM_Restricted extends HPM_RestrictedBase {
                 }
                 if (!this.pauseMessages && !this.isDayOff) {
                     Launcher.msgUtils.sendMessage(participantMap.get("number"), missedStartCalMessage);
-                    Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false, false);
+                    if (this.numberOfCyclesInProtocol >= this.TRIAL_PERIOD) {
+                        Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false, false);
+                    }
                 }
                 logger.warn(missedStartCalMessage);
                 //save state info
@@ -538,16 +546,19 @@ public class HPM_Restricted extends HPM_RestrictedBase {
                 if (validTRE == -1){
                     if (!this.pauseMessages && !this.isDayOff){
                         // update the success rate
-                        Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false, isRepeat);
+                        if (this.numberOfCyclesInProtocol >= this.TRIAL_PERIOD) {
+                            Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false, isRepeat);
+                        }
 
                         String before9Msg = pickRandomLess9TRE(startTime, endTime);
-                        System.out.println(before9Msg);
                         Launcher.msgUtils.sendMessage(participantMap.get("number"), before9Msg);
                     }
                 } else if (validTRE == 1) {
                     if (!this.pauseMessages && !this.isDayOff){
                         // update the success rate
-                        Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false, isRepeat);
+                        if (this.numberOfCyclesInProtocol >= this.TRIAL_PERIOD) {
+                            Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false, isRepeat);
+                        }
 
                         String after11Msg = pickRandomGreater11TRE();
                         Launcher.msgUtils.sendMessage(participantMap.get("number"), after11Msg);
@@ -556,18 +567,24 @@ public class HPM_Restricted extends HPM_RestrictedBase {
                     if (!this.pauseMessages){
                         // update the success rate
                         if(TZHelper.isAfter8PM(endTime) && !this.isDayOff){
-                            Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false, isRepeat);
+                            if (this.numberOfCyclesInProtocol >= this.TRIAL_PERIOD) {
+                                Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false, isRepeat);
+                            }
                             String after8PMMsg = randomAfter8PMMessage();
                             Launcher.msgUtils.sendMessage(participantMap.get("number"), after8PMMsg);
-                            String neutralMsg = pickNeutralTRE();
-                            Launcher.msgUtils.sendMessage(participantMap.get("number"), neutralMsg);
+                            if (this.numberOfCyclesInProtocol >= this.TRIAL_PERIOD) {
+                                String neutralMsg = pickNeutralTRE();
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), neutralMsg);
+                            }
                         } else{
-                            if (!this.isDayOff) {
+                            if (!this.isDayOff && this.numberOfCyclesInProtocol >= this.TRIAL_PERIOD) {
                                 Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), true, isRepeat);
 
                                 this.wasSucessfulFast = true;
-                                String successMsg = pickRandomSuccessTRE();
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), successMsg);
+                                if (this.numberOfCyclesInProtocol >= this.TRIAL_PERIOD) {
+                                    String successMsg = pickRandomSuccessTRE();
+                                    Launcher.msgUtils.sendMessage(participantMap.get("number"), successMsg);
+                                }
                             }
                         }
                     }
@@ -589,8 +606,8 @@ public class HPM_Restricted extends HPM_RestrictedBase {
                     }
                     resetNoEndCal();
                 }
-                if (!this.pauseMessages && !this.isDayOff){
-                        Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false, false);
+                if (!this.pauseMessages && !this.isDayOff && this.numberOfCyclesInProtocol >= this.TRIAL_PERIOD){
+                    Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false, false);
                 }
                 //save state info
                 stateJSON = saveStateJSON();
@@ -846,18 +863,18 @@ public class HPM_Restricted extends HPM_RestrictedBase {
     public String pickRandomEndCalMessage() {
         // this is a list of responses for when a participant sends endcal
         final List<String> endCalMessages = Collections.unmodifiableList(
-        new ArrayList<String>() {{
-            add("Thanks! You are now running calorie free!");
-            add("Thanks for your response. You can do it!");
-            add("Thanks, [NAME]! Here we go! Make sure your kitchen is in lock down!");
-            add("Message received. Good luck!");
-            add("Great. Now lock those kitchen cabinets!");
-            add("Thanks. You are now nibble free.");
-            add("Message received. Now stay out of the kitchen. Doctor's orders!");
-            add("Thanks. Now go bolt the refrigerator door shut.");
-            add("Got it. Now put your tummy to sleep until the morning!");
-            add("Muchas gracias. Now go put your feet up. You've earned it!");
-        }});
+                new ArrayList<String>() {{
+                    add("Thanks! You are now running calorie free!");
+                    add("Thanks for your response. You can do it!");
+                    add("Thanks, [NAME]! Here we go! Make sure your kitchen is in lock down!");
+                    add("Message received. Good luck!");
+                    add("Great. Now lock those kitchen cabinets!");
+                    add("Thanks. You are now nibble free.");
+                    add("Message received. Now stay out of the kitchen. Doctor's orders!");
+                    add("Thanks. Now go bolt the refrigerator door shut.");
+                    add("Got it. Now put your tummy to sleep until the morning!");
+                    add("Muchas gracias. Now go put your feet up. You've earned it!");
+                }});
         int rnd = new Random().nextInt(endCalMessages.size());
         String message = endCalMessages.get(rnd);
         if (message.contains("[NAME]")) {
@@ -869,9 +886,9 @@ public class HPM_Restricted extends HPM_RestrictedBase {
     public String pickNeutralTRE(){
         // this is a list of responses for when a participant sends endcal
         final List<String> neutralMessages = Collections.unmodifiableList(
-            new ArrayList<String>() {{
-                add("Your overall success rate is now [SUCCESS].");
-            }});
+                new ArrayList<String>() {{
+                    add("Your overall success rate is now [SUCCESS].");
+                }});
         int rnd = new Random().nextInt(neutralMessages.size());
         String message = neutralMessages.get(rnd);
         if (message.contains("[SUCCESS]")) {
@@ -891,15 +908,15 @@ public class HPM_Restricted extends HPM_RestrictedBase {
     public String pickRandomSuccessTRE(){
         // this is a list of responses for when a participant sends endcal
         final List<String> successMessages = Collections.unmodifiableList(
-        new ArrayList<String>() {{
-            add("Good show! Your overall success rate is now [SUCCESS]!");
-            add("Perfect! Your overall success rate is now [SUCCESS]!");
-            add("Smashing! Your overall success rate is now [SUCCESS]!");
-            add("Bravo, [NAME]! Your overall success rate is now [SUCCESS]!");
-            add("Jolly good show! Your overall success rate is now [SUCCESS]!");
-            add("Superb! Your overall success rate is now [SUCCESS]!");
-            add("Great! Your overall success rate is now [SUCCESS]!");
-        }});
+                new ArrayList<String>() {{
+                    add("Good show! Your overall success rate is now [SUCCESS]!");
+                    add("Perfect! Your overall success rate is now [SUCCESS]!");
+                    add("Smashing! Your overall success rate is now [SUCCESS]!");
+                    add("Bravo, [NAME]! Your overall success rate is now [SUCCESS]!");
+                    add("Jolly good show! Your overall success rate is now [SUCCESS]!");
+                    add("Superb! Your overall success rate is now [SUCCESS]!");
+                    add("Great! Your overall success rate is now [SUCCESS]!");
+                }});
         int rnd = new Random().nextInt(successMessages.size());
         String message = successMessages.get(rnd);
         if (message.contains("[NAME]")) {
@@ -921,13 +938,26 @@ public class HPM_Restricted extends HPM_RestrictedBase {
 
     public String pickRandomLess9TRE(long startTime, long endTime){
         // this is a list of responses for when a participant sends endcal
-        final List<String> successMessages = Collections.unmodifiableList(
-        new ArrayList<String>() {{
-            add("Oops, you ended your time-restricted eating [SHORT] too short. Your success rate is now [SUCCESS]. Try planning ahead for how you will end your TRE.");
-            add("Oops, you ended your time-restricted eating too short! [NAME], your success rate is now [SUCCESS]. Have small snacks or meals ready so you can stay on time.");
-            add("Oops, [NAME], you ended your time-restricted eating too short! Your success rate is now [SUCCESS]. If you need help, get a family member to help you end your fasting time!");
-            add("Oops, you ended your time-restricted eating too short. Your success rate is now [SUCCESS]. Try putting Post-Its on your fridge and cupboards to help you remember your target End Calories time!");
-        }});
+        final List<String> successMessages;
+        if (this.numberOfCyclesInProtocol < this.TRIAL_PERIOD) {
+            successMessages = Collections.unmodifiableList(
+                    new ArrayList<String>() {{
+                        add("Oops, you ended your time-restricted eating [SHORT] too short. Try planning ahead for how you will end your TRE.");
+                        add("Oops, you ended your time-restricted eating too short! Have small snacks or meals ready so you can stay on time.");
+                        add("Oops, [NAME], you ended your time-restricted eating too short! If you need help, get a family member to help you end your fasting time!");
+                        add("Oops, you ended your time-restricted eating too short. Try putting Post-Its on your fridge and cupboards to help you remember your target End Calories time!");
+                    }}
+            );
+        } else {
+            successMessages = Collections.unmodifiableList(
+                    new ArrayList<String>() {{
+                        add("Oops, you ended your time-restricted eating [SHORT] too short. Your success rate is now [SUCCESS]. Try planning ahead for how you will end your TRE.");
+                        add("Oops, you ended your time-restricted eating too short! [NAME], your success rate is now [SUCCESS]. Have small snacks or meals ready so you can stay on time.");
+                        add("Oops, [NAME], you ended your time-restricted eating too short! Your success rate is now [SUCCESS]. If you need help, get a family member to help you end your fasting time!");
+                        add("Oops, you ended your time-restricted eating too short. Your success rate is now [SUCCESS]. Try putting Post-Its on your fridge and cupboards to help you remember your target End Calories time!");
+                    }}
+            );
+        }
         int rnd = new Random().nextInt(successMessages.size());
         String message = successMessages.get(rnd);
         if (message.contains("[NAME]")) {
@@ -954,13 +984,26 @@ public class HPM_Restricted extends HPM_RestrictedBase {
 
     public String pickRandomGreater11TRE(){
         // this is a list of responses for when a participant sends endcal
-        final List<String> successMessages = Collections.unmodifiableList(
-        new ArrayList<String>() {{
-            add("Oops, you ended your TRE too late. Your success rate is now [SUCCESS]. Try planning ahead for how you will end calories earlier.");
-            add("Oops, you slipped up and ended too late. Your success rate is now [SUCCESS]. Let's get back on track tomorrow!");
-            add("Oops, [NAME], you exceeded the target eating window! Your success rate is now [SUCCESS]. If you need help, get a family member to help you end your calories on time!");
-            add("Oops, you slipped up and consumed calories for too long. Your success rate is now [SUCCESS]. Let's get back on track tomorrow!");
-        }});
+        final List<String> successMessages;
+        if (this.numberOfCyclesInProtocol < this.TRIAL_PERIOD) {
+            successMessages = Collections.unmodifiableList(
+                    new ArrayList<String>() {{
+                        add("Oops, you ended your TRE too late. Try planning ahead for how you will end calories earlier.");
+                        add("Oops, you slipped up and ended too late. Let's get back on track tomorrow!");
+                        add("Oops, [NAME], you exceeded the target eating window! If you need help, get a family member to help you end your calories on time!");
+                        add("Oops, you slipped up and consumed calories for too long. Let's get back on track tomorrow!");
+                    }}
+            );
+        } else {
+            successMessages = Collections.unmodifiableList(
+                    new ArrayList<String>() {{
+                        add("Oops, you ended your TRE too late. Your success rate is now [SUCCESS]. Try planning ahead for how you will end calories earlier.");
+                        add("Oops, you slipped up and ended too late. Your success rate is now [SUCCESS]. Let's get back on track tomorrow!");
+                        add("Oops, [NAME], you exceeded the target eating window! Your success rate is now [SUCCESS]. If you need help, get a family member to help you end your calories on time!");
+                        add("Oops, you slipped up and consumed calories for too long. Your success rate is now [SUCCESS]. Let's get back on track tomorrow!");
+                    }}
+            );
+        }
         int rnd = new Random().nextInt(successMessages.size());
         String message = successMessages.get(rnd);
         if (message.contains("[NAME]")) {
@@ -983,11 +1026,11 @@ public class HPM_Restricted extends HPM_RestrictedBase {
     public String randomAfter8PMMessage(){
         // this is a list of responses for when a participant sends endcal
         final List<String> successMessages = Collections.unmodifiableList(
-        new ArrayList<String>() {{
-            add("Oops, you ended your time-restricted eating too late. Try to keep your calories before 8pm.");
-            add("Oops, you ended your time-restricted eating after 8pm. Try planning ahead for how you will end your daily calories earlier.");
-            add("Oops, you ended your time-restricted eating after 8pm. Try using a recurring alarm or a family member to help you end calories earlier.");
-        }});
+                new ArrayList<String>() {{
+                    add("Oops, you ended your time-restricted eating too late. Try to keep your calories before 8pm.");
+                    add("Oops, you ended your time-restricted eating after 8pm. Try planning ahead for how you will end your daily calories earlier.");
+                    add("Oops, you ended your time-restricted eating after 8pm. Try using a recurring alarm or a family member to help you end calories earlier.");
+                }});
         int rnd = new Random().nextInt(successMessages.size());
         return successMessages.get(rnd);
     }
