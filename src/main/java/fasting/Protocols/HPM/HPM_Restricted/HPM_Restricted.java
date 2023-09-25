@@ -469,6 +469,12 @@ public class HPM_Restricted extends HPM_RestrictedBase {
                 //save state info
                 stateJSON = saveStateJSON();
                 Launcher.dbEngine.uploadSaveState(stateJSON, participantMap.get("participant_uuid"));
+
+                // if startcal time is good, send message with when they should send their endcal time
+                String time10HoursLater = TZHelper.getTimeIn10Hours(unixTS);
+                if (!this.pauseMessages && !this.isDayOff) {
+                    Launcher.msgUtils.sendMessage(participantMap.get("number"), "Thank you for sending your STARTCAL! Be sure to finish your last calorie today by " + time10HoursLater + ".");
+                }
                 break;
             case missedStartCal:
                 String missedStartCalMessage = "We haven't heard from you in a while. Remember to text \"STARTCAL\" when your calories start " +
