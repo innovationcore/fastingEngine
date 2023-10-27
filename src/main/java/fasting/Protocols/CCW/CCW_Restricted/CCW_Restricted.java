@@ -668,8 +668,8 @@ public class CCW_Restricted extends CCW_RestrictedBase {
                 }
                 this.isDayOff = true;
                 // check if endcal was successful or not, variable that is reset
-                String updatedPercentage = Launcher.dbEngine.updateSuccessRate(participantMap.get("participant_uuid"), this.wasSucessfulFast);
-                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Got it, no TRE today! Thank you for telling us. You're success rate is now: " + updatedPercentage);
+                Launcher.dbEngine.updateSuccessRate(participantMap.get("participant_uuid"), this.wasSucessfulFast); // this updates the success rate and returns a string of success
+                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Got it, no TRE today! Thank you for telling us. Please still let us know your \"ENDCAL\" today.");
                 logger.info(participantMap.get("participant_uuid") + " DayOff in endOfEpisode");
                 break;
             case endProtocol:
@@ -688,6 +688,7 @@ public class CCW_Restricted extends CCW_RestrictedBase {
 
             if (isReset) {
                 this.isReset = true;
+                this.isDayOff = false;
                 logger.info("restoreSaveState: resetting participant: " + participantMap.get("participant_uuid"));
                 int startWarnDiff =  TZHelper.getSecondsTo1159am();
                 if(startWarnDiff <= 0) {

@@ -108,75 +108,6 @@ public class API {
         return Response.ok(responseString).header("Access-Control-Allow-Origin", "*").build();
     }
 
-//    @POST
-//    @Path("/incoming6658")
-//    @Consumes({MediaType.APPLICATION_FORM_URLENCODED})
-//    @Produces(MediaType.APPLICATION_JSON)
-//    public Response incomingTextCCW(MultivaluedMap<String, String> formParams) {
-//
-//        String responseString;
-//        try {
-//
-//            String messageId = UUID.randomUUID().toString();
-//            String participantId = Launcher.dbEngine.getParticipantIdFromPhoneNumber(formParams.get("From").get(0));
-//
-//            if (participantId != null) {
-//                String messageDirection = "incoming";
-//                //logger.error(gson.toJson(convertMultiToRegularMap(formParams)));
-//
-//
-//                Map<String, String> formsMap = convertMultiToRegularMap(formParams);
-//                String json_string = gson.toJson(formsMap);
-//
-//                String insertQuery = "INSERT INTO messages " +
-//                        "(message_uuid, participant_uuid, TS, message_direction, study, message_json)" +
-//                        " VALUES ('" + messageId + "', '" +
-//                        participantId + "' , GETUTCDATE(), '" +
-//                        messageDirection + "', 'CCW', '" + json_string +
-//                        "')";
-//
-//                //record incoming
-//                Launcher.dbEngine.executeUpdate(insertQuery);
-//
-//                //send to state machine
-//                String enrollment = Launcher.dbEngine.getEnrollmentUUID(participantId);
-//                String enrollmentName = Launcher.dbEngine.getEnrollmentName(enrollment);
-//                if (enrollmentName.equals("TRE")) {
-//                    Launcher.CCW_RestrictedWatcher.incomingText(participantId, formsMap);
-//                } else if (enrollmentName.equals("Baseline")) {
-//                    Launcher.CCW_BaselineWatcher.incomingText(participantId, formsMap);
-//                } else if (enrollmentName.equals("Control")) {
-//                    Launcher.CCW_ControlWatcher.incomingText(participantId, formsMap);
-//                } else {
-//                    logger.error("Text from participant not enrolled in any CCW protocol");
-//                }
-//
-//                Map<String,String> response = new HashMap<>();
-//                response.put("status","ok");
-//                responseString = gson.toJson(response);
-//
-//            } else {
-//                Map<String,String> response = new HashMap<>();
-//                response.put("status","error");
-//                response.put("status_desc","participant not found");
-//                responseString = gson.toJson(response);
-//            }
-//
-//        } catch (Exception ex) {
-//
-//            StringWriter sw = new StringWriter();
-//            ex.printStackTrace(new PrintWriter(sw));
-//            String exceptionAsString = sw.toString();
-//            ex.printStackTrace();
-//            logger.error("incomingText6658");
-//            logger.error(exceptionAsString);
-//
-//            return Response.status(500).entity(exceptionAsString).build();
-//        }
-//        //return accesslog data
-//        return Response.ok(responseString).header("Access-Control-Allow-Origin", "*").build();
-//    }
-
     @GET
     @Path("/check")
     @Produces(MediaType.APPLICATION_JSON)
@@ -355,18 +286,18 @@ public class API {
                         logger.error("Cannot reset machine, participant not in an active protocol.");
                     }
                 } else if (study.equals("CCW")) {
-//                    if (enrollmentName.equals("TRE")) {
-//                        Launcher.CCW_RestrictedWatcher.resetStateMachine(participantId);
-//                        Launcher.CCW_DailyMessageWatcher.resetStateMachine(participantId);
-//                    } else if (enrollmentName.equals("Baseline")) {
-//                        Launcher.CCW_BaselineWatcher.resetStateMachine(participantId);
-//                        Launcher.CCW_WeeklyMessageWatcher.resetStateMachine(participantId);
-//                    } else if (enrollmentName.equals("Control")) {
-//                        Launcher.CCW_ControlWatcher.resetStateMachine(participantId);
-//                        Launcher.CCW_WeeklyMessageWatcher.resetStateMachine(participantId);
-//                    } else {
-//                        logger.error("Cannot reset machine, participant not in an active protocol.");
-//                    }
+                    if (enrollmentName.equals("TRE")) {
+                        Launcher.CCW_RestrictedWatcher.resetStateMachine(participantId);
+                        Launcher.CCW_DailyMessageWatcher.resetStateMachine(participantId);
+                    } else if (enrollmentName.equals("Baseline")) {
+                        Launcher.CCW_BaselineWatcher.resetStateMachine(participantId);
+                        Launcher.CCW_WeeklyMessageWatcher.resetStateMachine(participantId);
+                    } else if (enrollmentName.equals("Control")) {
+                        Launcher.CCW_ControlWatcher.resetStateMachine(participantId);
+                        Launcher.CCW_WeeklyMessageWatcher.resetStateMachine(participantId);
+                    } else {
+                        logger.error("Cannot reset machine, participant not in an active protocol.");
+                    }
                 }
 
                 Map<String,String> response = new HashMap<>();
