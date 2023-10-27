@@ -529,6 +529,25 @@ public class TimezoneHelper {
         return (int) secondsUntil8pm;
     }
 
+    public ZonedDateTime getZonedDateTime8am() {
+        // Get the current time in the user's timezone
+        Instant nowUTC = Instant.now();
+        ZoneId userTZ = ZoneId.of(this.userTimezone);
+        ZonedDateTime nowUserTimezone = ZonedDateTime.ofInstant(nowUTC, userTZ);
+        ZonedDateTime userLocalTime8am;
+
+        // Check if it's before midnight in the user's timezone
+        if (nowUserTimezone.toLocalTime().isBefore(LocalTime.MIDNIGHT)) {
+            // Set the time to 8:00 AM the following morning
+            userLocalTime8am = nowUserTimezone.plusDays(1).with(LocalTime.of(8, 8));
+        } else {
+            // Set the time to 8:00 AM the current morning
+            userLocalTime8am = nowUserTimezone.with(LocalTime.of(8, 0));
+        }
+        // can also return userLocalTime8am which will be in user local timezone instead of UTC
+        return userLocalTime8am.withZoneSameInstant(ZoneOffset.UTC);
+    }
+
     /**
     * gets the user's timezone
     */

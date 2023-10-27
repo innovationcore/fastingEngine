@@ -8,10 +8,9 @@ import org.apache.commons.pool2.impl.GenericObjectPool;
 
 import javax.sql.DataSource;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.Date;
 
 public class DBEngine {
 
@@ -1142,5 +1141,61 @@ public class DBEngine {
             try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
         }
         return numCycles;
+    }
+
+    public void checkQueuedMessageDatabase() {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+
+        try {
+            // Get the current machine time in UTC
+            java.util.Date currentTime = new Date();
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+            sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+            String currentUtcTime = sdf.format(currentTime);
+
+            String query = "SELECT message_uuid, toNumber, JSON_VALUE(message_json, '$.Body') AS body FROM queued_messages WHERE scheduledFor <= ?";
+            conn = ds.getConnection();
+            stmt = conn.prepareStatement(query);
+            stmt.setString(1, currentUtcTime);
+            rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                String toNumber = rs.getString("toNumber");
+                String messageJson = rs.getString("body");
+                String messageId = rs.getString("message_uuid");
+                Launcher.msgUtils.sendMessage(toNumber, messageJson);
+                removeFromQueuedMessage(messageId);
+            }
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        } finally {
+            try { rs.close(); }   catch (Exception e) { /* Null Ignored */ }
+            try { stmt.close(); } catch (Exception e) { /* Null Ignored */ }
+            try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
+        }
+    }
+
+    public void removeFromQueuedMessage(String messageId) {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+
+        try {
+            String query = "DELETE FROM queued_messages where message_uuid = ?";
+            conn = ds.getConnection();
+            stmt = conn.prepareStatement(query);
+            stmt.setString(1, messageId);
+            stmt.executeUpdate();
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        } finally {
+            try { rs.close(); }   catch (Exception e) { /* Null Ignored */ }
+            try { stmt.close(); } catch (Exception e) { /* Null Ignored */ }
+            try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
+        }
     }
 }

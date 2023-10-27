@@ -1,8 +1,10 @@
 package fasting;
 
+import com.google.protobuf.Message;
 import fasting.Configs.Config;
 import fasting.Configs.FileConfig;
 import fasting.Database.DBEngine;
+import fasting.MessagingUtils.MessageSchedulerExecutor;
 import fasting.MessagingUtils.MsgUtils;
 import fasting.Protocols.Testing;
 import fasting.Protocols.HPM.HPM_DailyMessage.HPM_DailyMessageWatcher;
@@ -36,6 +38,7 @@ public class Launcher {
     public static Config config;
     public static DBEngine dbEngine;
     public static MsgUtils msgUtils;
+    public static MessageSchedulerExecutor queuedMessageWatcher;
     public static HPM_RestrictedWatcher HPM_RestrictedWatcher;
     public static HPM_ControlWatcher HPM_ControlWatcher;
     public static HPM_BaselineWatcher HPM_BaselineWatcher;
@@ -74,9 +77,15 @@ public class Launcher {
             //Embedded HTTP initialization
             startServer();
 
+            // start watching the queued messages database
+            new MessageSchedulerExecutor().startWatcher();
+
             //testing
-//            TimezoneHelper TZHelper = new TimezoneHelper("America/Los_Angeles","Etc/UTC");
-//            System.out.println(TZHelper.getTimeIn10Hours(1692820800));
+//            TimezoneHelper TZHelper = new TimezoneHelper("America/Louisville","Etc/UTC");
+//            System.out.println(TZHelper.getZonedDateTime8am());
+//
+//            msgUtils.sendScheduledMessage("+18596844789", "Scheduled test", TZHelper.getZonedDateTime8am());
+//            System.exit(0);
 
 
 

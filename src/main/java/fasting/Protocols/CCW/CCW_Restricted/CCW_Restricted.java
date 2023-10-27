@@ -608,7 +608,7 @@ public class CCW_Restricted extends CCW_RestrictedBase {
                 if (getDaysWithoutEndCal() >= 2){
                     String missed2EndCals = "We haven't heard from you in a while. Text our study team at 270-402-2214 if you're struggling to stick with the time-restricted eating.";
                     if (!this.pauseMessages && !this.isDayOff){
-                        Launcher.msgUtils.sendMessage(participantMap.get("number"), missed2EndCals);
+                        Launcher.msgUtils.sendScheduledMessage(participantMap.get("number"), missed2EndCals, TZHelper.getZonedDateTime8am());
                     }
                     resetNoEndCal();
                 }
