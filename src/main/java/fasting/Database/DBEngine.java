@@ -1122,7 +1122,7 @@ public class DBEngine {
         int numCycles = 0;
 
         try {
-            String query = "SELECT COUNT(participant_uuid) AS numCycles FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'resetEpisodeVariables';";
+            String query = "SELECT COUNT(participant_uuid) AS numCycles FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'resetEpisodeVariables'";
             conn = ds.getConnection();
             stmt = conn.prepareStatement(query);
             stmt.setString(1, participantUUID);

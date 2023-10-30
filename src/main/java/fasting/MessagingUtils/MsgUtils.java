@@ -101,8 +101,8 @@ public class MsgUtils {
         logger.info("Message queued for: " + scheduledFor + ", Message: " + json_string);
 
         String insertQuery = "INSERT INTO queued_messages " +
-                "(message_uuid, participant_uuid, toNumber, fromNumber, scheduledFor, message_json)" +
-                " VALUES ('" + messageId + "', '" + participantId + "','" + textTo + "','" + fromNumber+ "','" + scheduledFor+ "','" + json_string +"')";
+                "(message_uuid, participant_uuid, toNumber, fromNumber, scheduledFor, message_json, study)" +
+                " VALUES ('" + messageId + "', '" + participantId + "','" + textTo + "','" + fromNumber+ "','" + scheduledFor+ "','" + json_string +"','" + study + "')";
 
         Launcher.dbEngine.executeUpdate(insertQuery);
     }
