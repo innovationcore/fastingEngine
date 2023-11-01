@@ -551,7 +551,7 @@ public class HPM_Baseline extends HPM_BaselineBase {
         if(gson != null) {
             Map<String,String> messageMap = new HashMap<>();
             messageMap.put("state",state);
-            messageMap.put("protocol", "HPM_Baseline");
+            messageMap.put("protocol", "Baseline");
             if (this.isRestoring) {
                 messageMap.put("restored", "true");
             }

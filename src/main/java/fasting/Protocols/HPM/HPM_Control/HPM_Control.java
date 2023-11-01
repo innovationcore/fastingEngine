@@ -554,7 +554,7 @@ public class HPM_Control extends HPM_ControlBase {
         if(gson != null) {
             Map<String,String> messageMap = new HashMap<>();
             messageMap.put("state",state);
-            messageMap.put("protocol", "HPM_Control");
+            messageMap.put("protocol", "Control");
             if (this.isRestoring) {
                 messageMap.put("restored","true");
             }
