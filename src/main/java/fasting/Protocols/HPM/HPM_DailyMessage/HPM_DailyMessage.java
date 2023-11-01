@@ -132,7 +132,7 @@ public class HPM_DailyMessage extends HPM_DailyMessageBase {
         if(gson != null) {
             Map<String,String> messageMap = new HashMap<>();
             messageMap.put("state",state);
-            messageMap.put("protocol", "HPM_DailyMessage");
+            messageMap.put("protocol", "DailyMessage");
             if (this.isRestoring) {
                 if(this.isReset){
                     messageMap.put("RESET", "true");
