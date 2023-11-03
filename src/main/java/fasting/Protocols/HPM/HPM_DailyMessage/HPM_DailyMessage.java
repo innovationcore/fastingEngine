@@ -48,7 +48,7 @@ public class HPM_DailyMessage extends HPM_DailyMessageBase {
 
                 }
             } catch (Exception ex) {
-                logger.error("protocols.HPM_DailyMessage Thread");
+                logger.error("protocols.DailyMessage Thread");
                 logger.error(ex.getMessage());
             }
         }, 30, 900, TimeUnit.SECONDS); //900 sec is 15 mins

@@ -61,7 +61,7 @@ public class HPM_Baseline extends HPM_BaselineBase {
                     }
                 }
             } catch (Exception ex) {
-                logger.error("protocols.HPM_Baseline Thread");
+                logger.error("protocols.Baseline Thread");
                 logger.error(ex.getMessage());
             }
         }, 30, 900, TimeUnit.SECONDS); //900 sec is 15 mins
@@ -255,7 +255,7 @@ public class HPM_Baseline extends HPM_BaselineBase {
                     Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Text 270-402-2214 if you need help.");
                     break;
                 case endProtocol:
-                    Launcher.dbEngine.addProtocolNameToLog("HPM_Baseline", participantMap.get("participant_uuid"));
+                    Launcher.dbEngine.addProtocolNameToLog("Baseline", participantMap.get("participant_uuid"));
                     logger.warn(participantMap.get("participant_uuid") + " endProtocol unexpected message");
                     break;
                 default:

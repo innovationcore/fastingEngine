@@ -127,6 +127,15 @@ public class CCW_RestrictedWatcher {
         }
     }
 
+    public void stopProtocolNow(String participantId) {
+        CCW_Restricted removed = CCW_restrictedMap.remove(participantId);
+        if (removed != null) {
+            removed.receivedEndProtocol();
+            removed.uploadSave.shutdownNow();
+            removed = null;
+            System.gc();
+        }
+    }
     public String moveToState(String participantId, String moveToState, String time) {
         String newState = "";
         try {
@@ -145,6 +154,10 @@ public class CCW_RestrictedWatcher {
                     } else if (moveToState.equals("warnEndCal")) {
                         participant.recievedWarnEndCal();
                         newState = "warnEndCal";
+                    } else if (moveToState.equals("endProtocol")) {
+                        //stopProtocolNow(participantId);
+                        participant.receivedEndProtocol();
+                        newState = "endProtocol";
                     } else {
                         // invalid state
                         newState = "initial invalid";
@@ -163,6 +176,10 @@ public class CCW_RestrictedWatcher {
                     } else if (moveToState.equals("dayOffWait")) {
                         participant.receivedDayOff();
                         newState = "dayOffWait";
+                    } else if (moveToState.equals("endProtocol")) {
+                        //stopProtocolNow(participantId);
+                        participant.receivedEndProtocol();
+                        newState = "endProtocol";
                     } else {
                         // invalid state
                         newState = "waitstart invalid";
@@ -181,6 +198,10 @@ public class CCW_RestrictedWatcher {
                     } else if (moveToState.equals("dayOffWarn")) {
                         participant.receivedDayOff();
                         newState = "dayOffWarn";
+                    } else if (moveToState.equals("endProtocol")) {
+                        //stopProtocolNow(participantId);
+                        participant.receivedEndProtocol();
+                        newState = "endProtocol";
                     } else {
                         newState = "warnstart invalid";
                         // invalid state
@@ -205,6 +226,10 @@ public class CCW_RestrictedWatcher {
                     } else if (moveToState.equals("dayOffStartCal")) {
                         participant.receivedDayOff();
                         newState = "dayOffStartCal";
+                    } else if (moveToState.equals("endProtocol")) {
+                        //stopProtocolNow(participantId);
+                        participant.receivedEndProtocol();
+                        newState = "endProtocol";
                     } else {
                         newState = "startcal invalid";
                         // invalid state
@@ -232,6 +257,10 @@ public class CCW_RestrictedWatcher {
                     } else if (moveToState.equals("dayOffWarnEndCal")) {
                         participant.receivedDayOff();
                         newState = "dayOffWarnEndCal";
+                    } else if (moveToState.equals("endProtocol")) {
+                        //stopProtocolNow(participantId);
+                        participant.receivedEndProtocol();
+                        newState = "endProtocol";
                     } else {
                         // invalid state
                         newState = "warnEndCal invalid";
@@ -269,6 +298,10 @@ public class CCW_RestrictedWatcher {
                         participant.receivedEndCal();
                         Launcher.dbEngine.removeTempEndCal(participantId);
                         newState = "endcal";
+                    } else if (moveToState.equals("endProtocol")) {
+                        //stopProtocolNow(participantId);
+                        participant.receivedEndProtocol();
+                        newState = "endProtocol";
                     } else {
                         // invalid state
                         newState = "endOfEpisode invalid";

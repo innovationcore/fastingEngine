@@ -61,7 +61,7 @@ public class HPM_Control extends HPM_ControlBase {
                     }
                 }
             } catch (Exception ex) {
-                logger.error("protocols.Baseline Thread");
+                logger.error("protocols.Control Thread");
                 logger.error(ex.getMessage());
             }
         }, 30, 900, TimeUnit.SECONDS); //900 sec is 15 mins
@@ -440,7 +440,7 @@ public class HPM_Control extends HPM_ControlBase {
                         "when your calories finish at night! Let us know if you need help.");
                 break;
             case endProtocol:
-                Launcher.dbEngine.addProtocolNameToLog("HPM_Control", participantMap.get("participant_uuid"));
+                //Launcher.dbEngine.addProtocolNameToLog("Control", participantMap.get("participant_uuid"));
                 logger.warn(participantMap.get("participant_uuid") + " is not longer in protocol.");
                 break;
             default:
