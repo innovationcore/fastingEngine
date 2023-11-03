@@ -74,7 +74,7 @@ public class HPM_Restricted extends HPM_RestrictedBase {
                     }
                 }
             } catch (Exception ex) {
-                logger.error("protocols.HPM_Restricted Thread");
+                logger.error("protocols.Restricted Thread");
                 logger.error(ex.getMessage());
             }
         }, 30, 900, TimeUnit.SECONDS); //900 sec is 15 mins

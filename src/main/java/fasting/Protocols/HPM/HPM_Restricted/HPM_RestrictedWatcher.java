@@ -104,6 +104,8 @@ public class HPM_RestrictedWatcher {
         return validNextStates;
     }
 
+
+
     public void resetStateMachine(String participantId){
         // Remove participant from protocol
         HPM_Restricted removed = HPM_restrictedMap.remove(participantId);
@@ -127,6 +129,16 @@ public class HPM_RestrictedWatcher {
         }
     }
 
+    public void stopProtocolNow(String participantId) {
+        HPM_Restricted removed = HPM_restrictedMap.remove(participantId);
+        if (removed != null) {
+            removed.receivedEndProtocol();
+            removed.uploadSave.shutdownNow();
+            removed = null;
+            System.gc();
+        }
+    }
+
     public String moveToState(String participantId, String moveToState, String time) {
         String newState = "";
         try {
@@ -145,6 +157,10 @@ public class HPM_RestrictedWatcher {
                     } else if (moveToState.equals("warnEndCal")) {
                         participant.recievedWarnEndCal();
                         newState = "warnEndCal";
+                    } else if (moveToState.equals("endProtocol")) {
+                        //stopProtocolNow(participantId);
+                        participant.receivedEndProtocol();
+                        newState = "endProtocol";
                     } else {
                         // invalid state
                         newState = "initial invalid";
@@ -163,6 +179,10 @@ public class HPM_RestrictedWatcher {
                     } else if (moveToState.equals("dayOffWait")) {
                         participant.receivedDayOff();
                         newState = "dayOffWait";
+                    } else if (moveToState.equals("endProtocol")) {
+                        //stopProtocolNow(participantId);
+                        participant.receivedEndProtocol();
+                        newState = "endProtocol";
                     } else {
                         // invalid state
                         newState = "waitstart invalid";
@@ -181,6 +201,10 @@ public class HPM_RestrictedWatcher {
                     } else if (moveToState.equals("dayOffWarn")) {
                         participant.receivedDayOff();
                         newState = "dayOffWarn";
+                    } else if (moveToState.equals("endProtocol")) {
+                        //stopProtocolNow(participantId);
+                        participant.receivedEndProtocol();
+                        newState = "endProtocol";
                     } else {
                         newState = "warnstart invalid";
                         // invalid state
@@ -205,6 +229,10 @@ public class HPM_RestrictedWatcher {
                     } else if (moveToState.equals("dayOffStartCal")) {
                         participant.receivedDayOff();
                         newState = "dayOffStartCal";
+                    } else if (moveToState.equals("endProtocol")) {
+                        //stopProtocolNow(participantId);
+                        participant.receivedEndProtocol();
+                        newState = "endProtocol";
                     } else {
                         newState = "startcal invalid";
                         // invalid state
@@ -232,6 +260,10 @@ public class HPM_RestrictedWatcher {
                     } else if (moveToState.equals("dayOffWarnEndCal")) {
                         participant.receivedDayOff();
                         newState = "dayOffWarnEndCal";
+                    } else if (moveToState.equals("endProtocol")) {
+                        //stopProtocolNow(participantId);
+                        participant.receivedEndProtocol();
+                        newState = "endProtocol";
                     } else {
                         // invalid state
                         newState = "warnEndCal invalid";
@@ -269,6 +301,10 @@ public class HPM_RestrictedWatcher {
                         participant.receivedEndCal();
                         Launcher.dbEngine.removeTempEndCal(participantId);
                         newState = "endcal";
+                    } else if (moveToState.equals("endProtocol")) {
+                        //stopProtocolNow(participantId);
+                        participant.receivedEndProtocol();
+                        newState = "endProtocol";
                     } else {
                         // invalid state
                         newState = "endOfEpisode invalid";

@@ -127,6 +127,16 @@ public class HPM_ControlWatcher {
         }
     }
 
+    public void stopProtocolNow(String participantId) {
+        HPM_Control removed = HPM_controlMap.remove(participantId);
+        if (removed != null) {
+            removed.receivedEndProtocol();
+            removed.uploadSave.shutdownNow();
+            removed = null;
+            System.gc();
+        }
+    }
+
     public String moveToState(String participantId, String moveToState, String time) {
         String newState = "";
         try {
@@ -147,6 +157,7 @@ public class HPM_ControlWatcher {
                         participant.recievedWarnEndCal();
                         newState = "warnEndCal";
                     } else if (moveToState.equals("endProtocol")) {
+                        //stopProtocolNow(participantId);
                         participant.receivedEndProtocol();
                         newState = "endProtocol";
                     } else {
@@ -167,6 +178,7 @@ public class HPM_ControlWatcher {
                         participant.timeoutwaitStartTowarnStartCal();
                         newState = "warnStartCal";
                     } else if (moveToState.equals("endProtocol")) {
+                        //stopProtocolNow(participantId);
                         participant.receivedEndProtocol();
                         newState = "endProtocol";
                     } else {
@@ -187,6 +199,7 @@ public class HPM_ControlWatcher {
                         Launcher.dbEngine.removeTempStartCal(participantId);
                         newState = "startcal";
                     } else if (moveToState.equals("endProtocol")){
+                        //stopProtocolNow(participantId);
                         participant.receivedEndProtocol();
                         newState = "endProtocol";
                     } else {
@@ -213,6 +226,7 @@ public class HPM_ControlWatcher {
                         participant.timeoutstartcalTowarnEndCal();
                         newState = "warnEndCal";
                     } else if (moveToState.equals("endProtocol")) {
+                        //stopProtocolNow(participantId);
                         participant.receivedEndProtocol();
                         newState = "endProtocol";
                     } else {
@@ -230,6 +244,7 @@ public class HPM_ControlWatcher {
                         participant.receivedEndCal();
                         newState = "endcal";
                     } else if (moveToState.equals("endProtocol")){
+                        //stopProtocolNow(participantId);
                         participant.receivedEndProtocol();
                         newState = "endProtocol";
                     } else {
@@ -248,6 +263,10 @@ public class HPM_ControlWatcher {
                     } else if (moveToState.equals("waitStart")) {
                         participant.timeoutendcalTowaitStart();
                         newState = "waitStart";
+                    } else if (moveToState.equals("endProtocol")) {
+                        //stopProtocolNow(participantId);
+                        participant.receivedEndProtocol();
+                        newState = "endProtocol";
                     } else {
                         // invalid state
                         newState = "endcal invalid";
