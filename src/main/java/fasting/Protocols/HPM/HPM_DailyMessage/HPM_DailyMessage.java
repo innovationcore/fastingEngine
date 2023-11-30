@@ -48,7 +48,7 @@ public class HPM_DailyMessage extends HPM_DailyMessageBase {
 
                 }
             } catch (Exception ex) {
-                logger.error("protocols.HPM_DailyMessage Thread");
+                logger.error("protocols.DailyMessage Thread");
                 logger.error(ex.getMessage());
             }
         }, 30, 900, TimeUnit.SECONDS); //900 sec is 15 mins
@@ -132,7 +132,7 @@ public class HPM_DailyMessage extends HPM_DailyMessageBase {
         if(gson != null) {
             Map<String,String> messageMap = new HashMap<>();
             messageMap.put("state",state);
-            messageMap.put("protocol", "HPM_DailyMessage");
+            messageMap.put("protocol", "DailyMessage");
             if (this.isRestoring) {
                 if(this.isReset){
                     messageMap.put("RESET", "true");

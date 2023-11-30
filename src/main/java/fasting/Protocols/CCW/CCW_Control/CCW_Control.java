@@ -442,7 +442,7 @@ public class CCW_Control extends CCW_ControlBase {
                         "when your calories finish at night! Let us know if you need help.");
                 break;
             case endProtocol:
-                Launcher.dbEngine.addProtocolNameToLog("CCW_Control", participantMap.get("participant_uuid"));
+                //Launcher.dbEngine.addProtocolNameToLog("Control", participantMap.get("participant_uuid"));
                 logger.warn(participantMap.get("participant_uuid") + " is not longer in protocol.");
                 break;
             default:

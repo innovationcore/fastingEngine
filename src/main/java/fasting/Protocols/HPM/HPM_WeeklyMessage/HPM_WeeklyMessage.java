@@ -168,7 +168,7 @@ public class HPM_WeeklyMessage extends HPM_WeeklyMessageBase {
         if(gson != null) {
             Map<String,String> messageMap = new HashMap<>();
             messageMap.put("state",state);
-            messageMap.put("protocol", "HPM_WeeklyMessage");
+            messageMap.put("protocol", "WeeklyMessage");
             if (this.isRestoring) {
                 if(this.isReset) {
                     messageMap.put("RESET", "true");
