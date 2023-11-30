@@ -529,6 +529,16 @@ public class TimezoneHelper {
         return (int) secondsUntil8pm;
     }
 
+    public ZonedDateTime getZonedDateTime8am() {
+        // Get the current time in the user's timezone
+        Instant nowUTC = Instant.now();
+        ZoneId userTZ = ZoneId.of(this.userTimezone);
+        ZonedDateTime nowUserTimezone = ZonedDateTime.ofInstant(nowUTC, userTZ);
+        ZonedDateTime userLocalTime8am;
+        userLocalTime8am = nowUserTimezone.with(LocalTime.of(8, 0));
+        return userLocalTime8am.withZoneSameInstant(ZoneOffset.UTC);
+    }
+
     /**
     * gets the user's timezone
     */

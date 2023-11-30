@@ -10,10 +10,12 @@ import fasting.Launcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.text.SimpleDateFormat;
-import java.util.*;
-import java.io.StringWriter;
 import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.text.SimpleDateFormat;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 
 public class MsgUtils {
     // Find your Account SID and Auth Token at twilio.com/console
@@ -76,7 +78,33 @@ public class MsgUtils {
                 messageDirection + "', '" + json_string + "', '"+ study +"')";
 
         Launcher.dbEngine.executeUpdate(insertQuery);
+    }
 
+    public void sendScheduledMessage(String textTo, String body, ZonedDateTime dateTime) {
+        String participantId = Launcher.dbEngine.getParticipantIdFromPhoneNumber(textTo);
+        String study = Launcher.dbEngine.getStudyFromParticipantId(participantId);
+        String fromNumber = null;
+
+        if (study.equals("HPM")) {
+            fromNumber = textFromHPM;
+        } else if (study.equals("CCW")){
+            fromNumber = textFromCCW;
+        }
+
+        String messageId = UUID.randomUUID().toString();
+        String scheduledFor = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS").format(dateTime);
+
+        Map<String,String> messageMap = new HashMap<>();
+        String stripped_body = body.replaceAll("\n", "").replaceAll("\r", "").replaceAll("\t", "");
+        messageMap.put("Body",stripped_body);
+        String json_string = gson.toJson(messageMap);
+        logger.info("Message queued for: " + scheduledFor + ", Message: " + json_string);
+
+        String insertQuery = "INSERT INTO queued_messages " +
+                "(message_uuid, participant_uuid, toNumber, fromNumber, scheduledFor, message_json, study)" +
+                " VALUES ('" + messageId + "', '" + participantId + "','" + textTo + "','" + fromNumber+ "','" + scheduledFor+ "','" + json_string +"','" + study + "')";
+
+        Launcher.dbEngine.executeUpdate(insertQuery);
     }
 
     public String fakeIncomingMessage(Map<String, String> formsMap, String phone_number) {
