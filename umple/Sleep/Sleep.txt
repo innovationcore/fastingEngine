@@ -1,0 +1,101 @@
+// UML State diagram for Sleeping messages, represented in Umple
+class SleepBase
+{
+  Integer timeout24Hours = 0;
+  Integer sleepWarnDeadline = 0;
+  Integer wakeWarnDeadline = 0;
+
+
+  state {
+    initial {
+      entry / {
+        // entry point, don't do anything here
+        stateNotify("initial");
+      };
+
+      //must be able to advance to any state with a timer
+      receivedWaitSleep -> waitSleep;
+      receivedWarnSleep -> warnSleep;
+      receivedSleep -> sleep;
+      recievedWarnWake -> warnWake;
+      receivedEndProtocol -> endProtocol;
+    }
+
+    waitSleep {
+      entry / {
+        // wait here until a sleep text is received
+        stateNotify("waitSleep");
+      };
+
+      receivedSleep -> sleep;
+      after(sleepWarnDeadline) -> warnSleep;
+      receivedEndProtocol -> endProtocol;
+    }
+
+    warnSleep {
+      entry/ {
+    	// send a reminder message at a certain time
+        stateNotify("warnSleep");
+      };
+
+      receivedSleep -> sleep;
+      after(timeout24Hours) -> timeout24;
+      receivedEndProtocol -> endProtocol;
+    }
+
+    sleep {
+      entry / {
+        // receive additional sleep messages and update
+        // starting time, also receive wake
+        stateNotify("sleep");
+      };
+
+        receivedSleep -> sleep;
+        receivedWake -> wake;
+        after(wakeWarnDeadline) -> warnWake;
+        receivedEndProtocol -> endProtocol;
+    }
+
+    warnWake {
+      // send a reminder message to send wake at a
+      // certain time
+      entry / {
+        stateNotify("warnWake");
+      };
+      receivedWake -> wake;
+      after(timeout24Hours) -> waitSleep;
+      receivedEndProtocol -> endProtocol;
+    }
+
+    wake {
+      entry / {
+        // receive additional wake messages and update
+        // end time
+        stateNotify("wake");
+      };
+        receivedWake -> wake;
+        after(timeout24Hours) -> waitSleep;
+        receivedEndProtocol -> endProtocol;
+    }
+
+    timeout24 {
+      entry / {
+        // sends a message if sleep or wake are not
+        // received for the day
+        stateNotify("timeout24");
+      } -> waitSleep;
+    }
+
+    endProtocol {
+      // if participant is moved off protocol, or removed
+      // then enter inescapable state
+      entry / {
+        stateNotify("endProtocol");
+      };
+    }
+
+  }
+
+  boolean stateNotify(String node) {return true;}
+  int currentTime() {return 1;}
+}
