@@ -1,22 +1,21 @@
 package fasting;
 
-import com.google.protobuf.Message;
 import fasting.Configs.Config;
 import fasting.Configs.FileConfig;
 import fasting.Database.DBEngine;
 import fasting.MessagingUtils.MessageSchedulerExecutor;
 import fasting.MessagingUtils.MsgUtils;
-import fasting.Protocols.Testing;
-import fasting.Protocols.HPM.HPM_DailyMessage.HPM_DailyMessageWatcher;
-import fasting.Protocols.HPM.HPM_Restricted.HPM_RestrictedWatcher;
-import fasting.Protocols.HPM.HPM_Control.HPM_ControlWatcher;
-import fasting.Protocols.HPM.HPM_Baseline.HPM_BaselineWatcher;
-import fasting.Protocols.HPM.HPM_WeeklyMessage.HPM_WeeklyMessageWatcher;
+import fasting.Protocols.CCW.CCW_Baseline.CCW_BaselineWatcher;
+import fasting.Protocols.CCW.CCW_Control.CCW_ControlWatcher;
 import fasting.Protocols.CCW.CCW_DailyMessage.CCW_DailyMessageWatcher;
 import fasting.Protocols.CCW.CCW_Restricted.CCW_RestrictedWatcher;
-import fasting.Protocols.CCW.CCW_Control.CCW_ControlWatcher;
-import fasting.Protocols.CCW.CCW_Baseline.CCW_BaselineWatcher;
 import fasting.Protocols.CCW.CCW_WeeklyMessage.CCW_WeeklyMessageWatcher;
+import fasting.Protocols.HPM.HPM_Baseline.HPM_BaselineWatcher;
+import fasting.Protocols.HPM.HPM_Control.HPM_ControlWatcher;
+import fasting.Protocols.HPM.HPM_DailyMessage.HPM_DailyMessageWatcher;
+import fasting.Protocols.HPM.HPM_Restricted.HPM_RestrictedWatcher;
+import fasting.Protocols.HPM.HPM_WeeklyMessage.HPM_WeeklyMessageWatcher;
+import fasting.Protocols.Testing;
 import fasting.TimeUtils.TimezoneHelper;
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
@@ -29,11 +28,11 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
 
 public class Launcher {
-
     private static Logger logger;
     public static Config config;
     public static DBEngine dbEngine;

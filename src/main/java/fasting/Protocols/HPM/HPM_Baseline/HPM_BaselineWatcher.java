@@ -77,7 +77,7 @@ public class HPM_BaselineWatcher {
                     validNextStates = "startcal,endcal,warnEndCal,endProtocol";
                     break;
                 case "warnEndCal":
-                    validNextStates = "waitStart,endcal,endProtocol";
+                    validNextStates = "missedEndCal,endcal,endProtocol";
                     break;
                 case "endcal":
                     validNextStates = "endcal,waitStart,endProtocol";
@@ -237,16 +237,15 @@ public class HPM_BaselineWatcher {
                         break;
                     }
                     break;
-                // waitStart,endcal,endProtocol
+                // missedEndCal,endcal,endProtocol
                 case warnEndCal:
-                    if (moveToState.equals("waitStart")){
-                        participant.timeoutwarnEndCalTowaitStart();
-                        newState = "waitStart";
+                    if (moveToState.equals("missedEndCal")){
+                        participant.timeoutwarnEndCalTomissedEndCal();
+                        newState = "missedEndCal";
                     } else if (moveToState.equals("endcal")){
                         participant.receivedEndCal();
                         newState = "endcal";
                     } else if (moveToState.equals("endProtocol")){
-                        //stopProtocolNow(participantId);
                         participant.receivedEndProtocol();
                         newState = "endProtocol";
                     } else {
