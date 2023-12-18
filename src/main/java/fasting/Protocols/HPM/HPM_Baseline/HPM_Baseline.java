@@ -433,11 +433,19 @@ public class HPM_Baseline extends HPM_BaselineBase {
                 stateJSON = saveStateJSON();
                 Launcher.dbEngine.uploadSaveState(stateJSON, participantMap.get("participant_uuid"));
                 break;
+            case missedEndCal:
+                logger.warn(participantMap.get("participant_uuid") + " did not send endcal in time. (missedEndCal)");
+                if (!isRestoring) {
+                    Launcher.msgUtils.sendScheduledMessage("+12704022214", "[HPM Baseline] Participant " + participantMap.get("first_name") + " " + participantMap.get("last_name") + " ("+participantMap.get("number")+") missed their ENDCAL.", TZHelper.getZonedDateTime8am());
+                }
             case timeout24:
                 logger.warn(participantMap.get("participant_uuid") + " did not send startcal/endcal in time.");
-                Launcher.msgUtils.sendMessage(participantMap.get("number"), "We haven't heard from you in a " +
-                        "while. Remember to text \"STARTCAL\" when your calories start in the morning and \"ENDCAL\" " +
-                        "when your calories finish at night! Let us know if you need help.");
+                if (!isRestoring) {
+                    String message = "We haven't heard from you in a while. Remember to text \"STARTCAL\" when your " +
+                            "calories start in the morning and \"ENDCAL\" when your calories finish at night! Let us " +
+                            "know if you need help.";
+                    Launcher.msgUtils.sendScheduledMessage(participantMap.get("number"), message, TZHelper.getZonedDateTime8am());
+                }
                 break;
             case endProtocol:
                 logger.warn(participantMap.get("participant_uuid") + " is not longer in protocol.");
@@ -487,6 +495,7 @@ public class HPM_Baseline extends HPM_BaselineBase {
                     switch (State.valueOf(stateName)) {
                         case initial:
                         case timeout24:
+                        case missedEndCal:
                         case endProtocol:
                             // no timers
                             break;

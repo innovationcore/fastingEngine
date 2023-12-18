@@ -11,7 +11,7 @@ import java.util.*;
  * UML State diagram for HPM_Baseline, represented in Umple
  */
 // line 3 "model.ump"
-// line 106 "model.ump"
+// line 112 "model.ump"
 public class HPM_BaselineBase
 {
 
@@ -25,14 +25,14 @@ public class HPM_BaselineBase
   private int endWarnDeadline;
 
   //HPM_BaselineBase State Machines
-  public enum State { initial, waitStart, warnStartCal, startcal, warnEndCal, endcal, timeout24, endProtocol }
+  public enum State { initial, waitStart, warnStartCal, startcal, warnEndCal, missedEndCal, endcal, timeout24, endProtocol }
   private State state;
 
   //Helper Variables
   private TimedEventHandler timeoutwaitStartTowarnStartCalHandler;
   private TimedEventHandler timeoutwarnStartCalTotimeout24Handler;
   private TimedEventHandler timeoutstartcalTowarnEndCalHandler;
-  private TimedEventHandler timeoutwarnEndCalTowaitStartHandler;
+  private TimedEventHandler timeoutwarnEndCalTomissedEndCalHandler;
   private TimedEventHandler timeoutendcalTowaitStartHandler;
 
   //------------------------
@@ -317,7 +317,7 @@ public class HPM_BaselineBase
     return wasEventProcessed;
   }
 
-  public boolean timeoutwarnEndCalTowaitStart()
+  public boolean timeoutwarnEndCalTomissedEndCal()
   {
     boolean wasEventProcessed = false;
 
@@ -326,6 +326,24 @@ public class HPM_BaselineBase
     {
       case warnEndCal:
         exitState();
+        setState(State.missedEndCal);
+        wasEventProcessed = true;
+        break;
+      default:
+        // Other states do respond to this event
+    }
+
+    return wasEventProcessed;
+  }
+
+  private boolean __autotransition509__()
+  {
+    boolean wasEventProcessed = false;
+
+    State aState = state;
+    switch (aState)
+    {
+      case missedEndCal:
         setState(State.waitStart);
         wasEventProcessed = true;
         break;
@@ -355,7 +373,7 @@ public class HPM_BaselineBase
     return wasEventProcessed;
   }
 
-  private boolean __autotransition11886__()
+  private boolean __autotransition510__()
   {
     boolean wasEventProcessed = false;
 
@@ -387,7 +405,7 @@ public class HPM_BaselineBase
         stopTimeoutstartcalTowarnEndCalHandler();
         break;
       case warnEndCal:
-        stopTimeoutwarnEndCalTowaitStartHandler();
+        stopTimeoutwarnEndCalTomissedEndCalHandler();
         break;
       case endcal:
         stopTimeoutendcalTowaitStartHandler();
@@ -415,7 +433,7 @@ public class HPM_BaselineBase
         break;
       case warnStartCal:
         // line 37 "model.ump"
-        // send a reminder messaage at a certain time
+        // send a reminder message at a certain time
         stateNotify("warnStartCal");
         startTimeoutwarnStartCalTotimeout24Handler();
         break;
@@ -429,24 +447,29 @@ public class HPM_BaselineBase
       case warnEndCal:
         // line 63 "model.ump"
         stateNotify("warnEndCal");
-        startTimeoutwarnEndCalTowaitStartHandler();
+        startTimeoutwarnEndCalTomissedEndCalHandler();
+        break;
+      case missedEndCal:
+        // line 72 "model.ump"
+        stateNotify("missedEndCal");
+        __autotransition509__();
         break;
       case endcal:
-        // line 72 "model.ump"
+        // line 78 "model.ump"
         // receive additional endcal messages and update
         // end time
         stateNotify("endcal");
         startTimeoutendcalTowaitStartHandler();
         break;
       case timeout24:
-        // line 83 "model.ump"
+        // line 89 "model.ump"
         // sends a message if startcal or endcal are not
         // received for the day
         stateNotify("timeout24");
-        __autotransition11886__();
+        __autotransition510__();
         break;
       case endProtocol:
-        // line 93 "model.ump"
+        // line 99 "model.ump"
         stateNotify("endProtocol");
         break;
     }
@@ -482,14 +505,14 @@ public class HPM_BaselineBase
     timeoutstartcalTowarnEndCalHandler.stop();
   }
 
-  private void startTimeoutwarnEndCalTowaitStartHandler()
+  private void startTimeoutwarnEndCalTomissedEndCalHandler()
   {
-    timeoutwarnEndCalTowaitStartHandler = new TimedEventHandler(this,"timeoutwarnEndCalTowaitStart",timeout24Hours);
+    timeoutwarnEndCalTomissedEndCalHandler = new TimedEventHandler(this,"timeoutwarnEndCalTomissedEndCal",timeout24Hours);
   }
 
-  private void stopTimeoutwarnEndCalTowaitStartHandler()
+  private void stopTimeoutwarnEndCalTomissedEndCalHandler()
   {
-    timeoutwarnEndCalTowaitStartHandler.stop();
+    timeoutwarnEndCalTomissedEndCalHandler.stop();
   }
 
   private void startTimeoutendcalTowaitStartHandler()
@@ -552,12 +575,12 @@ public class HPM_BaselineBase
         }
         return;
       }
-      if ("timeoutwarnEndCalTowaitStart".equals(timeoutMethodName))
+      if ("timeoutwarnEndCalTomissedEndCal".equals(timeoutMethodName))
       {
-        boolean shouldRestart = !controller.timeoutwarnEndCalTowaitStart();
+        boolean shouldRestart = !controller.timeoutwarnEndCalTomissedEndCal();
         if (shouldRestart)
         {
-          controller.startTimeoutwarnEndCalTowaitStartHandler();
+          controller.startTimeoutwarnEndCalTomissedEndCalHandler();
         }
         return;
       }
@@ -576,12 +599,12 @@ public class HPM_BaselineBase
   public void delete()
   {}
 
-  // line 100 "model.ump"
+  // line 106 "model.ump"
   public boolean stateNotify(String node){
     return true;
   }
 
-  // line 101 "model.ump"
+  // line 107 "model.ump"
   public int currentTime(){
     return 1;
   }

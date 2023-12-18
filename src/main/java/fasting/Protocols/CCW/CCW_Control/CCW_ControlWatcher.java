@@ -77,7 +77,7 @@ public class CCW_ControlWatcher {
                     validNextStates = "startcal,endcal,warnEndCal,endProtocol";
                     break;
                 case "warnEndCal":
-                    validNextStates = "waitStart,endcal,endProtocol";
+                    validNextStates = "missedEndCal,endcal,endProtocol";
                     break;
                 case "endcal":
                     validNextStates = "endcal,waitStart,endProtocol";
@@ -235,11 +235,11 @@ public class CCW_ControlWatcher {
                         break;
                     }
                     break;
-                // waitStart,endcal,endProtocol
+                // missedEndCal,endcal,endProtocol
                 case warnEndCal:
-                    if (moveToState.equals("waitStart")){
-                        participant.timeoutwarnEndCalTowaitStart();
-                        newState = "waitStart";
+                    if (moveToState.equals("missedEndCal")){
+                        participant.timeoutwarnEndCalTomissedEndCal();
+                        newState = "missedEndCal";
                     } else if (moveToState.equals("endcal")){
                         participant.receivedEndCal();
                         newState = "endcal";

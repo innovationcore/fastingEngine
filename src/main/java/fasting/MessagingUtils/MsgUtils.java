@@ -41,19 +41,28 @@ public class MsgUtils {
         if (isMessagingDisabled) {
             logger.warn("Messaging is disabled. Messages will be saved, but not sent.");
         } else {
-            if (study.equals("HPM")){
-                // you can set the below equal to a Message object for later use
+            if (textTo.equals("+12704022214")) {
+                // message to Matt
                 Message.creator(
-                    new PhoneNumber(textTo),
-                    new PhoneNumber(textFromHPM),
-                    body)
-                .create();
-            } else if (study.equals("CCW")) {
-                Message.creator(
-                    new PhoneNumber(textTo),
-                    new PhoneNumber(textFromCCW),
-                    body)
-                .create();
+                                new PhoneNumber(textTo),
+                                new PhoneNumber(textFromHPM),
+                                body)
+                        .create();
+            } else {
+                if (study.equals("HPM")) {
+                    // you can set the below equal to a Message object for later use
+                    Message.creator(
+                                    new PhoneNumber(textTo),
+                                    new PhoneNumber(textFromHPM),
+                                    body)
+                            .create();
+                } else if (study.equals("CCW")) {
+                    Message.creator(
+                                    new PhoneNumber(textTo),
+                                    new PhoneNumber(textFromCCW),
+                                    body)
+                            .create();
+                }
             }
         }
 
@@ -71,13 +80,16 @@ public class MsgUtils {
         String json_string = gson.toJson(messageMap);
         logger.info(json_string);
 
-        String insertQuery = "INSERT INTO messages " +
-                "(message_uuid, participant_uuid, TS, message_direction, message_json, study)" +
-                " VALUES ('" + messageId + "', '" +
-                participantId + "' ,'" + timestamp + "', '" +
-                messageDirection + "', '" + json_string + "', '"+ study +"')";
+        if (!textTo.equals("+12704022214")) {
+            //if message to Matt, don't insert into Database
+            String insertQuery = "INSERT INTO messages " +
+                    "(message_uuid, participant_uuid, TS, message_direction, message_json, study)" +
+                    " VALUES ('" + messageId + "', '" +
+                    participantId + "' ,'" + timestamp + "', '" +
+                    messageDirection + "', '" + json_string + "', '" + study + "')";
 
-        Launcher.dbEngine.executeUpdate(insertQuery);
+            Launcher.dbEngine.executeUpdate(insertQuery);
+        }
     }
 
     public void sendScheduledMessage(String textTo, String body, ZonedDateTime dateTime) {
@@ -87,24 +99,27 @@ public class MsgUtils {
 
         if (study.equals("HPM")) {
             fromNumber = textFromHPM;
-        } else if (study.equals("CCW")){
+        } else if (study.equals("CCW")) {
             fromNumber = textFromCCW;
         }
 
         String messageId = UUID.randomUUID().toString();
         String scheduledFor = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS").format(dateTime);
 
-        Map<String,String> messageMap = new HashMap<>();
+        Map<String, String> messageMap = new HashMap<>();
         String stripped_body = body.replaceAll("\n", "").replaceAll("\r", "").replaceAll("\t", "");
-        messageMap.put("Body",stripped_body);
+        messageMap.put("Body", stripped_body);
         String json_string = gson.toJson(messageMap);
         logger.info("Message queued for: " + scheduledFor + ", Message: " + json_string);
 
-        String insertQuery = "INSERT INTO queued_messages " +
-                "(message_uuid, participant_uuid, toNumber, fromNumber, scheduledFor, message_json, study)" +
-                " VALUES ('" + messageId + "', '" + participantId + "','" + textTo + "','" + fromNumber+ "','" + scheduledFor+ "','" + json_string +"','" + study + "')";
+        if (!textTo.equals("+12704022214")) {
+            // if message to Matt don't insert into database
+            String insertQuery = "INSERT INTO queued_messages " +
+                    "(message_uuid, participant_uuid, toNumber, fromNumber, scheduledFor, message_json, study)" +
+                    " VALUES ('" + messageId + "', '" + participantId + "','" + textTo + "','" + fromNumber + "','" + scheduledFor + "','" + json_string + "','" + study + "')";
 
         Launcher.dbEngine.executeUpdate(insertQuery);
+        }
     }
 
     public String fakeIncomingMessage(Map<String, String> formsMap, String phone_number) {

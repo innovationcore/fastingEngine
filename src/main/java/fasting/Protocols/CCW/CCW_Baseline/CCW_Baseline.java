@@ -252,7 +252,8 @@ public class CCW_Baseline extends CCW_BaselineBase {
                     }
                     break;
                 case timeout24:
-                    String timeoutMessage = participantMap.get("participant_uuid") + " timeout unexpected message";
+                case missedEndCal:
+                    String timeoutMessage = participantMap.get("participant_uuid") + " timeout/missedEndCal unexpected message";
                     logger.warn(timeoutMessage);
                     Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Text 270-402-2214 if you need help.");
                     break;
@@ -435,11 +436,19 @@ public class CCW_Baseline extends CCW_BaselineBase {
                 stateJSON = saveStateJSON();
                 Launcher.dbEngine.uploadSaveState(stateJSON, participantMap.get("participant_uuid"));
                 break;
+            case missedEndCal:
+                logger.warn(participantMap.get("participant_uuid") + " did not send endcal in time. (missedEndCal)");
+                if (!isRestoring) {
+                    Launcher.msgUtils.sendScheduledMessage("+12704022214", "[CCW Baseline] Participant " + participantMap.get("first_name") + " " + participantMap.get("last_name") + " ("+participantMap.get("number")+") missed their ENDCAL.", TZHelper.getZonedDateTime8am());
+                }
             case timeout24:
                 logger.warn(participantMap.get("participant_uuid") + " did not send startcal/endcal in time.");
-                Launcher.msgUtils.sendMessage(participantMap.get("number"), "We haven't heard from you in " +
-                        "a while. Remember to text \"STARTCAL\" when your calories start in the morning and \"ENDCAL\"" +
-                        " when your calories finish at night! Let us know if you need help.");
+                if(!isRestoring) {
+                    String message = "We haven't heard from you in a while. Remember to text \"STARTCAL\" when your " +
+                            "calories start in the morning and \"ENDCAL\" when your calories finish at night! Let us " +
+                            "know if you need help.";
+                    Launcher.msgUtils.sendScheduledMessage(participantMap.get("number"), message, TZHelper.getZonedDateTime8am());
+                }
                 break;
             case endProtocol:
                 logger.warn(participantMap.get("participant_uuid") + " is not longer in protocol.");
@@ -489,6 +498,7 @@ public class CCW_Baseline extends CCW_BaselineBase {
                     switch (State.valueOf(stateName)) {
                         case initial:
                         case timeout24:
+                        case missedEndCal:
                         case endProtocol:
                             // no timers
                             break;

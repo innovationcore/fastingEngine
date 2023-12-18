@@ -172,7 +172,6 @@ public class CCW_DailyMessage extends CCW_DailyMessageBase {
                     add("Your own mind is your greatest motivator. You CAN do this!");
                     add("Hey TRE Queen, need a distraction? Try singing your favorite song. Now who's having the time of her life?");
                     add("It's not just on game shows where it helps to phone a friend. Chatting with friends helps distract you AND relax at the end of the day.");
-                    add("Remember to text ENDCAL when you have your last calorie tonight!");
                 }});
         int rnd = new Random().nextInt(dailyMessages.size());
         String message = dailyMessages.get(rnd);
