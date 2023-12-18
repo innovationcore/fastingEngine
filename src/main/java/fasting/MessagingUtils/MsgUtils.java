@@ -112,14 +112,18 @@ public class MsgUtils {
         String json_string = gson.toJson(messageMap);
         logger.info("Message queued for: " + scheduledFor + ", Message: " + json_string);
 
-        if (!textTo.equals("+12704022214")) {
-            // if message to Matt don't insert into database
-            String insertQuery = "INSERT INTO queued_messages " +
-                    "(message_uuid, participant_uuid, toNumber, fromNumber, scheduledFor, message_json, study)" +
-                    " VALUES ('" + messageId + "', '" + participantId + "','" + textTo + "','" + fromNumber + "','" + scheduledFor + "','" + json_string + "','" + study + "')";
+        // if message to Matt don't insert into database
+        String insertQuery = "INSERT INTO queued_messages " +
+                "(message_uuid, participant_uuid, toNumber, fromNumber, scheduledFor, message_json, study)" +
+                " VALUES ('" + messageId + "', '" + participantId + "','" + textTo + "','" + fromNumber + "','" + scheduledFor + "','" + json_string + "','" + study + "')";
 
-        Launcher.dbEngine.executeUpdate(insertQuery);
+        // TODO have the study correlate with the person it applies to instead of just HPM
+        if (textTo.equals("+12704022214")) {
+            insertQuery = "INSERT INTO queued_messages " +
+                    "(message_uuid, participant_uuid, toNumber, fromNumber, scheduledFor, message_json, study)" +
+                    " VALUES ('" + messageId + "', '00000000-0000-0000-0000-000000000000','" + textTo + "','" + textFromHPM + "','" + scheduledFor + "','" + json_string + "','HPM')";
         }
+        Launcher.dbEngine.executeUpdate(insertQuery);
     }
 
     public String fakeIncomingMessage(Map<String, String> formsMap, String phone_number) {
