@@ -3,21 +3,20 @@ package fasting.Protocols.Sleep;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import fasting.Launcher;
-import fasting.Protocols.Sleep.SleepBase;
 import fasting.TimeUtils.TimezoneHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Type;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.TimeZone;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public class Sleep extends SleepBase {
     private final Type typeOfHashMap = new TypeToken<Map<String, Map<String,Long>>>() { }.getType();
-
-    //id, participant_uuid, phone_number, participant_type
     private final Map<String, String> participantMap;
     private final Map<String,Long> stateMap;
     private long startTimestamp = 0;
@@ -84,174 +83,159 @@ public class Sleep extends SleepBase {
                         String[] sleepSplit = textBody.split(" ", 2);
                         if (sleepSplit.length >= 2) {
                             if (!(sleepSplit[1].toLowerCase().contains("a") || sleepSplit[1].toLowerCase().contains("p"))){
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your STARTCAL time was not understood. Please send \"STARTCAL\" again with your starting time including \"am\" or \"pm\". For example, \"STARTCAL 7:30 am\".");
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your SLEEP time was not understood. Please send \"SLEEP\" again with the time you started falling asleep including \"am\" or \"pm\". For example, \"SLEEP 9:30 pm\".");
                                 break;
                             }
-                            if (!isStartCal(startCalSplit[0])) {
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your STARTCAL time was not understood. Please send \"STARTCAL\" again with your starting time. For example, \"STARTCAL 7:30 am\".");
+                            if (!isSleep(sleepSplit[0])) {
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your SLEEP time was not understood. Please send \"SLEEP\" again with the time you started falling asleep. For example, \"SLEEP 9:30 pm\".");
                                 break;
                             }
-                            long parsedTime = TZHelper.parseTime(startCalSplit[1]);
+                            long parsedTime = TZHelper.parseTime(sleepSplit[1]);
                             if (parsedTime == -1L) {
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your STARTCAL time was not understood. Please send \"STARTCAL\" again with your starting time. For example, \"STARTCAL 7:30 am\".");
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your SLEEP time was not understood. Please send \"SLEEP\" again with the time you started falling asleep. For example, \"SLEEP 9:30 pm\".");
                                 break;
                             }
                         } else {
-                            // if just sent startcal make sure its not startcal9:45 or something similar
-                            if (startCalSplit[0].length() > 8){
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your STARTCAL time was not understood. Please send \"STARTCAL\" again with your starting time. For example, \"STARTCAL 7:30 am\".");
+                            // if just sent sleep make sure its not sleep9:45 or something similar
+                            if (sleepSplit[0].length() > 5){
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your SLEEP time was not understood. Please send \"SLEEP\" again with the time you started falling asleep. For example, \"SLEEP 9:30 pm\".");
                                 break;
                             }
                         }
                         receivedSleep();
                     } else {
-                        Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Please send \"STARTCAL\" when you begin calories for " +
-                                "the day; \"ENDCAL\" when you are done with calories for the day.");
+                        Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Please send \"SLEEP\" before you begin trying to fall asleep;" +
+                                " \"WAKE\" soon after you wake up in the morning.");
                     }
                     break;
                 case sleep:
-                    if (isStartCal(incomingMap.get("Body"))){
+                    if (isSleep(incomingMap.get("Body"))){
                         String textBody = incomingMap.get("Body").trim(); // removes whitespace before and after
-                        String[] startCalSplit = textBody.split(" ", 2);
-                        if (startCalSplit.length >= 2) {
-                            if (!(startCalSplit[1].toLowerCase().contains("a") || startCalSplit[1].toLowerCase().contains("p"))){
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your STARTCAL time was not understood. Please send \"STARTCAL\" again with your starting time. For example, \"STARTCAL 7:30 am\".");
+                        String[] sleepSplit = textBody.split(" ", 2);
+                        if (sleepSplit.length >= 2) {
+                            if (!(sleepSplit[1].toLowerCase().contains("a") || sleepSplit[1].toLowerCase().contains("p"))){
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your SLEEP time was not understood. Please send \"SLEEP\" again with the time you started falling asleep including \"am\" or \"pm\". For example, \"SLEEP 9:30 pm\".");
                                 break;
                             }
-                            if (!isStartCal(startCalSplit[0])) {
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your STARTCAL time was not understood. Please send \"STARTCAL\" again with your starting time. For example, \"STARTCAL 7:30 am\".");
+                            if (!isSleep(sleepSplit[0])) {
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your SLEEP time was not understood. Please send \"SLEEP\" again with the time you started falling asleep. For example, \"SLEEP 9:30 pm\".");
                                 break;
                             }
-                            long parsedTime = TZHelper.parseTime(startCalSplit[1]);
+                            long parsedTime = TZHelper.parseTime(sleepSplit[1]);
                             if (parsedTime == -1L) {
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your STARTCAL time was not understood. Please send \"STARTCAL\" again with your starting time. For example, \"STARTCAL 7:30 am\".");
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your SLEEP time was not understood. Please send \"SLEEP\" again with the time you started falling asleep. For example, \"SLEEP 9:30 pm\".");
                                 break;
                             }
                         } else {
-                            // if just sent startcal make sure its not startcal9:45 or something similar
-                            if (startCalSplit[0].length() > 8){
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your STARTCAL time was not understood. Please send \"STARTCAL\" again with your starting time. For example, \"STARTCAL 7:30 am\".");
+                            // if just sent sleep make sure its not sleep9:45 or something similar
+                            if (sleepSplit[0].length() > 5){
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your SLEEP time was not understood. Please send \"SLEEP\" again with the time you started falling asleep. For example, \"SLEEP 9:30 pm\".");
                                 break;
                             }
                         }
                         receivedSleep();
-                    } else if(isEndCal(incomingMap.get("Body"))) {
+                    } else if(isWake(incomingMap.get("Body"))) {
                         String textBody = incomingMap.get("Body").trim(); // removes whitespace before and after
-                        String[] endCalSplit = textBody.split(" ", 2);
-                        if (endCalSplit.length >= 2) {
-                            if (!(endCalSplit[1].toLowerCase().contains("a") || endCalSplit[1].toLowerCase().contains("p"))){
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time including \"am\" or \"pm\". For example, \"ENDCAL 7:30 pm\".");
+                        String[] wakeSplit = textBody.split(" ", 2);
+                        if (wakeSplit.length >= 2) {
+                            if (!(wakeSplit[1].toLowerCase().contains("a") || wakeSplit[1].toLowerCase().contains("p"))){
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your WAKE time was not understood. Please send \"WAKE\" again with the time you woke up including \"am\" or \"pm\". For example, \"WAKE 7:30 am\".");
                                 break;
                             }
-                            if (!isEndCal(endCalSplit[0])) {
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".");
+                            if (!isWake(wakeSplit[0])) {
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your WAKE time was not understood. Please send \"WAKE\" again with the time you woke up. For example, \"WAKE 7:30 am\".");
                                 break;
                             }
-                            long parsedTime = TZHelper.parseTime(endCalSplit[1]);
+                            long parsedTime = TZHelper.parseTime(wakeSplit[1]);
                             if (parsedTime == -1L) {
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".");
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your WAKE time was not understood. Please send \"WAKE\" again with the time you woke up. For example, \"WAKE 7:30 am\".");
                                 break;
                             }
                         } else {
-                            // if just sent stopcal/endcal make sure its not endcal9:45 or something similar
-                            if (incomingMap.get("Body").toLowerCase().contains("stopcal")){
-                                if (endCalSplit[0].length() > 7){
-                                    Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".");
-                                    break;
-                                }
-                            } else if (incomingMap.get("Body").toLowerCase().contains("endcal")){
-                                if (endCalSplit[0].length() > 6){
-                                    Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".");
+                            // if just sent wake make sure it's not wake9:45 or something similar
+                            if (incomingMap.get("Body").toLowerCase().contains("wake")){
+                                if (wakeSplit[0].length() > 4){
+                                    Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your WAKE time was not understood. Please send \"WAKE\" again with the time you woke up. For example, \"WAKE 7:30 am\".");
                                     break;
                                 }
                             }
                         }
                         receivedWake();
                     } else {
-                        Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Please send \"STARTCAL\" when you begin calories for " +
-                                "the day; \"ENDCAL\" when you are done with calories for the day.");
+                        Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Please send \"SLEEP\" before you begin trying to fall asleep;" +
+                                " \"WAKE\" soon after you wake up in the morning.");
                     }
                     break;
                 case warnWake:
-                    if (isEndCal(incomingMap.get("Body"))){
+                    if (isWake(incomingMap.get("Body"))){
                         String textBody = incomingMap.get("Body").trim(); // removes whitespace before and after
-                        String[] endCalSplit = textBody.split(" ", 2);
-                        if (endCalSplit.length >= 2) {
-                            if (!(endCalSplit[1].toLowerCase().contains("a") || endCalSplit[1].toLowerCase().contains("p"))) {
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time including \"am\" or \"pm\". For example, \"ENDCAL 7:30 pm\".");
+                        String[] wakeSplit = textBody.split(" ", 2);
+                        if (wakeSplit.length >= 2) {
+                            if (!(wakeSplit[1].toLowerCase().contains("a") || wakeSplit[1].toLowerCase().contains("p"))) {
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your WAKE time was not understood. Please send \"WAKE\" again with the time you woke up including \"am\" or \"pm\". For example, \"WAKE 7:30 am\".");
                                 break;
                             }
-                            if (!isEndCal(endCalSplit[0])) {
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".");
+                            if (!isWake(wakeSplit[0])) {
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your WAKE time was not understood. Please send \"WAKE\" again with the time you woke up. For example, \"WAKE 7:30 am\".");
                                 break;
                             }
-                            long parsedTime = TZHelper.parseTime(endCalSplit[1]);
+                            long parsedTime = TZHelper.parseTime(wakeSplit[1]);
                             if (parsedTime == -1L) {
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".");
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your WAKE time was not understood. Please send \"WAKE\" again with the time you woke up. For example, \"WAKE 7:30 am\".");
                                 break;
                             }
                         } else {
-                            // if just sent stopcal/endcal make sure its not endcal9:45 or something similar
-                            if (incomingMap.get("Body").toLowerCase().contains("stopcal")){
-                                if (endCalSplit[0].length() > 7){
-                                    Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".");
-                                    break;
-                                }
-                            } else if (incomingMap.get("Body").toLowerCase().contains("endcal")){
-                                if (endCalSplit[0].length() > 6){
-                                    Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".");
+                            // if just sent wake make sure its not wake9:45 or something similar
+                            if (incomingMap.get("Body").toLowerCase().contains("wake")){
+                                if (wakeSplit[0].length() > 4){
+                                    Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your WAKE time was not understood. Please send \"WAKE\" again with the time you woke up. For example, \"WAKE 7:30 am\".");
                                     break;
                                 }
                             }
                         }
                         receivedWake();
                     } else {
-                        String endCalMessage = participantMap.get("participant_uuid") + " warnEndCal unexpected message";
-                        logger.warn(endCalMessage);
+                        String wakeMessage = participantMap.get("participant_uuid") + " warnWake unexpected message";
+                        logger.warn(wakeMessage);
                         Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Text 270-402-2214 if you need help.");
                     }
                     break;
                 case wake:
-                    if (isEndCal(incomingMap.get("Body"))){
+                    if (isWake(incomingMap.get("Body"))){
                         String textBody = incomingMap.get("Body").trim(); // removes whitespace before and after
-                        String[] endCalSplit = textBody.split(" ", 2);
-                        if (endCalSplit.length >= 2) {
-                            if (!(endCalSplit[1].toLowerCase().contains("a") || endCalSplit[1].toLowerCase().contains("p"))) {
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time including \"am\" or \"pm\". For example, \"ENDCAL 7:30 pm\".");
+                        String[] wakeSplit = textBody.split(" ", 2);
+                        if (wakeSplit.length >= 2) {
+                            if (!(wakeSplit[1].toLowerCase().contains("a") || wakeSplit[1].toLowerCase().contains("p"))) {
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your WAKE time was not understood. Please send \"WAKE\" again with the time you woke up including \"am\" or \"pm\". For example, \"WAKE 7:30 am\".");
                                 break;
                             }
-                            if (!isEndCal(endCalSplit[0])) {
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".");
+                            if (!isWake(wakeSplit[0])) {
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your WAKE time was not understood. Please send \"WAKE\" again with the time you woke up. For example, \"WAKE 7:30 am\".");
                                 break;
                             }
-                            long parsedTime = TZHelper.parseTime(endCalSplit[1]);
+                            long parsedTime = TZHelper.parseTime(wakeSplit[1]);
                             if (parsedTime == -1L) {
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".");
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your WAKE time was not understood. Please send \"WAKE\" again with the time you woke up. For example, \"WAKE 7:30 am\".");
                                 break;
                             }
                         } else {
-                            // if just sent stopcal/endcal make sure its not endcal9:45 or something similar
-                            if (incomingMap.get("Body").toLowerCase().contains("stopcal")){
-                                if (endCalSplit[0].length() > 7){
-                                    Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".");
-                                    break;
-                                }
-                            } else if (incomingMap.get("Body").toLowerCase().contains("endcal")){
-                                if (endCalSplit[0].length() > 6){
-                                    Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".");
+                            // if just sent wake make sure its not wake9:45 or something similar
+                            if (incomingMap.get("Body").toLowerCase().contains("wake")){
+                                if (wakeSplit[0].length() > 4){
+                                    Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your WAKE time was not understood. Please send \"WAKE\" again with the time you woke up. For example, \"WAKE 7:30 am\".");
                                     break;
                                 }
                             }
                         }
                         receivedWake();
                     } else {
-                        String endCalMessage = participantMap.get("participant_uuid") + " endCal unexpected message";
-                        logger.warn(endCalMessage);
+                        String wakeMessage = participantMap.get("participant_uuid") + " wake unexpected message";
+                        logger.warn(wakeMessage);
                         Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Text 270-402-2214 if you need help.");
                     }
                     break;
                 case timeout24:
-                    String timeoutMessage = participantMap.get("participant_uuid") + " timeout unexpected message";
+                    String timeoutMessage = participantMap.get("participant_uuid") + " timeout24 unexpected message";
                     logger.warn(timeoutMessage);
                     Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Text 270-402-2214 if you need help.");
                     break;
@@ -290,7 +274,7 @@ public class Sleep extends SleepBase {
                 isWake = true;
             }
         } catch (Exception ex) {
-            logger.error("isEndCal()");
+            logger.error("isWake()");
             logger.error(ex.getMessage());
         }
         return isWake;
@@ -345,16 +329,16 @@ public class Sleep extends SleepBase {
                     seconds = 300;
                 }
                 setSleepWarnDeadline(seconds);
-                String waitStartMessage = participantMap.get("participant_uuid") + " created state machine: warnStartCal timeout " + TZHelper.getDateFromAddingSeconds(seconds);
+                String waitStartMessage = participantMap.get("participant_uuid") + " created state machine: warnSleep timeout " + TZHelper.getDateFromAddingSeconds(seconds);
                 logger.warn(waitStartMessage);
                 //save state info
                 stateJSON = saveStateJSON();
                 Launcher.dbEngine.uploadSaveState(stateJSON, participantMap.get("participant_uuid"));
                 break;
             case warnSleep:
-                //set end for startcal
-                setTimeout24Hours(TZHelper.getSecondsTo359am());
-                String warnStartMessage = "Remember to text \"STARTCAL\" when your calories start for the day and \"ENDCAL\" when your calories finish at night. Thank you!";
+                //set end for sleep
+                setTimeout24Hours(TZHelper.getSecondsTo1pm());
+                String warnStartMessage = "Remember to text \"SLEEP\" when your begin trying to fall asleep and \"WAKE\" when wake up in the morning. Thank you!";
                 if (!this.isRestoring){
                     Launcher.msgUtils.sendMessage(participantMap.get("number"), warnStartMessage);
                 }
@@ -364,78 +348,78 @@ public class Sleep extends SleepBase {
                 Launcher.dbEngine.uploadSaveState(stateJSON, participantMap.get("participant_uuid"));
                 break;
             case sleep:
-                int secondsStart = TZHelper.getSecondsTo2059pm();
+                int secondsStart = TZHelper.getSecondsTo1159am(); //noon
                 if (secondsStart < 0){
                     secondsStart = 300;
                 }
                 setWakeWarnDeadline(secondsStart);
-                String startCalMessage = participantMap.get("participant_uuid") + " thanks for sending startcal: warnEndCal timeout " + TZHelper.getDateFromAddingSeconds(secondsStart);
-                logger.info(startCalMessage);
+                String sleepMessage = participantMap.get("participant_uuid") + " thanks for sending sleep: warnWake timeout " + TZHelper.getDateFromAddingSeconds(secondsStart);
+                logger.info(sleepMessage);
 
-                // update startcal time in state_log
+                // update sleep time in state_log
                 if (incomingMap == null) {
-                    unixTS = Launcher.dbEngine.getStartCalTime(participantMap.get("participant_uuid"));
+                    unixTS = Launcher.dbEngine.getSleepTime(participantMap.get("participant_uuid"));
                     if (unixTS == 0) {
                         unixTS = TZHelper.getUnixTimestampNow();
                     }
                 } else {
                     String textBody = incomingMap.get("Body").trim(); // removes whitespace before and after
-                    String[] startCalSplit = textBody.split(" ", 2);
-                    if (startCalSplit.length >= 2){
-                        unixTS = TZHelper.parseTime(startCalSplit[1]);
+                    String[] sleepSplit = textBody.split(" ", 2);
+                    if (sleepSplit.length >= 2){
+                        unixTS = TZHelper.parseTime(sleepSplit[1]);
                     } else {
                         unixTS = TZHelper.getUnixTimestampNow();
                     }
                 }
 
-                Launcher.dbEngine.saveStartCalTime(participantMap.get("participant_uuid"), unixTS);
+                Launcher.dbEngine.saveSleepTime(participantMap.get("participant_uuid"), unixTS);
 
                 //save state info
                 stateJSON = saveStateJSON();
                 Launcher.dbEngine.uploadSaveState(stateJSON, participantMap.get("participant_uuid"));
                 break;
             case warnWake:
-                //set end for endcal
-                setTimeout24Hours(TZHelper.getSecondsTo359am());
-                String warnEndCalMessage = "Remember to enter your \"ENDCAL\" tonight after your last calories. Thank you!";
+                //set end for wake
+                setTimeout24Hours(TZHelper.getSecondsTo1pm());
+                String warnWakeMessage = "Remember to let us know when you woke up today.";
                 if (!this.isRestoring){
-                    Launcher.msgUtils.sendMessage(participantMap.get("number"), warnEndCalMessage);
+                    Launcher.msgUtils.sendMessage(participantMap.get("number"), warnWakeMessage);
                 }
-                logger.warn(warnEndCalMessage);
+                logger.warn(warnWakeMessage);
                 //save state info
                 stateJSON = saveStateJSON();
                 Launcher.dbEngine.uploadSaveState(stateJSON, participantMap.get("participant_uuid"));
                 break;
             case wake:
-                int secondsEnd = TZHelper.getSecondsTo359am();
+                int secondsEnd = TZHelper.getSecondsTo1pm();
                 setTimeout24Hours(secondsEnd);
-                String endCalMessage = participantMap.get("participant_uuid") + " thanks for sending endcal: timeout24 timeout " + TZHelper.getDateFromAddingSeconds(secondsEnd);
-                logger.info(endCalMessage);
+                String wakeMessage = participantMap.get("participant_uuid") + " thanks for sending wake: timeout24 timeout " + TZHelper.getDateFromAddingSeconds(secondsEnd);
+                logger.info(wakeMessage);
 
-                // update endcal time in state_log
+                // update wake time in state_log
                 if (incomingMap == null) {
-                    unixTS = Launcher.dbEngine.getEndCalTime(participantMap.get("participant_uuid"));
+                    unixTS = Launcher.dbEngine.getWakeTime(participantMap.get("participant_uuid"));
                     if (unixTS == 0) {
                         unixTS = TZHelper.getUnixTimestampNow();
                     }
                 } else {
                     String textBody = incomingMap.get("Body").trim(); // removes whitespace before and after
-                    String[] endCalSplit = textBody.split(" ", 2);
-                    if (endCalSplit.length >= 2){
-                        unixTS = TZHelper.parseTime(endCalSplit[1]);
+                    String[] wakeSplit = textBody.split(" ", 2);
+                    if (wakeSplit.length >= 2){
+                        unixTS = TZHelper.parseTime(wakeSplit[1]);
                     } else {
                         unixTS = TZHelper.getUnixTimestampNow();
                     }
                 }
-                // save endcal time to state_log
-                Launcher.dbEngine.saveEndCalTime(participantMap.get("participant_uuid"), unixTS);
+                // save wake time to state_log
+                Launcher.dbEngine.saveWakeTime(participantMap.get("participant_uuid"), unixTS);
 
                 //save state info
                 stateJSON = saveStateJSON();
                 Launcher.dbEngine.uploadSaveState(stateJSON, participantMap.get("participant_uuid"));
                 break;
             case timeout24:
-                logger.warn(participantMap.get("participant_uuid") + " did not send startcal/endcal in time.");
+                logger.warn(participantMap.get("participant_uuid") + " did not send sleep/wake in time.");
                 Launcher.msgUtils.sendMessage(participantMap.get("number"), "We haven't heard from you in a " +
                         "while. Remember to text \"STARTCAL\" when your calories start in the morning and \"ENDCAL\" " +
                         "when your calories finish at night! Let us know if you need help.");
@@ -501,31 +485,31 @@ public class Sleep extends SleepBase {
                         case warnSleep:
                             this.isRestoring = true;
                             //resetting warn timer
-                            setTimeout24Hours(TZHelper.getSecondsTo359am());
+                            setTimeout24Hours(TZHelper.getSecondsTo1pm());
                             receivedWarnSleep(); // initial to warnStart
                             this.isRestoring = false;
                             break;
                         case sleep:
                             this.isRestoring = true;
-                            long unixTS = Launcher.dbEngine.getStartCalTime(participantMap.get("participant_uuid"));
+                            long unixTS = Launcher.dbEngine.getSleepTime(participantMap.get("participant_uuid"));
                             if (unixTS == 0) {
                                 unixTS = TZHelper.getUnixTimestampNow();
                             }
-                            Launcher.dbEngine.saveStartCalTime(participantMap.get("participant_uuid"), unixTS);
+                            Launcher.dbEngine.saveSleepTime(participantMap.get("participant_uuid"), unixTS);
                             receivedSleep();
                             this.isRestoring = false;
                             break;
                         case warnWake:
                             this.isRestoring = true;
                             //resetting warnEnd time
-                            setTimeout24Hours(TZHelper.getSecondsTo359am());
-                            recievedWarnWake(); // initial to warnEndCal
+                            setTimeout24Hours(TZHelper.getSecondsTo1pm());
+                            recievedWarnWake(); // initial to warnWake
                             this.isRestoring = false;
                             break;
                         case wake:
                             this.isRestoring = true;
                             // setting timeout24
-                            setTimeout24Hours(TZHelper.getSecondsTo359am());
+                            setTimeout24Hours(TZHelper.getSecondsTo1pm());
                             receivedSleep();
                             receivedWake();
                             this.isRestoring = false;
@@ -535,7 +519,7 @@ public class Sleep extends SleepBase {
                     }
                 } else {
                     logger.info("restoreSaveState: no save state found for " + participantMap.get("participant_uuid"));
-                    int timeout24 = TZHelper.getSecondsTo359am();
+                    int timeout24 = TZHelper.getSecondsTo1pm();
                     setTimeout24Hours(timeout24);
                     receivedWaitSleep(); // initial to waitStart
                 }

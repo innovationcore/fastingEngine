@@ -66,6 +66,9 @@ public class TimezoneHelper {
         LocalDateTime nowUserLocalTime = nowUserTimezone.toLocalDateTime();
         LocalDateTime userLocalTimeNoon = LocalDateTime.of(nowUserLocalTime.getYear(), nowUserLocalTime.getMonth(), nowUserLocalTime.getDayOfMonth(), 11, 59, 30);
         long secondsUntilNoon = Duration.between(nowUserLocalTime, userLocalTimeNoon).getSeconds();
+        if (secondsUntilNoon < 0) {
+            secondsUntilNoon += SEC_IN_DAY;
+        }
         return (int) secondsUntilNoon;
     }
 
@@ -527,6 +530,19 @@ public class TimezoneHelper {
             secondsUntil8pm += SEC_IN_DAY;
         }
         return (int) secondsUntil8pm;
+    }
+
+    public int getSecondsTo1pm() {
+        Instant nowUTC = Instant.now();
+        ZoneId userTZ = ZoneId.of(this.userTimezone);
+        ZonedDateTime nowUserTimezone = ZonedDateTime.ofInstant(nowUTC, userTZ);
+        LocalDateTime nowUserLocalTime = nowUserTimezone.toLocalDateTime();
+        LocalDateTime userLocalTime5pm = LocalDateTime.of(nowUserLocalTime.getYear(), nowUserLocalTime.getMonth(), nowUserLocalTime.getDayOfMonth(), 13, 0, 0);
+        long secondsUntil1pm = Duration.between(nowUserLocalTime, userLocalTime5pm).getSeconds();
+        if (secondsUntil1pm < 0) {
+            secondsUntil1pm += SEC_IN_DAY;
+        }
+        return (int) secondsUntil1pm;
     }
 
     public ZonedDateTime getZonedDateTime8am() {

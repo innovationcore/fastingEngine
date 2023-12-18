@@ -78,8 +78,12 @@ public class API {
                     } else if (enrollmentName.equals("Control")) {
                         Launcher.CCW_ControlWatcher.incomingText(participantId, formsMap);
                     }
+                } else if (participantStudy.equals("Sleep")) {
+                    if (enrollmentName.equals("Baseline")) {
+                        Launcher.sleepWatcher.incomingText(participantId, formsMap);
+                    }
                 } else {
-                    logger.error("Text from participant not enrolled in any HPM or CCW protocol");
+                    logger.error("Text from participant not enrolled in any HPM, CCW, or Sleep protocol");
                 }
 
                 Map<String,String> responce = new HashMap<>();
@@ -169,6 +173,10 @@ public class API {
                     } else if (protocol.equals("Baseline")) {
                         validNextStates = Launcher.CCW_BaselineWatcher.getValidNextStates(participantId);
                     }
+                } else if (study.equals("Sleep")){
+                    if (protocol.equals("Baseline")) {
+                        validNextStates = Launcher.sleepWatcher.getValidNextStates(participantId);
+                    }
                 }
 
                 Map<String,String> response = new HashMap<>();
@@ -230,6 +238,10 @@ public class API {
                     }
                     else if (protocol.equals("Baseline")) {
                         newState = Launcher.CCW_BaselineWatcher.moveToState(participantId, nextState, time);
+                    }
+                } else if (study.equals("Sleep")) {
+                    if (protocol.equals("Baseline")) {
+                        newState = Launcher.sleepWatcher.moveToState(participantId, nextState, time);
                     }
                 }
 
@@ -298,6 +310,10 @@ public class API {
                     } else {
                         logger.error("Cannot reset machine, participant not in an active protocol.");
                     }
+                } else if (study.equals("Sleep")) {
+                    if (enrollmentName.equals("Baseline")) {
+                        Launcher.sleepWatcher.resetStateMachine(participantId);
+                    }
                 }
 
                 Map<String,String> response = new HashMap<>();
@@ -352,16 +368,20 @@ public class API {
                         Launcher.HPM_WeeklyMessageWatcher.updateTimeZone(participantId, tz);
                     }
                 } else if (study.equals("CCW")) {
-//                    if (enrollmentName.equals("TRE")) {
-//                        Launcher.CCW_RestrictedWatcher.updateTimeZone(participantId, tz);
-//                        Launcher.CCW_DailyMessageWatcher.updateTimeZone(participantId, tz);
-//                    } else if (enrollmentName.equals("Baseline")) {
-//                        Launcher.CCW_BaselineWatcher.updateTimeZone(participantId, tz);
-//                        Launcher.CCW_WeeklyMessageWatcher.updateTimeZone(participantId, tz);
-//                    } else if (enrollmentName.equals("Control")) {
-//                        Launcher.CCW_ControlWatcher.updateTimeZone(participantId, tz);
-//                        Launcher.CCW_WeeklyMessageWatcher.updateTimeZone(participantId, tz);
-//                    }
+                    if (enrollmentName.equals("TRE")) {
+                        Launcher.CCW_RestrictedWatcher.updateTimeZone(participantId, tz);
+                        Launcher.CCW_DailyMessageWatcher.updateTimeZone(participantId, tz);
+                    } else if (enrollmentName.equals("Baseline")) {
+                        Launcher.CCW_BaselineWatcher.updateTimeZone(participantId, tz);
+                        Launcher.CCW_WeeklyMessageWatcher.updateTimeZone(participantId, tz);
+                    } else if (enrollmentName.equals("Control")) {
+                        Launcher.CCW_ControlWatcher.updateTimeZone(participantId, tz);
+                        Launcher.CCW_WeeklyMessageWatcher.updateTimeZone(participantId, tz);
+                    }
+                } else if (study.equals("Sleep")) {
+                    if (enrollmentName.equals("Baseline")) {
+                        Launcher.sleepWatcher.updateTimeZone(participantId, tz);
+                    }
                 }
 
                 Map<String,String> response = new HashMap<>();
@@ -406,6 +426,4 @@ public class API {
         }
         return map;
     }
-
-
 }
