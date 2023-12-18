@@ -534,9 +534,19 @@ public class TimezoneHelper {
         Instant nowUTC = Instant.now();
         ZoneId userTZ = ZoneId.of(this.userTimezone);
         ZonedDateTime nowUserTimezone = ZonedDateTime.ofInstant(nowUTC, userTZ);
-        ZonedDateTime userLocalTime8am;
-        userLocalTime8am = nowUserTimezone.with(LocalTime.of(8, 0));
-        return userLocalTime8am.withZoneSameInstant(ZoneOffset.UTC);
+
+        // Check if 8am has already passed for today
+        ZonedDateTime userLocalTime8am = nowUserTimezone.with(LocalTime.of(8, 0));
+        if (nowUserTimezone.isAfter(userLocalTime8am)) {
+            // If 8am has already passed, get the time until tomorrow at 8am
+            ZonedDateTime tomorrowUserTimezone = nowUserTimezone.plusDays(1).with(LocalTime.of(8, 0));
+            Duration timeUntilTomorrow8am = Duration.between(nowUserTimezone, tomorrowUserTimezone);
+            return nowUserTimezone.plus(timeUntilTomorrow8am).withZoneSameInstant(ZoneOffset.UTC);
+        } else {
+            // If 8am has not yet passed, return the time until 8am today
+            Duration timeUntil8am = Duration.between(nowUserTimezone, userLocalTime8am);
+            return nowUserTimezone.plus(timeUntil8am).withZoneSameInstant(ZoneOffset.UTC);
+        }
     }
 
     /**

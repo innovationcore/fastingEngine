@@ -81,6 +81,8 @@ public class Launcher {
 
             //testing
 //            TimezoneHelper TZHelper = new TimezoneHelper("America/Louisville","Etc/UTC");
+//            System.out.println(TZHelper.getZonedDateTime8am());
+//            System.exit(0);
 
             //start HPM protocols
             HPM_RestrictedWatcher = new HPM_RestrictedWatcher();
