@@ -63,8 +63,14 @@ class HPM_ControlBase
         stateNotify("warnEndCal");
       };
       receivedEndCal -> endcal;
-      after(timeout24Hours) -> waitStart;
+      after(timeout24Hours) -> missedEndCal;
       receivedEndProtocol -> endProtocol;
+    }
+
+    missedEndCal {
+    entry / {
+        stateNotify("missedEndCal");
+      } -> waitStart;
     }
 
     endcal {

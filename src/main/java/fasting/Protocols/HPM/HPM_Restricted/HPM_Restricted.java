@@ -606,8 +606,13 @@ public class HPM_Restricted extends HPM_RestrictedBase {
                     }
                     resetNoEndCal();
                 }
-                if (!this.pauseMessages && !this.isDayOff && this.numberOfCyclesInProtocol >= this.TRIAL_PERIOD){
-                    Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false, false);
+                if (!this.pauseMessages && !this.isDayOff){
+                    if(this.numberOfCyclesInProtocol >= this.TRIAL_PERIOD) {
+                        Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false, false);
+                        Launcher.msgUtils.sendScheduledMessage("+12704022214", "[HPM TRE] Participant " + participantMap.get("first_name") + " " + participantMap.get("last_name") + " ("+participantMap.get("number")+") missed their ENDCAL.", TZHelper.getZonedDateTime8am());
+                    } else {
+                        Launcher.msgUtils.sendScheduledMessage("+12704022214", "[HPM TRE] Participant " + participantMap.get("first_name") + " " + participantMap.get("last_name") + " ("+participantMap.get("number")+") missed their ENDCAL during the trial period (<7 days).", TZHelper.getZonedDateTime8am());
+                    }
                 }
                 //save state info
                 stateJSON = saveStateJSON();

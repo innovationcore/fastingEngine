@@ -5,14 +5,13 @@ package fasting.Protocols.CCW.CCW_Control;
 /*This code was generated using the UMPLE 1.32.1.6535.66c005ced modeling language!*/
 
 
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 
 /**
  * UML State diagram for CCW_Control, represented in Umple
  */
 // line 3 "model.ump"
-// line 106 "model.ump"
+// line 113 "model.ump"
 public class CCW_ControlBase
 {
 
@@ -26,14 +25,14 @@ public class CCW_ControlBase
   private int endWarnDeadline;
 
   //CCW_ControlBase State Machines
-  public enum State { initial, waitStart, warnStartCal, startcal, warnEndCal, endcal, timeout24, endProtocol }
+  public enum State { initial, waitStart, warnStartCal, startcal, warnEndCal, missedEndCal, endcal, timeout24, endProtocol }
   private State state;
 
   //Helper Variables
   private TimedEventHandler timeoutwaitStartTowarnStartCalHandler;
   private TimedEventHandler timeoutwarnStartCalTotimeout24Handler;
   private TimedEventHandler timeoutstartcalTowarnEndCalHandler;
-  private TimedEventHandler timeoutwarnEndCalTowaitStartHandler;
+  private TimedEventHandler timeoutwarnEndCalTomissedEndCalHandler;
   private TimedEventHandler timeoutendcalTowaitStartHandler;
 
   //------------------------
@@ -318,7 +317,7 @@ public class CCW_ControlBase
     return wasEventProcessed;
   }
 
-  public boolean timeoutwarnEndCalTowaitStart()
+  public boolean timeoutwarnEndCalTomissedEndCal()
   {
     boolean wasEventProcessed = false;
 
@@ -327,6 +326,24 @@ public class CCW_ControlBase
     {
       case warnEndCal:
         exitState();
+        setState(State.missedEndCal);
+        wasEventProcessed = true;
+        break;
+      default:
+        // Other states do respond to this event
+    }
+
+    return wasEventProcessed;
+  }
+
+  private boolean __autotransition498__()
+  {
+    boolean wasEventProcessed = false;
+
+    State aState = state;
+    switch (aState)
+    {
+      case missedEndCal:
         setState(State.waitStart);
         wasEventProcessed = true;
         break;
@@ -356,7 +373,7 @@ public class CCW_ControlBase
     return wasEventProcessed;
   }
 
-  private boolean __autotransition11905__()
+  private boolean __autotransition499__()
   {
     boolean wasEventProcessed = false;
 
@@ -388,7 +405,7 @@ public class CCW_ControlBase
         stopTimeoutstartcalTowarnEndCalHandler();
         break;
       case warnEndCal:
-        stopTimeoutwarnEndCalTowaitStartHandler();
+        stopTimeoutwarnEndCalTomissedEndCalHandler();
         break;
       case endcal:
         stopTimeoutendcalTowaitStartHandler();
@@ -430,24 +447,29 @@ public class CCW_ControlBase
       case warnEndCal:
         // line 63 "model.ump"
         stateNotify("warnEndCal");
-        startTimeoutwarnEndCalTowaitStartHandler();
+        startTimeoutwarnEndCalTomissedEndCalHandler();
+        break;
+      case missedEndCal:
+        // line 72 "model.ump"
+        stateNotify("missedEndCal");
+        __autotransition498__();
         break;
       case endcal:
-        // line 72 "model.ump"
+        // line 78 "model.ump"
         // receive additional endcal messages and update
         // end time
         stateNotify("endcal");
         startTimeoutendcalTowaitStartHandler();
         break;
       case timeout24:
-        // line 83 "model.ump"
+        // line 89 "model.ump"
         // sends a message if startcal or endcal are not
         // received for the day
         stateNotify("timeout24");
-        __autotransition11905__();
+        __autotransition499__();
         break;
       case endProtocol:
-        // line 93 "model.ump"
+        // line 99 "model.ump"
         stateNotify("endProtocol");
         break;
     }
@@ -483,14 +505,14 @@ public class CCW_ControlBase
     timeoutstartcalTowarnEndCalHandler.stop();
   }
 
-  private void startTimeoutwarnEndCalTowaitStartHandler()
+  private void startTimeoutwarnEndCalTomissedEndCalHandler()
   {
-    timeoutwarnEndCalTowaitStartHandler = new TimedEventHandler(this,"timeoutwarnEndCalTowaitStart",timeout24Hours);
+    timeoutwarnEndCalTomissedEndCalHandler = new TimedEventHandler(this,"timeoutwarnEndCalTomissedEndCal",timeout24Hours);
   }
 
-  private void stopTimeoutwarnEndCalTowaitStartHandler()
+  private void stopTimeoutwarnEndCalTomissedEndCalHandler()
   {
-    timeoutwarnEndCalTowaitStartHandler.stop();
+    timeoutwarnEndCalTomissedEndCalHandler.stop();
   }
 
   private void startTimeoutendcalTowaitStartHandler()
@@ -553,12 +575,12 @@ public class CCW_ControlBase
         }
         return;
       }
-      if ("timeoutwarnEndCalTowaitStart".equals(timeoutMethodName))
+      if ("timeoutwarnEndCalTomissedEndCal".equals(timeoutMethodName))
       {
-        boolean shouldRestart = !controller.timeoutwarnEndCalTowaitStart();
+        boolean shouldRestart = !controller.timeoutwarnEndCalTomissedEndCal();
         if (shouldRestart)
         {
-          controller.startTimeoutwarnEndCalTowaitStartHandler();
+          controller.startTimeoutwarnEndCalTomissedEndCalHandler();
         }
         return;
       }
@@ -577,12 +599,12 @@ public class CCW_ControlBase
   public void delete()
   {}
 
-  // line 100 "model.ump"
+  // line 106 "model.ump"
   public boolean stateNotify(String node){
     return true;
   }
 
-  // line 101 "model.ump"
+  // line 107 "model.ump"
   public int currentTime(){
     return 1;
   }
