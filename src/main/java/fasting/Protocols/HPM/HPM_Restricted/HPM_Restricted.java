@@ -602,16 +602,16 @@ public class HPM_Restricted extends HPM_RestrictedBase {
                 if (getDaysWithoutEndCal() >= 2){
                     String missed2EndCals = "We haven't heard from you in a while. Text our study team at 270-402-2214 if you're struggling to stick with the time-restricted eating.";
                     if (!this.pauseMessages && !this.isDayOff){
-                        Launcher.msgUtils.sendScheduledMessage(participantMap.get("number"), missed2EndCals, TZHelper.getZonedDateTime8am());
+                        Launcher.msgUtils.sendScheduledMessage(participantMap.get("number"), missed2EndCals, TZHelper.getZonedDateTime8am(false));
                     }
                     resetNoEndCal();
                 }
                 if (!this.pauseMessages && !this.isDayOff){
                     if(this.numberOfCyclesInProtocol >= this.TRIAL_PERIOD) {
                         Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false, false);
-                        Launcher.msgUtils.sendScheduledMessage("+12704022214", "[HPM TRE] Participant " + participantMap.get("first_name") + " " + participantMap.get("last_name") + " ("+participantMap.get("number")+") missed their ENDCAL.", TZHelper.getZonedDateTime8am());
+                        Launcher.msgUtils.sendScheduledMessage("+12704022214", "[HPM TRE] Participant " + participantMap.get("first_name") + " " + participantMap.get("last_name") + " ("+participantMap.get("number")+") missed their ENDCAL.", TZHelper.getZonedDateTime8am(true));
                     } else {
-                        Launcher.msgUtils.sendScheduledMessage("+12704022214", "[HPM TRE] Participant " + participantMap.get("first_name") + " " + participantMap.get("last_name") + " ("+participantMap.get("number")+") missed their ENDCAL during the trial period (<7 days).", TZHelper.getZonedDateTime8am());
+                        Launcher.msgUtils.sendScheduledMessage("+12704022214", "[HPM TRE] Participant " + participantMap.get("first_name") + " " + participantMap.get("last_name") + " ("+participantMap.get("number")+") missed their ENDCAL during the trial period (<7 days).", TZHelper.getZonedDateTime8am(true));
                     }
                 }
                 //save state info

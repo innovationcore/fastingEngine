@@ -529,10 +529,16 @@ public class TimezoneHelper {
         return (int) secondsUntil8pm;
     }
 
-    public ZonedDateTime getZonedDateTime8am() {
+    public ZonedDateTime getZonedDateTime8am(Boolean isMatt) {
         // Get the current time in the user's timezone
         Instant nowUTC = Instant.now();
-        ZoneId userTZ = ZoneId.of(this.userTimezone);
+        ZoneId userTZ;
+        if (isMatt) {
+            userTZ = ZoneId.of("America/Louisville");
+        } else {
+            userTZ = ZoneId.of(this.userTimezone);
+        }
+
         ZonedDateTime nowUserTimezone = ZonedDateTime.ofInstant(nowUTC, userTZ);
 
         // Check if 8am has already passed for today
