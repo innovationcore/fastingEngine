@@ -50,6 +50,8 @@ public class Launcher {
     public static CCW_DailyMessageWatcher CCW_DailyMessageWatcher;
     public static Testing testing;
     public static TimezoneHelper TZHelper;
+    public static String adminPhoneNumber;
+    public static String adminTimeZone;
 
     public static void main(String[] argv) {
 
@@ -65,6 +67,8 @@ public class Launcher {
             Map<String, Object> fileConfigMap;
             fileConfigMap = initConfigMap(configPath);
             config = new Config(fileConfigMap);
+            adminPhoneNumber = config.getStringParam("admin_phone_number");
+            adminTimeZone = config.getStringParam("admin_time_zone");
             testing = new Testing();
 
             //init db engine
@@ -75,6 +79,10 @@ public class Launcher {
 
             //Embedded HTTP initialization
             startServer();
+
+            // add a study admin to receive texts (in config file)
+            dbEngine.addStudyAdmin();
+
 
             // start watching the queued messages database
             new MessageSchedulerExecutor().startWatcher();

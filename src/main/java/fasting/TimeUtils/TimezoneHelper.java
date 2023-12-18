@@ -1,5 +1,6 @@
 package fasting.TimeUtils;
 
+import fasting.Launcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -529,12 +530,12 @@ public class TimezoneHelper {
         return (int) secondsUntil8pm;
     }
 
-    public ZonedDateTime getZonedDateTime8am(Boolean isMatt) {
+    public ZonedDateTime getZonedDateTime8am(Boolean toAdmin) {
         // Get the current time in the user's timezone
         Instant nowUTC = Instant.now();
         ZoneId userTZ;
-        if (isMatt) {
-            userTZ = ZoneId.of("America/Louisville");
+        if (toAdmin) {
+            userTZ = ZoneId.of(Launcher.adminTimeZone);
         } else {
             userTZ = ZoneId.of(this.userTimezone);
         }

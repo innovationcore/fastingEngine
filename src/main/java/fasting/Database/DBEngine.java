@@ -22,7 +22,7 @@ public class DBEngine {
             gson = new Gson();
             //Driver needs to be identified in order to load the namespace in the JVM
             String dbDriver = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
-            Class.forName(dbDriver).newInstance();
+            Class.forName(dbDriver).getDeclaredConstructor().newInstance();
 
             String dbConnectionString = "jdbc:sqlserver://" + Launcher.config.getStringParam("db_host") +":"+ 1433 + ";databaseName=" + Launcher.config.getStringParam("db_name") + ";encrypt=false";
             ds = setupDataSource(dbConnectionString, Launcher.config.getStringParam("db_user"), Launcher.config.getStringParam("db_password"));
@@ -1165,7 +1165,11 @@ public class DBEngine {
                 String toNumber = rs.getString("toNumber");
                 String messageJson = rs.getString("body");
                 String messageId = rs.getString("message_uuid");
-                Launcher.msgUtils.sendMessage(toNumber, messageJson);
+                if (toNumber.equals(Launcher.adminPhoneNumber)) {
+                    Launcher.msgUtils.sendMessage(toNumber, messageJson, true);
+                } else {
+                    Launcher.msgUtils.sendMessage(toNumber, messageJson, false);
+                }
                 removeFromQueuedMessage(messageId);
             }
 
@@ -1197,5 +1201,68 @@ public class DBEngine {
             try { stmt.close(); } catch (Exception e) { /* Null Ignored */ }
             try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
         }
+    }
+
+    /**
+     * Adds a study admin as a "participant" that cannot be added to a protocol
+     */
+    public void addStudyAdmin() {
+        Boolean isAdded = checkIfAdminAdded();
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        try {
+            if (isAdded){
+                // if already added update phone number and timezone
+                String query = "UPDATE participants SET participant_json = ? WHERE participant_uuid = '00000000-0000-0000-0000-000000000000'";
+                conn = ds.getConnection();
+                stmt = conn.prepareStatement(query);
+                String formattedTZ = Launcher.adminTimeZone.replace("/", "\\/");
+                stmt.setString(1, "{\"first_name\":\"Study\",\"last_name\":\"Admin\",\"number\":\"" + Launcher.adminPhoneNumber + "\",\"time_zone\":\"" + formattedTZ + "\"}");
+                stmt.executeUpdate();
+            } else {
+                // if not added, add a study admin
+                String query = "INSERT INTO participants (participant_uuid, study, participant_json) VALUES (?, ?, ?)";
+                conn = ds.getConnection();
+                stmt = conn.prepareStatement(query);
+                stmt.setString(1, "00000000-0000-0000-0000-000000000000");
+                stmt.setString(2, "ADMIN");
+                String formattedTZ = Launcher.adminTimeZone.replace("/", "\\/");
+                stmt.setString(3, "{\"first_name\":\"Study\",\"last_name\":\"Admin\",\"number\":\"" + Launcher.adminPhoneNumber + "\",\"time_zone\":\"" + formattedTZ + "\"}");
+                stmt.executeUpdate();
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        } finally {
+            try { stmt.close(); } catch (Exception e) { /* Null Ignored */ }
+            try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
+        }
+    }
+
+    public Boolean checkIfAdminAdded() {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        Boolean isAdded = false;
+
+        try {
+            String query = "SELECT COUNT(participant_uuid) AS numAdmins FROM participants WHERE study = 'ADMIN'";
+            conn = ds.getConnection();
+            stmt = conn.prepareStatement(query);
+            rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                if (rs.getInt("numAdmins") > 0) {
+                    isAdded = true;
+                }
+            }
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        } finally {
+            try { rs.close(); }   catch (Exception e) { /* Null Ignored */ }
+            try { stmt.close(); } catch (Exception e) { /* Null Ignored */ }
+            try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
+        }
+        return isAdded;
     }
 }

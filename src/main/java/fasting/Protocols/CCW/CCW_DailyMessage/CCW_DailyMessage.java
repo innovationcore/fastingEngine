@@ -78,7 +78,7 @@ public class CCW_DailyMessage extends CCW_DailyMessageBase {
             case sendDailyMessage:
                 String dailyMessage = getRandomDailyMessage();
                 logger.info(dailyMessage);
-                Launcher.msgUtils.sendMessage(participantMap.get("number"), dailyMessage);
+                Launcher.msgUtils.sendMessage(participantMap.get("number"), dailyMessage, false);
                 // wait 5 seconds, so multiple messages don't get sent at the same time
                 try { Thread.sleep(5000); } catch (InterruptedException e) { /* do nothing */ }
                 break;
