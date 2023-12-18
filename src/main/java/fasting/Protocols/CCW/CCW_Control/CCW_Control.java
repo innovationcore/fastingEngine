@@ -437,12 +437,12 @@ public class CCW_Control extends CCW_ControlBase {
                 break;
             case timeout24:
                 logger.warn(participantMap.get("participant_uuid") + " did not send startcal/endcal in time.");
-                Launcher.msgUtils.sendMessage(participantMap.get("number"), "We haven't heard from you in a " +
-                        "while. Remember to text \"STARTCAL\" when your calories start in the morning and \"ENDCAL\" " +
-                        "when your calories finish at night! Let us know if you need help.");
+                String message = "We haven't heard from you in a while. Remember to text \"STARTCAL\" when your " +
+                        "calories start in the morning and \"ENDCAL\" when your calories finish at night! Let us " +
+                        "know if you need help.";
+                Launcher.msgUtils.sendScheduledMessage(participantMap.get("number"), message, TZHelper.getZonedDateTime8am());
                 break;
             case endProtocol:
-                //Launcher.dbEngine.addProtocolNameToLog("Control", participantMap.get("participant_uuid"));
                 logger.warn(participantMap.get("participant_uuid") + " is not longer in protocol.");
                 break;
             default:
