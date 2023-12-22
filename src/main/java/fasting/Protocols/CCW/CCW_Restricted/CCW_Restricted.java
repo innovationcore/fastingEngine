@@ -485,9 +485,12 @@ public class CCW_Restricted extends CCW_RestrictedBase {
                     resetNoEndCal();
                 }
                 if (!this.pauseMessages && !this.isDayOff) {
-                    Launcher.msgUtils.sendMessage(participantMap.get("number"), missedStartCalMessage, false);
+                    Launcher.msgUtils.sendScheduledMessage(participantMap.get("number"), missedStartCalMessage, TZHelper.getZonedDateTime8am(false),false);
                     if (this.numberOfCyclesInProtocol >= this.TRIAL_PERIOD) {
                         Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false, false);
+                        Launcher.msgUtils.sendScheduledMessage(participantMap.get("number"), "[CCW TRE] Participant " + participantMap.get("first_name") + " " + participantMap.get("last_name") + " ("+participantMap.get("number")+") missed their STARTCAL.", TZHelper.getZonedDateTime8am(true), true);
+                    } else {
+                        Launcher.msgUtils.sendScheduledMessage(participantMap.get("number"), "[CCW TRE] Participant " + participantMap.get("first_name") + " " + participantMap.get("last_name") + " ("+participantMap.get("number")+") missed their STARTCAL during the trial period (<7 days).", TZHelper.getZonedDateTime8am(true), true);
                     }
                 }
                 logger.warn(missedStartCalMessage);

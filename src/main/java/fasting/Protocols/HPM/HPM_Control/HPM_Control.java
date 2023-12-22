@@ -446,6 +446,7 @@ public class HPM_Control extends HPM_ControlBase {
                             "calories start in the morning and \"ENDCAL\" when your calories finish at night! Let us " +
                             "know if you need help.";
                     Launcher.msgUtils.sendScheduledMessage(participantMap.get("number"), message, TZHelper.getZonedDateTime8am(false), false);
+                    Launcher.msgUtils.sendScheduledMessage(participantMap.get("number"), "[HPM Control] Participant " + participantMap.get("first_name") + " " + participantMap.get("last_name") + " ("+participantMap.get("number")+") did not send STARTCAL or ENDCAL yesterday.", TZHelper.getZonedDateTime8am(true), true);
                 }
                 break;
             case endProtocol:
