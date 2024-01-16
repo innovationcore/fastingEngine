@@ -2,7 +2,7 @@ package fasting.Protocols.Sleep;
 //%% NEW FILE SleepBase BEGINS HERE %%
 
 /*PLEASE DO NOT EDIT THIS CODE*/
-/*This code was generated using the UMPLE 1.32.1.6535.66c005ced modeling language!*/
+/*This code was generated using the UMPLE 1.33.0.6934.a386b0a58 modeling language!*/
 
 
 import java.util.*;
@@ -11,7 +11,7 @@ import java.util.*;
  * UML State diagram for Sleeping messages, represented in Umple
  */
 // line 3 "model.ump"
-// line 106 "model.ump"
+// line 113 "model.ump"
 public class SleepBase
 {
 
@@ -25,14 +25,14 @@ public class SleepBase
     private int wakeWarnDeadline;
 
     //SleepBase State Machines
-    public enum State { initial, waitSleep, warnSleep, sleep, warnWake, wake, timeout24, endProtocol }
+    public enum State { initial, waitSleep, warnSleep, sleep, warnWake, wake, missedWake, timeout24, endProtocol }
     private State state;
 
     //Helper Variables
     private TimedEventHandler timeoutwaitSleepTowarnSleepHandler;
     private TimedEventHandler timeoutwarnSleepTotimeout24Handler;
     private TimedEventHandler timeoutsleepTowarnWakeHandler;
-    private TimedEventHandler timeoutwarnWakeTowaitSleepHandler;
+    private TimedEventHandler timeoutwarnWakeTomissedWakeHandler;
     private TimedEventHandler timeoutwakeTowaitSleepHandler;
 
     //------------------------
@@ -317,7 +317,7 @@ public class SleepBase
         return wasEventProcessed;
     }
 
-    public boolean timeoutwarnWakeTowaitSleep()
+    public boolean timeoutwarnWakeTomissedWake()
     {
         boolean wasEventProcessed = false;
 
@@ -326,7 +326,7 @@ public class SleepBase
         {
             case warnWake:
                 exitState();
-                setState(State.waitSleep);
+                setState(State.missedWake);
                 wasEventProcessed = true;
                 break;
             default:
@@ -355,7 +355,25 @@ public class SleepBase
         return wasEventProcessed;
     }
 
-    private boolean __autotransition243__()
+    private boolean __autotransition188__()
+    {
+        boolean wasEventProcessed = false;
+
+        State aState = state;
+        switch (aState)
+        {
+            case missedWake:
+                setState(State.waitSleep);
+                wasEventProcessed = true;
+                break;
+            default:
+                // Other states do respond to this event
+        }
+
+        return wasEventProcessed;
+    }
+
+    private boolean __autotransition189__()
     {
         boolean wasEventProcessed = false;
 
@@ -387,7 +405,7 @@ public class SleepBase
                 stopTimeoutsleepTowarnWakeHandler();
                 break;
             case warnWake:
-                stopTimeoutwarnWakeTowaitSleepHandler();
+                stopTimeoutwarnWakeTomissedWakeHandler();
                 break;
             case wake:
                 stopTimeoutwakeTowaitSleepHandler();
@@ -429,7 +447,7 @@ public class SleepBase
             case warnWake:
                 // line 63 "model.ump"
                 stateNotify("warnWake");
-                startTimeoutwarnWakeTowaitSleepHandler();
+                startTimeoutwarnWakeTomissedWakeHandler();
                 break;
             case wake:
                 // line 72 "model.ump"
@@ -438,15 +456,20 @@ public class SleepBase
                 stateNotify("wake");
                 startTimeoutwakeTowaitSleepHandler();
                 break;
-            case timeout24:
+            case missedWake:
                 // line 83 "model.ump"
+                stateNotify("missedWake");
+                __autotransition188__();
+                break;
+            case timeout24:
+                // line 89 "model.ump"
                 // sends a message if sleep or wake are not
                 // received for the day
                 stateNotify("timeout24");
-                __autotransition243__();
+                __autotransition189__();
                 break;
             case endProtocol:
-                // line 93 "model.ump"
+                // line 99 "model.ump"
                 stateNotify("endProtocol");
                 break;
         }
@@ -482,14 +505,14 @@ public class SleepBase
         timeoutsleepTowarnWakeHandler.stop();
     }
 
-    private void startTimeoutwarnWakeTowaitSleepHandler()
+    private void startTimeoutwarnWakeTomissedWakeHandler()
     {
-        timeoutwarnWakeTowaitSleepHandler = new TimedEventHandler(this,"timeoutwarnWakeTowaitSleep",timeout24Hours);
+        timeoutwarnWakeTomissedWakeHandler = new TimedEventHandler(this,"timeoutwarnWakeTomissedWake",timeout24Hours);
     }
 
-    private void stopTimeoutwarnWakeTowaitSleepHandler()
+    private void stopTimeoutwarnWakeTomissedWakeHandler()
     {
-        timeoutwarnWakeTowaitSleepHandler.stop();
+        timeoutwarnWakeTomissedWakeHandler.stop();
     }
 
     private void startTimeoutwakeTowaitSleepHandler()
@@ -552,12 +575,12 @@ public class SleepBase
                 }
                 return;
             }
-            if ("timeoutwarnWakeTowaitSleep".equals(timeoutMethodName))
+            if ("timeoutwarnWakeTomissedWake".equals(timeoutMethodName))
             {
-                boolean shouldRestart = !controller.timeoutwarnWakeTowaitSleep();
+                boolean shouldRestart = !controller.timeoutwarnWakeTomissedWake();
                 if (shouldRestart)
                 {
-                    controller.startTimeoutwarnWakeTowaitSleepHandler();
+                    controller.startTimeoutwarnWakeTomissedWakeHandler();
                 }
                 return;
             }
@@ -576,12 +599,12 @@ public class SleepBase
     public void delete()
     {}
 
-    // line 100 "model.ump"
+    // line 106 "model.ump"
     public boolean stateNotify(String node){
         return true;
     }
 
-    // line 101 "model.ump"
+    // line 107 "model.ump"
     public int currentTime(){
         return 1;
     }

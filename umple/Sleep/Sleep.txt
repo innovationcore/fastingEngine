@@ -63,7 +63,7 @@ class SleepBase
         stateNotify("warnWake");
       };
       receivedWake -> wake;
-      after(timeout24Hours) -> waitSleep;
+      after(timeout24Hours) -> missedWake;
       receivedEndProtocol -> endProtocol;
     }
 
@@ -76,6 +76,12 @@ class SleepBase
         receivedWake -> wake;
         after(timeout24Hours) -> waitSleep;
         receivedEndProtocol -> endProtocol;
+    }
+
+    missedWake {
+    	entry / {
+          stateNotify("missedWake");
+        } -> waitSleep;
     }
 
     timeout24 {

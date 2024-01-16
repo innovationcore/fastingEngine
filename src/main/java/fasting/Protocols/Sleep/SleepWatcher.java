@@ -77,11 +77,12 @@ public class SleepWatcher {
                     validNextStates = "sleep,wake,warnWake,endProtocol";
                     break;
                 case "warnWake":
-                    validNextStates = "waitSleep,wake,endProtocol";
+                    validNextStates = "missedWake,wake,endProtocol";
                     break;
                 case "wake":
                     validNextStates = "wake,waitSleep,endProtocol";
                     break;
+                case "missedWake":
                 case "timeout24":
                     validNextStates = "waitSleep";
                     break;
@@ -235,8 +236,8 @@ public class SleepWatcher {
                     break;
                 // waitSleep,wake,endProtocol
                 case warnWake:
-                    if (moveToState.equals("waitSleep")){
-                        participant.timeoutwarnWakeTowaitSleep();
+                    if (moveToState.equals("missedWake")){
+                        participant.timeoutwarnWakeTomissedWake();
                         newState = "waitSleep";
                     } else if (moveToState.equals("wake")){
                         participant.receivedWake();
@@ -269,6 +270,13 @@ public class SleepWatcher {
                         break;
                     }
                     break;
+                case missedWake:
+                    if (moveToState.equals("waitSleep")) {
+                        newState = "waitSleep";
+                    } else {
+                        newState = "missedWake invalid";
+                        break;
+                    }
                 case timeout24:
                     if (moveToState.equals("waitSleep")) {
                         newState = "waitSleep";
