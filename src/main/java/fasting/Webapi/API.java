@@ -151,7 +151,6 @@ public class API {
     public Response getNextStates(@PathParam("participant_uuid") String participantId) {
         String responseString;
         try {
-
             if (!participantId.equals("")) {
                 // this returns a comma delimited list as a string
                 String validNextStates = "";

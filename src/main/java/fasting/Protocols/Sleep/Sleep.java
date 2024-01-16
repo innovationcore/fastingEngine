@@ -324,11 +324,11 @@ public class Sleep extends SleepBase {
                 //no timers
                 break;
             case waitSleep:
-                int seconds = TZHelper.getSecondsTo1159am();
+                int seconds = TZHelper.getSecondsTo2059pm();
                 if (seconds <= 0) {
                     seconds = 300;
                 }
-                setSleepWarnDeadline(seconds);
+                setSleepWarnDeadline(seconds); // setting sleep warning message for 9pm
                 String waitStartMessage = participantMap.get("participant_uuid") + " created state machine: warnSleep timeout " + TZHelper.getDateFromAddingSeconds(seconds);
                 logger.warn(waitStartMessage);
                 //save state info
@@ -461,7 +461,7 @@ public class Sleep extends SleepBase {
                     // if next day (>=4am) need to reset to waitStart
 
                     // if past 4am, reset everything to beginning
-                    boolean isSameDay = TZHelper.isSameDay(saveCurrentTime);
+                    boolean isSameDay = TZHelper.isSameDaySleep(saveCurrentTime); // TODO Change this function to be whatever the end of cycle time is
                     if (!isSameDay) {
                         // if state is endProtocol, do not restart cycle
                         if (!stateName.equals("endProtocol")) {
@@ -478,7 +478,7 @@ public class Sleep extends SleepBase {
                         case waitSleep:
                             this.isRestoring = true;
                             //resetting warn timer
-                            setSleepWarnDeadline(TZHelper.getSecondsTo1159am());
+                            setSleepWarnDeadline(TZHelper.getSecondsTo2059pm());
                             receivedWaitSleep(); // initial to waitStart
                             this.isRestoring = false;
                             break;
@@ -497,6 +497,7 @@ public class Sleep extends SleepBase {
                             }
                             Launcher.dbEngine.saveSleepTime(participantMap.get("participant_uuid"), unixTS);
                             receivedSleep();
+                            setWakeWarnDeadline(TZHelper.getSecondsTo1159am()); //get the seconds until noon
                             this.isRestoring = false;
                             break;
                         case warnWake:
@@ -519,8 +520,7 @@ public class Sleep extends SleepBase {
                     }
                 } else {
                     logger.info("restoreSaveState: no save state found for " + participantMap.get("participant_uuid"));
-                    int timeout24 = TZHelper.getSecondsTo1pm();
-                    setTimeout24Hours(timeout24);
+                    setTimeout24Hours(TZHelper.getSecondsTo1pm());
                     receivedWaitSleep(); // initial to waitStart
                 }
             }
@@ -536,7 +536,7 @@ public class Sleep extends SleepBase {
         if(gson != null) {
             Map<String,String> messageMap = new HashMap<>();
             messageMap.put("state",state);
-            messageMap.put("protocol", "Sleep");
+            messageMap.put("protocol", "Baseline");
             if (this.isRestoring) {
                 messageMap.put("restored", "true");
             }

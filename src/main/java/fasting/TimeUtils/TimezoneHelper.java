@@ -237,6 +237,31 @@ public class TimezoneHelper {
     }
 
     /**
+     * checks to see if the current time is the same day as the provided lastKnownTime
+     * @param lastKnownTime
+     * @return
+     */
+    public boolean isSameDaySleep(long lastKnownTime){
+        // check if lastKnownTime is on the same day as now and before the next day at 4am
+
+        Instant lastKnownUTC = Instant.ofEpochMilli(lastKnownTime*1000L);
+        ZoneId lastKnownTZ = ZoneId.of(this.userTimezone);
+        ZonedDateTime lastKnownTimezone = ZonedDateTime.ofInstant(lastKnownUTC, lastKnownTZ);
+        LocalDateTime lastKnownLocalTime = lastKnownTimezone.toLocalDateTime();
+
+        Instant nowUTC = Instant.now();
+        ZoneId userTZ = ZoneId.of(this.userTimezone);
+        ZonedDateTime nowUserTimezone = ZonedDateTime.ofInstant(nowUTC, userTZ);
+        LocalDateTime nowUserLocalTime = nowUserTimezone.toLocalDateTime();
+
+        LocalDateTime currentTime1pm = LocalDateTime.of(nowUserLocalTime.getYear(), nowUserLocalTime.getMonth(), nowUserLocalTime.getDayOfMonth(), 13, 5, 0);
+        currentTime1pm = currentTime1pm.plusDays(1);
+        long secondsUntil1pm = Duration.between(lastKnownLocalTime, currentTime1pm).getSeconds();
+
+        return secondsUntil1pm <= 86400;
+    }
+
+    /**
      * Parses the times sent in by participants
      * @param time
      * @return unix timestamp of the parsed time, -1L if some error occurs

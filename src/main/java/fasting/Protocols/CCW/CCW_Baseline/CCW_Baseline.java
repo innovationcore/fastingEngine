@@ -514,6 +514,7 @@ public class CCW_Baseline extends CCW_BaselineBase {
                             }
                             Launcher.dbEngine.saveStartCalTime(participantMap.get("participant_uuid"), unixTS);
                             receivedStartCal();
+                            setEndWarnDeadline(TZHelper.getSecondsTo2059pm());
                             this.isRestoring = false;
                             break;
                         case warnEndCal:

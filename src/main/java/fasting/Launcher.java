@@ -16,7 +16,6 @@ import fasting.Protocols.HPM.HPM_DailyMessage.HPM_DailyMessageWatcher;
 import fasting.Protocols.HPM.HPM_Restricted.HPM_RestrictedWatcher;
 import fasting.Protocols.HPM.HPM_WeeklyMessage.HPM_WeeklyMessageWatcher;
 import fasting.Protocols.Sleep.SleepWatcher;
-import fasting.Protocols.Testing;
 import fasting.TimeUtils.TimezoneHelper;
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
@@ -39,7 +38,6 @@ public class Launcher {
     public static Config config;
     public static DBEngine dbEngine;
     public static MsgUtils msgUtils;
-    public static MessageSchedulerExecutor queuedMessageWatcher;
     public static HPM_RestrictedWatcher HPM_RestrictedWatcher;
     public static HPM_ControlWatcher HPM_ControlWatcher;
     public static HPM_BaselineWatcher HPM_BaselineWatcher;
@@ -51,7 +49,6 @@ public class Launcher {
     public static CCW_WeeklyMessageWatcher CCW_WeeklyMessageWatcher;
     public static CCW_DailyMessageWatcher CCW_DailyMessageWatcher;
     public static SleepWatcher sleepWatcher;
-    public static Testing testing;
     public static TimezoneHelper TZHelper;
 
     public static void main(String[] argv) {
@@ -68,7 +65,6 @@ public class Launcher {
             Map<String, Object> fileConfigMap;
             fileConfigMap = initConfigMap(configPath);
             config = new Config(fileConfigMap);
-            testing = new Testing();
 
             //init db engine
             dbEngine = new DBEngine();
@@ -83,7 +79,7 @@ public class Launcher {
             new MessageSchedulerExecutor().startWatcher();
 
             //testing
-//            TimezoneHelper TZHelper = new TimezoneHelper("Europe/London","Etc/UTC");
+//            TimezoneHelper TZHelper = new TimezoneHelper("America/Louisville","Etc/UTC");
 //            System.out.println(TZHelper.getSecondsTo1pm());
 //            System.exit(0);
 
@@ -102,7 +98,7 @@ public class Launcher {
             CCW_DailyMessageWatcher = new CCW_DailyMessageWatcher(); // only for TRE
 
             //start sleep protocol
-            // sleepWatcher = new SleepWatcher(); // TODO Go through times for this
+            sleepWatcher = new SleepWatcher();
 
         } catch (Exception ex) {
             ex.printStackTrace();
