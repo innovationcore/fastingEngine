@@ -522,6 +522,7 @@ public class HPM_Baseline extends HPM_BaselineBase {
                             }
                             Launcher.dbEngine.saveStartCalTime(participantMap.get("participant_uuid"), unixTS);
                             receivedStartCal();
+                            setEndWarnDeadline(TZHelper.getSecondsTo2059pm());
                             this.isRestoring = false;
                             break;
                         case warnEndCal:

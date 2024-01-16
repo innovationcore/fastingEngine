@@ -528,6 +528,7 @@ public class CCW_Control extends CCW_ControlBase {
                             }
                             Launcher.dbEngine.saveStartCalTime(participantMap.get("participant_uuid"), unixTS);
                             receivedStartCal();
+                            setEndWarnDeadline(TZHelper.getSecondsTo2059pm());
                             this.isRestoring = false;
                             break;
                         case warnEndCal:

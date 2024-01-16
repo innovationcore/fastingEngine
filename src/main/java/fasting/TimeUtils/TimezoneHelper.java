@@ -67,6 +67,9 @@ public class TimezoneHelper {
         LocalDateTime nowUserLocalTime = nowUserTimezone.toLocalDateTime();
         LocalDateTime userLocalTimeNoon = LocalDateTime.of(nowUserLocalTime.getYear(), nowUserLocalTime.getMonth(), nowUserLocalTime.getDayOfMonth(), 11, 59, 30);
         long secondsUntilNoon = Duration.between(nowUserLocalTime, userLocalTimeNoon).getSeconds();
+        if (secondsUntilNoon < 0) {
+            secondsUntilNoon += SEC_IN_DAY;
+        }
         return (int) secondsUntilNoon;
     }
 
@@ -232,6 +235,31 @@ public class TimezoneHelper {
         long secondsUntil4am = Duration.between(lastKnownLocalTime, currentTime4am).getSeconds();
 
         return secondsUntil4am <= 86400;
+    }
+
+    /**
+     * checks to see if the current time is the same day as the provided lastKnownTime
+     * @param lastKnownTime
+     * @return
+     */
+    public boolean isSameDaySleep(long lastKnownTime){
+        // check if lastKnownTime is on the same day as now and before the next day at 4am
+
+        Instant lastKnownUTC = Instant.ofEpochMilli(lastKnownTime*1000L);
+        ZoneId lastKnownTZ = ZoneId.of(this.userTimezone);
+        ZonedDateTime lastKnownTimezone = ZonedDateTime.ofInstant(lastKnownUTC, lastKnownTZ);
+        LocalDateTime lastKnownLocalTime = lastKnownTimezone.toLocalDateTime();
+
+        Instant nowUTC = Instant.now();
+        ZoneId userTZ = ZoneId.of(this.userTimezone);
+        ZonedDateTime nowUserTimezone = ZonedDateTime.ofInstant(nowUTC, userTZ);
+        LocalDateTime nowUserLocalTime = nowUserTimezone.toLocalDateTime();
+
+        LocalDateTime currentTime1pm = LocalDateTime.of(nowUserLocalTime.getYear(), nowUserLocalTime.getMonth(), nowUserLocalTime.getDayOfMonth(), 13, 5, 0);
+        currentTime1pm = currentTime1pm.plusDays(1);
+        long secondsUntil1pm = Duration.between(lastKnownLocalTime, currentTime1pm).getSeconds();
+
+        return secondsUntil1pm <= 86400;
     }
 
     /**
@@ -529,6 +557,21 @@ public class TimezoneHelper {
         }
         return (int) secondsUntil8pm;
     }
+
+
+    public int getSecondsTo1pm() {
+        Instant nowUTC = Instant.now();
+        ZoneId userTZ = ZoneId.of(this.userTimezone);
+        ZonedDateTime nowUserTimezone = ZonedDateTime.ofInstant(nowUTC, userTZ);
+        LocalDateTime nowUserLocalTime = nowUserTimezone.toLocalDateTime();
+        LocalDateTime userLocalTime5pm = LocalDateTime.of(nowUserLocalTime.getYear(), nowUserLocalTime.getMonth(), nowUserLocalTime.getDayOfMonth(), 13, 0, 0);
+        long secondsUntil1pm = Duration.between(nowUserLocalTime, userLocalTime5pm).getSeconds();
+        if (secondsUntil1pm < 0) {
+            secondsUntil1pm += SEC_IN_DAY;
+        }
+        return (int) secondsUntil1pm;
+    }
+
 
     public ZonedDateTime getZonedDateTime8am(Boolean toAdmin) {
         // Get the current time in the user's timezone

@@ -506,6 +506,27 @@ public class DBEngine {
         }
     }
 
+    public void saveSleepTime(String participantUUID, long unixTS) {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+
+        try {
+
+            String query = "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.sleep_time', ?) WHERE TS IN (SELECT TOP 1 TS FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'sleep' ORDER BY TS DESC)";
+
+            conn = ds.getConnection();
+            stmt = conn.prepareStatement(query);
+            stmt.setString(1, Long.toString(unixTS));
+            stmt.setString(2, participantUUID);
+            stmt.executeUpdate();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        } finally {
+            try { stmt.close(); } catch (Exception e) { /* Null Ignored */ }
+            try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
+        }
+    }
+
     public long getStartCalTime(String participantUUID) {
         Connection conn = null;
         PreparedStatement stmt = null;
@@ -516,6 +537,38 @@ public class DBEngine {
         try {
             // changing this from TOP 1 bc a new log without time gets logged which will always make this return null
             String query = "SELECT JSON_VALUE(log_json, '$.start_cal_time') FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'startcal' ORDER BY TS DESC";
+            conn = ds.getConnection();
+            stmt = conn.prepareStatement(query);
+            stmt.setString(1, participantUUID);
+            rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                unixString = rs.getString(1);
+                if(!rs.wasNull()){
+                    unixTS = Long.parseLong(unixString);
+                    break;
+                }
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        } finally {
+            try { rs.close(); }   catch (Exception e) { /* Null Ignored */ }
+            try { stmt.close(); } catch (Exception e) { /* Null Ignored */ }
+            try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
+        }
+        return unixTS;
+    }
+
+    public long getSleepTime(String participantUUID) {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        String unixString = "";
+        long unixTS = 0;
+
+        try {
+            // changing this from TOP 1 bc a new log without time gets logged which will always make this return null
+            String query = "SELECT JSON_VALUE(log_json, '$.sleep_time') FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'sleep' ORDER BY TS DESC";
             conn = ds.getConnection();
             stmt = conn.prepareStatement(query);
             stmt.setString(1, participantUUID);
@@ -557,6 +610,87 @@ public class DBEngine {
         }
     }
 
+    public void saveWakeTime(String participantUUID, long unixTS) {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+
+        try {
+            String query = "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.wake_time', ?) WHERE TS IN (SELECT TOP 1 TS FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'wake' ORDER BY TS DESC)";
+            conn = ds.getConnection();
+            stmt = conn.prepareStatement(query);
+            stmt.setString(1, Long.toString(unixTS));
+            stmt.setString(2, participantUUID);
+            stmt.executeUpdate();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        } finally {
+            try { stmt.close(); } catch (Exception e) { /* Null Ignored */ }
+            try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
+        }
+    }
+
+    public long getEndCalTime(String participantUUID) {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        String unixString = "";
+        long unixTS = 0;
+
+        try {
+            String query = "SELECT JSON_VALUE(log_json, '$.end_cal_time') FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'endcal' ORDER BY TS DESC";
+            conn = ds.getConnection();
+            stmt = conn.prepareStatement(query);
+            stmt.setString(1, participantUUID);
+            rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                unixString = rs.getString(1);
+                if(!rs.wasNull()){
+                    unixTS = Long.parseLong(unixString);
+                    break;
+                }
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        } finally {
+            try { rs.close(); }   catch (Exception e) { /* Null Ignored */ }
+            try { stmt.close(); } catch (Exception e) { /* Null Ignored */ }
+            try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
+        }
+        return unixTS;
+    }
+
+    public long getWakeTime(String participantUUID) {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        String unixString = "";
+        long unixTS = 0;
+
+        try {
+            String query = "SELECT JSON_VALUE(log_json, '$.wake_time') FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'wake' ORDER BY TS DESC";
+            conn = ds.getConnection();
+            stmt = conn.prepareStatement(query);
+            stmt.setString(1, participantUUID);
+            rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                unixString = rs.getString(1);
+                if(!rs.wasNull()){
+                    unixTS = Long.parseLong(unixString);
+                    break;
+                }
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        } finally {
+            try { rs.close(); }   catch (Exception e) { /* Null Ignored */ }
+            try { stmt.close(); } catch (Exception e) { /* Null Ignored */ }
+            try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
+        }
+        return unixTS;
+    }
+
     public void saveStartCalTimeCreateTemp(String participantUUID, long unixTS){
         Connection conn = null;
         PreparedStatement stmt = null;
@@ -582,6 +716,43 @@ public class DBEngine {
         PreparedStatement stmt = null;
         try{
             String query = "DELETE FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.temp') = 'true' AND JSON_VALUE(log_json, '$.state') = 'startcal'";
+            conn = ds.getConnection();
+            stmt = conn.prepareStatement(query);
+            stmt.setString(1, participantUUID);
+            stmt.executeUpdate();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        } finally {
+            try { stmt.close(); } catch (Exception e) { /* Null Ignored */ }
+            try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
+        }
+    }
+
+    public void saveSleepTimeCreateTemp(String participantUUID, long unixTS){
+        Connection conn = null;
+        PreparedStatement stmt = null;
+
+        try {
+            String json = "{\"state\": \"sleep\", \"sleep_time\":" + unixTS + ", \"temp\": \"true\"}";
+            String query = "INSERT INTO state_log VALUES (?, GETUTCDATE(), ?)";
+            conn = ds.getConnection();
+            stmt = conn.prepareStatement(query);
+            stmt.setString(1, participantUUID);
+            stmt.setString(2, json);
+            stmt.executeUpdate();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        } finally {
+            try { stmt.close(); } catch (Exception e) { /* Null Ignored */ }
+            try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
+        }
+    }
+
+    public void removeTempSleep(String participantUUID){
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        try{
+            String query = "DELETE FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.temp') = 'true' AND JSON_VALUE(log_json, '$.state') = 'sleep'";
             conn = ds.getConnection();
             stmt = conn.prepareStatement(query);
             stmt.setString(1, participantUUID);
@@ -631,36 +802,44 @@ public class DBEngine {
         }
     }
 
-    public long getEndCalTime(String participantUUID) {
+    public void saveWakeTimeCreateTemp(String participantUUID, long unixTS){
         Connection conn = null;
         PreparedStatement stmt = null;
-        ResultSet rs = null;
-        String unixString = "";
-        long unixTS = 0;
 
         try {
-            String query = "SELECT JSON_VALUE(log_json, '$.end_cal_time') FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'endcal' ORDER BY TS DESC";
+            String json = "{\"state\": \"wake\", \"wake_time\":" + unixTS + ", \"temp\": \"true\"}";
+            String query = "INSERT INTO state_log VALUES (?, GETUTCDATE(), ?)";
             conn = ds.getConnection();
             stmt = conn.prepareStatement(query);
             stmt.setString(1, participantUUID);
-            rs = stmt.executeQuery();
-
-            while (rs.next()) {
-                unixString = rs.getString(1);
-                if(!rs.wasNull()){
-                    unixTS = Long.parseLong(unixString);
-                    break;
-                }
-            }
+            stmt.setString(2, json);
+            stmt.executeUpdate();
         } catch (Exception ex) {
             ex.printStackTrace();
         } finally {
-            try { rs.close(); }   catch (Exception e) { /* Null Ignored */ }
             try { stmt.close(); } catch (Exception e) { /* Null Ignored */ }
             try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
         }
-        return unixTS;
     }
+
+    public void removeTempWake(String participantUUID){
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        try{
+            String query = "DELETE FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.temp') = 'true' AND JSON_VALUE(log_json, '$.state') = 'wake'";
+            conn = ds.getConnection();
+            stmt = conn.prepareStatement(query);
+            stmt.setString(1, participantUUID);
+            stmt.executeUpdate();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        } finally {
+            try { stmt.close(); } catch (Exception e) { /* Null Ignored */ }
+            try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
+        }
+    }
+
+
 
     public int getLastKnownSuccessCount(String participantUUID) {
         Connection conn = null;

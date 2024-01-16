@@ -15,7 +15,7 @@ import fasting.Protocols.HPM.HPM_Control.HPM_ControlWatcher;
 import fasting.Protocols.HPM.HPM_DailyMessage.HPM_DailyMessageWatcher;
 import fasting.Protocols.HPM.HPM_Restricted.HPM_RestrictedWatcher;
 import fasting.Protocols.HPM.HPM_WeeklyMessage.HPM_WeeklyMessageWatcher;
-import fasting.Protocols.Testing;
+import fasting.Protocols.Sleep.SleepWatcher;
 import fasting.TimeUtils.TimezoneHelper;
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
@@ -37,7 +37,6 @@ public class Launcher {
     public static Config config;
     public static DBEngine dbEngine;
     public static MsgUtils msgUtils;
-    public static MessageSchedulerExecutor queuedMessageWatcher;
     public static HPM_RestrictedWatcher HPM_RestrictedWatcher;
     public static HPM_ControlWatcher HPM_ControlWatcher;
     public static HPM_BaselineWatcher HPM_BaselineWatcher;
@@ -48,7 +47,7 @@ public class Launcher {
     public static CCW_BaselineWatcher CCW_BaselineWatcher;
     public static CCW_WeeklyMessageWatcher CCW_WeeklyMessageWatcher;
     public static CCW_DailyMessageWatcher CCW_DailyMessageWatcher;
-    public static Testing testing;
+    public static SleepWatcher sleepWatcher;
     public static TimezoneHelper TZHelper;
     public static String adminPhoneNumber;
     public static String adminTimeZone;
@@ -67,10 +66,10 @@ public class Launcher {
             Map<String, Object> fileConfigMap;
             fileConfigMap = initConfigMap(configPath);
             config = new Config(fileConfigMap);
+
             adminPhoneNumber = config.getStringParam("admin_phone_number");
             adminTimeZone = config.getStringParam("admin_time_zone");
-            testing = new Testing();
-
+           
             //init db engine
             dbEngine = new DBEngine();
 
@@ -89,7 +88,7 @@ public class Launcher {
 
             //testing
 //            TimezoneHelper TZHelper = new TimezoneHelper("America/Louisville","Etc/UTC");
-//            System.out.println(TZHelper.getZonedDateTime8am());
+//            System.out.println(TZHelper.getSecondsTo1pm());
 //            System.exit(0);
 
             //start HPM protocols
@@ -105,6 +104,9 @@ public class Launcher {
             CCW_BaselineWatcher = new CCW_BaselineWatcher();
             CCW_WeeklyMessageWatcher = new CCW_WeeklyMessageWatcher(); // only for Baseline/Control
             CCW_DailyMessageWatcher = new CCW_DailyMessageWatcher(); // only for TRE
+
+            //start sleep protocol
+            sleepWatcher = new SleepWatcher();
 
         } catch (Exception ex) {
             ex.printStackTrace();
