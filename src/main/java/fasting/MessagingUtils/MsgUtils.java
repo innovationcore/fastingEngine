@@ -10,8 +10,6 @@ import fasting.Launcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.text.SimpleDateFormat;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -22,6 +20,7 @@ public class MsgUtils {
     // and set the environment variables. See http://twil.io/secure
     private final String textFromHPM;
     private final String textFromCCW;
+    private final String textFromSleep;
     private final Logger logger;
     private final Gson gson;
 
@@ -29,6 +28,7 @@ public class MsgUtils {
         logger = LoggerFactory.getLogger(MsgUtils.class);
         textFromHPM = Launcher.config.getStringParam("twilio_from_number_HPM");
         textFromCCW = Launcher.config.getStringParam("twilio_from_number_CCW");
+        textFromSleep = Launcher.config.getStringParam("twilio_from_number_Sleep");
         gson = new Gson();
         Twilio.init(Launcher.config.getStringParam("twilio_account_sid"), Launcher.config.getStringParam("twilio_auth_token"));
     }
@@ -42,23 +42,44 @@ public class MsgUtils {
             logger.warn("Messaging is disabled. Messages will be saved, but not sent.");
         } else {
             String toNumber;
-            if (study.equals("HPM")) {
-                // you can set the below equal to a Message object for later use
-                if (toAdmin) { toNumber = Launcher.adminPhoneNumber; }
-                else {toNumber = textTo; }
-                Message.creator(
-                                new PhoneNumber(toNumber),
-                                new PhoneNumber(textFromHPM),
-                                body)
-                        .create();
-            } else if (study.equals("CCW")) {
-                if (toAdmin) { toNumber = Launcher.adminPhoneNumber; }
-                else {toNumber = textTo; }
-                Message.creator(
-                                new PhoneNumber(toNumber),
-                                new PhoneNumber(textFromCCW),
-                                body)
-                        .create();
+            switch (study) {
+                case "HPM":
+                    // you can set the below equal to a Message object for later use
+                    if (toAdmin) {
+                        toNumber = Launcher.adminPhoneNumber;
+                    } else {
+                        toNumber = textTo;
+                    }
+                    Message.creator(
+                                    new PhoneNumber(toNumber),
+                                    new PhoneNumber(textFromHPM),
+                                    body)
+                            .create();
+                    break;
+                case "CCW":
+                    if (toAdmin) {
+                        toNumber = Launcher.adminPhoneNumber;
+                    } else {
+                        toNumber = textTo;
+                    }
+                    Message.creator(
+                                    new PhoneNumber(toNumber),
+                                    new PhoneNumber(textFromCCW),
+                                    body)
+                            .create();
+                    break;
+                case "Sleep":
+                    if (toAdmin) {
+                        toNumber = Launcher.adminPhoneNumber;
+                    } else {
+                        toNumber = textTo;
+                    }
+                    Message.creator(
+                                    new PhoneNumber(toNumber),
+                                    new PhoneNumber(textFromSleep),
+                                    body)
+                            .create();
+                    break;
             }
         }
 
@@ -97,10 +118,16 @@ public class MsgUtils {
         String study = Launcher.dbEngine.getStudyFromParticipantId(participantId);
         String fromNumber = null;
 
-        if (study.equals("HPM")) {
-            fromNumber = textFromHPM;
-        } else if (study.equals("CCW")) {
-            fromNumber = textFromCCW;
+        switch (study) {
+            case "HPM":
+                fromNumber = textFromHPM;
+                break;
+            case "CCW":
+                fromNumber = textFromCCW;
+                break;
+            case "Sleep":
+                fromNumber = textFromSleep;
+                break;
         }
 
         String messageId = UUID.randomUUID().toString();
@@ -123,56 +150,5 @@ public class MsgUtils {
                     " VALUES ('" + messageId + "', '00000000-0000-0000-0000-000000000000','" + Launcher.adminPhoneNumber + "','" + fromNumber + "','" + scheduledFor + "','" + json_string + "','"+study+"')";
         }
         Launcher.dbEngine.executeUpdate(insertQuery);
-    }
-
-    public String fakeIncomingMessage(Map<String, String> formsMap, String phone_number) {
-        String responseString = "Error";
-        try {
-
-            String messageId = UUID.randomUUID().toString();
-            String participantId = Launcher.dbEngine.getParticipantIdFromPhoneNumber(phone_number);
-
-            if (participantId != null) {
-                String messageDirection = "incoming";
-
-                String json_string = gson.toJson(formsMap);
-
-                String insertQuery = "INSERT INTO messages " +
-                        "(message_uuid, participant_uuid, TS, message_direction, message_json)" +
-                        " VALUES ('" + messageId + "', '" +
-                        participantId + "' , GETUTCDATE(), '" +
-                        messageDirection + "', '" + json_string +
-                        "')";
-
-                //record incoming
-                Launcher.dbEngine.executeUpdate(insertQuery);
-
-                //send to state machine
-                Launcher.HPM_RestrictedWatcher.incomingText(participantId, formsMap);
-
-                Map<String,String> response = new HashMap<>();
-                response.put("status","ok");
-                responseString = gson.toJson(response);
-                return responseString;
-
-            } else {
-                Map<String,String> response = new HashMap<>();
-                response.put("status","error");
-                response.put("status_desc","participant not found");
-                responseString = gson.toJson(response);
-                return responseString;
-            }
-
-        } catch (Exception ex) {
-
-            StringWriter sw = new StringWriter();
-            ex.printStackTrace(new PrintWriter(sw));
-            String exceptionAsString = sw.toString();
-            ex.printStackTrace();
-            logger.error("fakeIncomingText");
-            logger.error(exceptionAsString);
-
-        }
-        return responseString;
     }
 }
