@@ -96,13 +96,15 @@ public class Sleep extends SleepBase {
                                 break;
                             }
                         } else {
-                            // if just sent sleep make sure its not sleep9:45 or something similar
+                            // if just sent sleep make sure it's not sleep9:45 or something similar
                             if (sleepSplit[0].length() > 5){
                                 Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your SLEEP time was not understood. Please send \"SLEEP\" again with the time you started falling asleep. For example, \"SLEEP 9:30 pm\".", false);
                                 break;
                             }
                         }
                         receivedSleep();
+                    } else if(isSleep(incomingMap.get("Wake"))){
+                        Launcher.msgUtils.sendMessage(participantMap.get("number"), "No sleep time received for last night. Please send \"SLEEP\" time first followed by your \"WAKE\" time this morning.", false);
                     } else {
                         Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Please send \"SLEEP\" before you begin trying to fall asleep;" +
                                 " \"WAKE\" soon after you wake up in the morning.", false);
@@ -127,7 +129,7 @@ public class Sleep extends SleepBase {
                                 break;
                             }
                         } else {
-                            // if just sent sleep make sure its not sleep9:45 or something similar
+                            // if just sent sleep make sure it's not sleep9:45 or something similar
                             if (sleepSplit[0].length() > 5){
                                 Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your SLEEP time was not understood. Please send \"SLEEP\" again with the time you started falling asleep. For example, \"SLEEP 9:30 pm\".", false);
                                 break;
@@ -185,7 +187,7 @@ public class Sleep extends SleepBase {
                                 break;
                             }
                         } else {
-                            // if just sent wake make sure its not wake9:45 or something similar
+                            // if just sent wake make sure it's not wake9:45 or something similar
                             if (incomingMap.get("Body").toLowerCase().contains("wake")){
                                 if (wakeSplit[0].length() > 4){
                                     Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your WAKE time was not understood. Please send \"WAKE\" again with the time you woke up. For example, \"WAKE 7:30 am\".", false);
@@ -219,7 +221,7 @@ public class Sleep extends SleepBase {
                                 break;
                             }
                         } else {
-                            // if just sent wake make sure its not wake9:45 or something similar
+                            // if just sent wake make sure it's not wake9:45 or something similar
                             if (incomingMap.get("Body").toLowerCase().contains("wake")){
                                 if (wakeSplit[0].length() > 4){
                                     Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your WAKE time was not understood. Please send \"WAKE\" again with the time you woke up. For example, \"WAKE 7:30 am\".", false);
@@ -428,7 +430,7 @@ public class Sleep extends SleepBase {
                 if (!isRestoring) {
                     Launcher.msgUtils.sendMessage(participantMap.get("number"), "[Sleep Baseline] Participant " +
                             participantMap.get("first_name") + " " + participantMap.get("last_name") +
-                            " ("+participantMap.get("number")+") missed their ENDCAL.", true);
+                            " ("+participantMap.get("number")+") sent their SLEEP time but missed their WAKE time.", true);
                 }
                 break;
             case timeout24:
