@@ -33,7 +33,7 @@ public class MsgUtils {
         Twilio.init(Launcher.config.getStringParam("twilio_account_sid"), Launcher.config.getStringParam("twilio_auth_token"));
     }
 
-    public void sendMessage(String textTo, String body) {
+    public void sendMessage(String textTo, String body, Boolean toAdmin) {
         String participantId = Launcher.dbEngine.getParticipantIdFromPhoneNumber(textTo);
         String study = Launcher.dbEngine.getStudyFromParticipantId(participantId);
         Boolean isMessagingDisabled = Launcher.config.getBooleanParam("disable_messaging");
@@ -41,19 +41,24 @@ public class MsgUtils {
         if (isMessagingDisabled) {
             logger.warn("Messaging is disabled. Messages will be saved, but not sent.");
         } else {
-            if (study.equals("HPM")){
+            String toNumber;
+            if (study.equals("HPM")) {
                 // you can set the below equal to a Message object for later use
+                if (toAdmin) { toNumber = Launcher.adminPhoneNumber; }
+                else {toNumber = textTo; }
                 Message.creator(
-                    new PhoneNumber(textTo),
-                    new PhoneNumber(textFromHPM),
-                    body)
-                .create();
+                                new PhoneNumber(toNumber),
+                                new PhoneNumber(textFromHPM),
+                                body)
+                        .create();
             } else if (study.equals("CCW")) {
+                if (toAdmin) { toNumber = Launcher.adminPhoneNumber; }
+                else {toNumber = textTo; }
                 Message.creator(
-                    new PhoneNumber(textTo),
-                    new PhoneNumber(textFromCCW),
-                    body)
-                .create();
+                                new PhoneNumber(toNumber),
+                                new PhoneNumber(textFromCCW),
+                                body)
+                        .create();
             }
         }
 
@@ -75,35 +80,48 @@ public class MsgUtils {
                 "(message_uuid, participant_uuid, TS, message_direction, message_json, study)" +
                 " VALUES ('" + messageId + "', '" +
                 participantId + "' ,'" + timestamp + "', '" +
-                messageDirection + "', '" + json_string + "', '"+ study +"')";
+                messageDirection + "', '" + json_string + "', '" + study + "')";
 
+        if (toAdmin) {
+            insertQuery = "INSERT INTO messages " +
+                    "(message_uuid, participant_uuid, TS, message_direction, message_json, study)" +
+                    " VALUES ('" + messageId + "', '00000000-0000-0000-0000-000000000000' ,'" + timestamp + "', '" +
+                    messageDirection + "', '" + json_string + "', '" + study + "')";
+        }
         Launcher.dbEngine.executeUpdate(insertQuery);
+
     }
 
-    public void sendScheduledMessage(String textTo, String body, ZonedDateTime dateTime) {
+    public void sendScheduledMessage(String textTo, String body, ZonedDateTime dateTime, Boolean toAdmin) {
         String participantId = Launcher.dbEngine.getParticipantIdFromPhoneNumber(textTo);
         String study = Launcher.dbEngine.getStudyFromParticipantId(participantId);
         String fromNumber = null;
 
         if (study.equals("HPM")) {
             fromNumber = textFromHPM;
-        } else if (study.equals("CCW")){
+        } else if (study.equals("CCW")) {
             fromNumber = textFromCCW;
         }
 
         String messageId = UUID.randomUUID().toString();
         String scheduledFor = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS").format(dateTime);
 
-        Map<String,String> messageMap = new HashMap<>();
+        Map<String, String> messageMap = new HashMap<>();
         String stripped_body = body.replaceAll("\n", "").replaceAll("\r", "").replaceAll("\t", "");
-        messageMap.put("Body",stripped_body);
+        messageMap.put("Body", stripped_body);
         String json_string = gson.toJson(messageMap);
         logger.info("Message queued for: " + scheduledFor + ", Message: " + json_string);
 
+        // if message to Matt don't insert into database
         String insertQuery = "INSERT INTO queued_messages " +
                 "(message_uuid, participant_uuid, toNumber, fromNumber, scheduledFor, message_json, study)" +
-                " VALUES ('" + messageId + "', '" + participantId + "','" + textTo + "','" + fromNumber+ "','" + scheduledFor+ "','" + json_string +"','" + study + "')";
+                " VALUES ('" + messageId + "', '" + participantId + "','" + textTo + "','" + fromNumber + "','" + scheduledFor + "','" + json_string + "','" + study + "')";
 
+        if (toAdmin) {
+            insertQuery = "INSERT INTO queued_messages " +
+                    "(message_uuid, participant_uuid, toNumber, fromNumber, scheduledFor, message_json, study)" +
+                    " VALUES ('" + messageId + "', '00000000-0000-0000-0000-000000000000','" + Launcher.adminPhoneNumber + "','" + fromNumber + "','" + scheduledFor + "','" + json_string + "','"+study+"')";
+        }
         Launcher.dbEngine.executeUpdate(insertQuery);
     }
 

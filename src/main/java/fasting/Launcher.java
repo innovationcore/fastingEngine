@@ -33,7 +33,6 @@ import java.util.Map;
 
 
 public class Launcher {
-
     private static Logger logger;
     public static Config config;
     public static DBEngine dbEngine;
@@ -50,6 +49,8 @@ public class Launcher {
     public static CCW_DailyMessageWatcher CCW_DailyMessageWatcher;
     public static SleepWatcher sleepWatcher;
     public static TimezoneHelper TZHelper;
+    public static String adminPhoneNumber;
+    public static String adminTimeZone;
 
     public static void main(String[] argv) {
 
@@ -66,6 +67,9 @@ public class Launcher {
             fileConfigMap = initConfigMap(configPath);
             config = new Config(fileConfigMap);
 
+            adminPhoneNumber = config.getStringParam("admin_phone_number");
+            adminTimeZone = config.getStringParam("admin_time_zone");
+           
             //init db engine
             dbEngine = new DBEngine();
 
@@ -74,6 +78,10 @@ public class Launcher {
 
             //Embedded HTTP initialization
             startServer();
+
+            // add a study admin to receive texts (in config file)
+            dbEngine.addStudyAdmin();
+
 
             // start watching the queued messages database
             new MessageSchedulerExecutor().startWatcher();

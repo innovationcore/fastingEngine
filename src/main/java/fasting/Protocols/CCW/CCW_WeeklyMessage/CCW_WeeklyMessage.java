@@ -92,7 +92,7 @@ public class CCW_WeeklyMessage extends CCW_WeeklyMessageBase {
             case sendWeeklyMessage:
                 String weeklyMessage = "Thank you for continuing to send us your \"STARTCAL\" and \"ENDCAL\" each day. Keep up the great work!";
                 logger.info(weeklyMessage);
-                Launcher.msgUtils.sendMessage(participantMap.get("number"), weeklyMessage);
+                Launcher.msgUtils.sendMessage(participantMap.get("number"), weeklyMessage, false);
                 // wait 5 seconds, so multiple messages don't get sent at the same time
                 try { Thread.sleep(5000); } catch (InterruptedException e) { /* do nothing */ }
                 break;

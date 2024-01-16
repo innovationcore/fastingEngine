@@ -95,53 +95,53 @@ public class HPM_Restricted extends HPM_RestrictedBase {
                         receivedDayOff();
                     } else if (isEndCal(incomingMap.get("Body"))){
                         // send error to participant
-                        Launcher.msgUtils.sendMessage(participantMap.get("number"), "Cannot receive \"ENDCAL\" after 4am. Please note the time of \"ENDCAL\" and tell the study coordinator at your next communication.");
+                        Launcher.msgUtils.sendMessage(participantMap.get("number"), "Cannot receive \"ENDCAL\" after 4am. Please note the time of \"ENDCAL\" and tell the study coordinator at your next communication.", false);
                         // send message to study admin
-                        Launcher.msgUtils.sendMessage("+12704022214", "Participant " +participantMap.get("first_name")+ " " + participantMap.get("last_name") + " sent ENDCAL after 4am and before STARTCAL.");
+                        Launcher.msgUtils.sendMessage("+12704022214", "Participant " +participantMap.get("first_name")+ " " + participantMap.get("last_name") + " sent ENDCAL after 4am and before STARTCAL.", false);
                     } else if(isStartCal(incomingMap.get("Body"))) {
                         String textBody = incomingMap.get("Body").trim(); // removes whitespace before and after
                         String[] startCalSplit = textBody.split(" ", 2);
                         if (startCalSplit.length >= 2) {
                             if (!(startCalSplit[1].toLowerCase().contains("a") || startCalSplit[1].toLowerCase().contains("p"))){
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your STARTCAL time was not understood. Please send \"STARTCAL\" again with your starting time including \"am\" or \"pm\". For example, \"STARTCAL 7:30 am\".");
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your STARTCAL time was not understood. Please send \"STARTCAL\" again with your starting time including \"am\" or \"pm\". For example, \"STARTCAL 7:30 am\".", false);
                                 break;
                             }
 
                             long parsedTime = TZHelper.parseTime(startCalSplit[1]);
                             if (parsedTime == -1L) {
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your STARTCAL time was not understood. Please send \"STARTCAL\" again with your starting time. For example, \"STARTCAL 7:30 am\".");
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your STARTCAL time was not understood. Please send \"STARTCAL\" again with your starting time. For example, \"STARTCAL 7:30 am\".", false);
                                 break;
                             }
                         } else {
                             // if just sent startcal make sure its not startcal9:45 or something similar
                             if (startCalSplit[0].length() > 8){
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your STARTCAL time was not understood. Please send \"STARTCAL\" again with your starting time. For example, \"STARTCAL 7:30 am\".");
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your STARTCAL time was not understood. Please send \"STARTCAL\" again with your starting time. For example, \"STARTCAL 7:30 am\".", false);
                                 break;
                             }
                         }
                         receivedStartCal();
                     } else {
                         Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Please send \"STARTCAL\" when you begin calories for " +
-                                "the day; \"ENDCAL\" when you are done with calories for the day.");
+                                "the day; \"ENDCAL\" when you are done with calories for the day.", false);
                     }
                     break;
                 case startcal:
                     if (isDayoff(incomingMap.get("Body"))) {
                         receivedDayOff();
                     } else if(isStartCal(incomingMap.get("Body"))){
-                        Launcher.msgUtils.sendMessage(participantMap.get("number"), "You've already started consuming calories for the day. Text \"ENDCAL\" when you finish your TRE today.");
+                        Launcher.msgUtils.sendMessage(participantMap.get("number"), "You've already started consuming calories for the day. Text \"ENDCAL\" when you finish your TRE today.", false);
                     } else if(isEndCal(incomingMap.get("Body"))) {
                         String textBody = incomingMap.get("Body").trim(); // removes whitespace before and after
                         String[] endCalSplit = textBody.split(" ", 2);
                         boolean isBetween3AMand3PM;
                         if (endCalSplit.length >= 2){
                             if (!(endCalSplit[1].toLowerCase().contains("a") || endCalSplit[1].toLowerCase().contains("p"))){
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time including \"am\" or \"pm\". For example, \"ENDCAL 7:30 pm\".");
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time including \"am\" or \"pm\". For example, \"ENDCAL 7:30 pm\".", false);
                                 break;
                             }
                             long parsedTime = TZHelper.parseTime(endCalSplit[1]);
                             if (parsedTime == -1L) {
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".");
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".", false);
                                 break;
                             }
                             isBetween3AMand3PM = TZHelper.isBetween3AMand3PM(parsedTime);
@@ -150,12 +150,12 @@ public class HPM_Restricted extends HPM_RestrictedBase {
                             // if just sent stopcal/endcal make sure its not endcal9:45 or something similar
                             if (incomingMap.get("Body").toLowerCase().contains("stopcal")){
                                 if (endCalSplit[0].length() > 7){
-                                    Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".");
+                                    Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".", false);
                                     break;
                                 }
                             } else if (incomingMap.get("Body").toLowerCase().contains("endcal")){
                                 if (endCalSplit[0].length() > 6){
-                                    Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".");
+                                    Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".", false);
                                     break;
                                 }
                             }
@@ -163,13 +163,13 @@ public class HPM_Restricted extends HPM_RestrictedBase {
                         if (isBetween3AMand3PM) {
                             Launcher.msgUtils.sendMessage(participantMap.get("number"), "We don't recommend that you end calories this early in the day. " +
                                     "Try again in the evening. Text 270-402-2214 if you want to receive " +
-                                    "a call about how to manage TRE safely.");
+                                    "a call about how to manage TRE safely.", false);
                         } else {
                             receivedEndCal();
                         }
                     } else {
                         Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Please send \"STARTCAL\" when you begin calories for " +
-                                "the day; \"ENDCAL\" when you are done with calories for the day.");
+                                "the day; \"ENDCAL\" when you are done with calories for the day.", false);
                     }
                     break;
                 case missedStartCal:
@@ -185,12 +185,12 @@ public class HPM_Restricted extends HPM_RestrictedBase {
                         boolean isBetween3AMand3PM;
                         if (endCalSplit.length >= 2){
                             if (!(endCalSplit[1].toLowerCase().contains("a") || endCalSplit[1].toLowerCase().contains("p"))) {
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time including \"am\" or \"pm\". For example, \"ENDCAL 7:30 pm\".");
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time including \"am\" or \"pm\". For example, \"ENDCAL 7:30 pm\".", false);
                                 break;
                             }
                             long parsedTime = TZHelper.parseTime(endCalSplit[1]);
                             if (parsedTime == -1L) {
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".");
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".", false);
                                 break;
                             }
                             isBetween3AMand3PM = TZHelper.isBetween3AMand3PM(parsedTime);
@@ -199,12 +199,12 @@ public class HPM_Restricted extends HPM_RestrictedBase {
                             // if just sent stopcal/endcal make sure its not endcal9:45 or something similar
                             if (incomingMap.get("Body").toLowerCase().contains("stopcal")){
                                 if (endCalSplit[0].length() > 7){
-                                    Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".");
+                                    Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".", false);
                                     break;
                                 }
                             } else if (incomingMap.get("Body").toLowerCase().contains("endcal")){
                                 if (endCalSplit[0].length() > 6){
-                                    Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".");
+                                    Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".", false);
                                     break;
                                 }
                             }
@@ -213,14 +213,14 @@ public class HPM_Restricted extends HPM_RestrictedBase {
                             if(!this.isDayOff){
                                 Launcher.msgUtils.sendMessage(participantMap.get("number"), "We don't recommend that you end calories this early in the day. " +
                                         "Try again in the evening. Text 270-402-2214 if you want to receive " +
-                                        "a call about how to manage TRE safely.");
+                                        "a call about how to manage TRE safely.", false);
                             }
                         } else {
                             receivedEndCal();
                         }
                     } else {
                         Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Please send \"STARTCAL\" when you begin calories for " +
-                                "the day; \"ENDCAL\" when you are done with calories for the day. ");
+                                "the day; \"ENDCAL\" when you are done with calories for the day.", false);
                     }
                     break;
                 case endcal:
@@ -230,12 +230,12 @@ public class HPM_Restricted extends HPM_RestrictedBase {
                         boolean isBetween3AMand3PM;
                         if (endCalSplit.length >= 2){
                             if (!(endCalSplit[1].toLowerCase().contains("a") || endCalSplit[1].toLowerCase().contains("p"))) {
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time including \"am\" or \"pm\". For example, \"ENDCAL 7:30 pm\".");
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time including \"am\" or \"pm\". For example, \"ENDCAL 7:30 pm\".", false);
                                 break;
                             }
                             long parsedTime = TZHelper.parseTime(endCalSplit[1]);
                             if (parsedTime == -1L) {
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".");
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".", false);
                                 break;
                             }
                             isBetween3AMand3PM = TZHelper.isBetween3AMand3PM(parsedTime);
@@ -244,12 +244,12 @@ public class HPM_Restricted extends HPM_RestrictedBase {
                             // if just sent stopcal/endcal make sure its not endcal9:45 or something similar
                             if (incomingMap.get("Body").toLowerCase().contains("stopcal")){
                                 if (endCalSplit[0].length() > 7){
-                                    Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".");
+                                    Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".", false);
                                     break;
                                 }
                             } else if (incomingMap.get("Body").toLowerCase().contains("endcal")){
                                 if (endCalSplit[0].length() > 6){
-                                    Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".");
+                                    Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".", false);
                                     break;
                                 }
                             }
@@ -258,14 +258,14 @@ public class HPM_Restricted extends HPM_RestrictedBase {
                             if(!this.isDayOff){
                                 Launcher.msgUtils.sendMessage(participantMap.get("number"), "We don't recommend that you end calories this early in the day. " +
                                         "Try again in the evening. Text 270-402-2214 if you want to receive " +
-                                        "a call about how to manage TRE safely.");
+                                        "a call about how to manage TRE safely.", false);
                             }
                         } else {
                             receivedEndCal();
                         }
                     } else {
                         Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Please send \"STARTCAL\" when you begin calories for " +
-                                "the day; \"ENDCAL\" when you are done with calories for the day.");
+                                "the day; \"ENDCAL\" when you are done with calories for the day.", false);
                     }
                     break;
                 case missedEndCal:
@@ -281,7 +281,7 @@ public class HPM_Restricted extends HPM_RestrictedBase {
                     }else {
                         String endOfEpisodeMessage = participantMap.get("participant_uuid") + " endOfEpisode unexpected message";
                         logger.warn(endOfEpisodeMessage);
-                        Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Text 270-402-2214 if you need help.");
+                        Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Text 270-402-2214 if you need help.", false);
                     }
                     break;
                 case dayOffEndOfEpisode:
@@ -429,7 +429,7 @@ public class HPM_Restricted extends HPM_RestrictedBase {
                 // send reminder message at noon
                 String warnStartCalMessage = "No \"STARTCAL\" received yet today. Please send us your \"STARTCAL\" so we know when your calories began today.";
                 if (!this.pauseMessages && !this.isFromYesterday) {
-                    Launcher.msgUtils.sendMessage(participantMap.get("number"), warnStartCalMessage);
+                    Launcher.msgUtils.sendMessage(participantMap.get("number"), warnStartCalMessage, false);
                 } else {
                     this.isFromYesterday = false;
                     this.pauseMessages = false;
@@ -479,9 +479,12 @@ public class HPM_Restricted extends HPM_RestrictedBase {
                     resetNoEndCal();
                 }
                 if (!this.pauseMessages && !this.isDayOff) {
-                    Launcher.msgUtils.sendMessage(participantMap.get("number"), missedStartCalMessage);
+                    Launcher.msgUtils.sendScheduledMessage(participantMap.get("number"), missedStartCalMessage, TZHelper.getZonedDateTime8am(false),false);
                     if (this.numberOfCyclesInProtocol >= this.TRIAL_PERIOD) {
                         Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false, false);
+                        Launcher.msgUtils.sendScheduledMessage(participantMap.get("number"), "[HPM TRE] Participant " + participantMap.get("first_name") + " " + participantMap.get("last_name") + " ("+participantMap.get("number")+") missed their STARTCAL.", TZHelper.getZonedDateTime8am(true), true);
+                    } else {
+                        Launcher.msgUtils.sendScheduledMessage(participantMap.get("number"), "[HPM TRE] Participant " + participantMap.get("first_name") + " " + participantMap.get("last_name") + " ("+participantMap.get("number")+") missed their STARTCAL during the trial period (<7 days).", TZHelper.getZonedDateTime8am(true), true);
                     }
                 }
                 logger.warn(missedStartCalMessage);
@@ -494,7 +497,7 @@ public class HPM_Restricted extends HPM_RestrictedBase {
                 setEndDeadline(TZHelper.getSecondsTo359am());
                 String warnEndCalMessage = participantMap.get("first_name") +  ", we haven't heard from you. Remember to text \"ENDCAL\" when you go calorie free.";
                 if (!this.pauseMessages){
-                    Launcher.msgUtils.sendMessage(participantMap.get("number"), warnEndCalMessage);
+                    Launcher.msgUtils.sendMessage(participantMap.get("number"), warnEndCalMessage, false);
                 } else {
                     this.pauseMessages = false;
                 }
@@ -510,7 +513,7 @@ public class HPM_Restricted extends HPM_RestrictedBase {
                 String endCalMessage = pickRandomEndCalMessage();
                 logger.info(endCalMessage);
                 if (!this.pauseMessages){
-                    Launcher.msgUtils.sendMessage(participantMap.get("number"), endCalMessage);
+                    Launcher.msgUtils.sendMessage(participantMap.get("number"), endCalMessage, false);
                 }
 
                 // reset the counter for no endcals
@@ -551,7 +554,7 @@ public class HPM_Restricted extends HPM_RestrictedBase {
                         }
 
                         String before9Msg = pickRandomLess9TRE(startTime, endTime);
-                        Launcher.msgUtils.sendMessage(participantMap.get("number"), before9Msg);
+                        Launcher.msgUtils.sendMessage(participantMap.get("number"), before9Msg, false);
                     }
                 } else if (validTRE == 1) {
                     if (!this.pauseMessages && !this.isDayOff){
@@ -561,7 +564,7 @@ public class HPM_Restricted extends HPM_RestrictedBase {
                         }
 
                         String after11Msg = pickRandomGreater11TRE();
-                        Launcher.msgUtils.sendMessage(participantMap.get("number"), after11Msg);
+                        Launcher.msgUtils.sendMessage(participantMap.get("number"), after11Msg, false);
                     }
                 } else {
                     if (!this.pauseMessages){
@@ -571,10 +574,10 @@ public class HPM_Restricted extends HPM_RestrictedBase {
                                 Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false, isRepeat);
                             }
                             String after8PMMsg = randomAfter8PMMessage();
-                            Launcher.msgUtils.sendMessage(participantMap.get("number"), after8PMMsg);
+                            Launcher.msgUtils.sendMessage(participantMap.get("number"), after8PMMsg, false);
                             if (this.numberOfCyclesInProtocol >= this.TRIAL_PERIOD) {
                                 String neutralMsg = pickNeutralTRE();
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), neutralMsg);
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), neutralMsg, false);
                             }
                         } else{
                             if (!this.isDayOff && this.numberOfCyclesInProtocol >= this.TRIAL_PERIOD) {
@@ -583,7 +586,7 @@ public class HPM_Restricted extends HPM_RestrictedBase {
                                 this.wasSucessfulFast = true;
                                 if (this.numberOfCyclesInProtocol >= this.TRIAL_PERIOD) {
                                     String successMsg = pickRandomSuccessTRE();
-                                    Launcher.msgUtils.sendMessage(participantMap.get("number"), successMsg);
+                                    Launcher.msgUtils.sendMessage(participantMap.get("number"), successMsg, false);
                                 }
                             }
                         }
@@ -602,12 +605,17 @@ public class HPM_Restricted extends HPM_RestrictedBase {
                 if (getDaysWithoutEndCal() >= 2){
                     String missed2EndCals = "We haven't heard from you in a while. Text our study team at 270-402-2214 if you're struggling to stick with the time-restricted eating.";
                     if (!this.pauseMessages && !this.isDayOff){
-                        Launcher.msgUtils.sendScheduledMessage(participantMap.get("number"), missed2EndCals, TZHelper.getZonedDateTime8am());
+                        Launcher.msgUtils.sendScheduledMessage(participantMap.get("number"), missed2EndCals, TZHelper.getZonedDateTime8am(false), false);
                     }
                     resetNoEndCal();
                 }
-                if (!this.pauseMessages && !this.isDayOff && this.numberOfCyclesInProtocol >= this.TRIAL_PERIOD){
-                    Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false, false);
+                if (!this.pauseMessages && !this.isDayOff){
+                    if(this.numberOfCyclesInProtocol >= this.TRIAL_PERIOD) {
+                        Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false, false);
+                        Launcher.msgUtils.sendScheduledMessage(participantMap.get("number"), "[HPM TRE] Participant " + participantMap.get("first_name") + " " + participantMap.get("last_name") + " ("+participantMap.get("number")+") missed their ENDCAL.", TZHelper.getZonedDateTime8am(true), true);
+                    } else {
+                        Launcher.msgUtils.sendScheduledMessage(participantMap.get("number"), "[HPM TRE] Participant " + participantMap.get("first_name") + " " + participantMap.get("last_name") + " ("+participantMap.get("number")+") missed their ENDCAL during the trial period (<7 days).", TZHelper.getZonedDateTime8am(true), true);
+                    }
                 }
                 //save state info
                 stateJSON = saveStateJSON();
@@ -626,7 +634,7 @@ public class HPM_Restricted extends HPM_RestrictedBase {
                 if (!didSendEndCalToday && this.isDayOff){
                     // if user didnt send endcal and dayoff is true text Matt
                     String dayOffMissedEndCalMsg = "Participant " + participantMap.get("first_name") + " " + participantMap.get("last_name") + " ("+participantMap.get("number")+") missed endcal and is on dayoff. If they send endcal in the next cycle it will count towards their success rate.";
-                    Launcher.msgUtils.sendMessage("+12704022214", dayOffMissedEndCalMsg);
+                    Launcher.msgUtils.sendMessage(participantMap.get("number"), dayOffMissedEndCalMsg, true);
                 }
                 break;
             case resetEpisodeVariables:
@@ -636,34 +644,34 @@ public class HPM_Restricted extends HPM_RestrictedBase {
                 break;
             case dayOffWait:
                 this.isDayOff = true;
-                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Got it, no TRE today! Thank you for telling us. Please still let us know your \"STARTCAL\" and \"ENDCAL\" today.");
+                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Got it, no TRE today! Thank you for telling us. Please still let us know your \"STARTCAL\" and \"ENDCAL\" today.", false);
                 logger.info(participantMap.get("participant_uuid") + " DayOff in waitStart");
                 break;
             case dayOffWarn:
                 this.isDayOff = true;
-                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Got it, no TRE today! Thank you for telling us. Please still let us know your \"STARTCAL\" and \"ENDCAL\" today.");
+                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Got it, no TRE today! Thank you for telling us. Please still let us know your \"STARTCAL\" and \"ENDCAL\" today.", false);
                 logger.info(participantMap.get("participant_uuid") + " DayOff in warnStart");
                 break;
             case dayOffStartCal:
                 this.isDayOff = true;
-                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Got it, no TRE today! Thank you for telling us. Please still let us know your \"ENDCAL\" today.");
+                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Got it, no TRE today! Thank you for telling us. Please still let us know your \"ENDCAL\" today.", false);
                 logger.info(participantMap.get("participant_uuid") + " DayOff in StartCal");
                 break;
             case dayOffWarnEndCal:
                 this.isDayOff = true;
-                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Got it, no TRE today! Thank you for telling us. Please still let us know your \"ENDCAL\" today.");
+                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Got it, no TRE today! Thank you for telling us. Please still let us know your \"ENDCAL\" today.", false);
                 logger.info(participantMap.get("participant_uuid") + " DayOff in WarnEndCal");
                 break;
             case dayOffEndOfEpisode:
                 if (this.isDayOff) {
                     logger.warn(participantMap.get("participant_uuid") + " REPEATED DayOff in endOfEpisode");
-                    Launcher.msgUtils.sendMessage(participantMap.get("number"), "You have already sent \"DAYOFF\" for today.");
+                    Launcher.msgUtils.sendMessage(participantMap.get("number"), "You have already sent \"DAYOFF\" for today.", false);
                     break;
                 }
                 this.isDayOff = true;
                 // check if endcal was successful or not, variable that is reset
                 Launcher.dbEngine.updateSuccessRate(participantMap.get("participant_uuid"), this.wasSucessfulFast); // this updates the success rate and returns a string of success
-                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Got it, no TRE today! Thank you for telling us. Please still let us know your \"ENDCAL\" today.");
+                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Got it, no TRE today! Thank you for telling us. Please still let us know your \"ENDCAL\" today.", false);
                 logger.info(participantMap.get("participant_uuid") + " DayOff in endOfEpisode");
                 break;
             case endProtocol:

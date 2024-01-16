@@ -78,7 +78,7 @@ public class CCW_DailyMessage extends CCW_DailyMessageBase {
             case sendDailyMessage:
                 String dailyMessage = getRandomDailyMessage();
                 logger.info(dailyMessage);
-                Launcher.msgUtils.sendMessage(participantMap.get("number"), dailyMessage);
+                Launcher.msgUtils.sendMessage(participantMap.get("number"), dailyMessage, false);
                 // wait 5 seconds, so multiple messages don't get sent at the same time
                 try { Thread.sleep(5000); } catch (InterruptedException e) { /* do nothing */ }
                 break;
@@ -172,7 +172,6 @@ public class CCW_DailyMessage extends CCW_DailyMessageBase {
                     add("Your own mind is your greatest motivator. You CAN do this!");
                     add("Hey TRE Queen, need a distraction? Try singing your favorite song. Now who's having the time of her life?");
                     add("It's not just on game shows where it helps to phone a friend. Chatting with friends helps distract you AND relax at the end of the day.");
-                    add("Remember to text ENDCAL when you have your last calorie tonight!");
                 }});
         int rnd = new Random().nextInt(dailyMessages.size());
         String message = dailyMessages.get(rnd);
