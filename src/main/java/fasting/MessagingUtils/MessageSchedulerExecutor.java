@@ -9,7 +9,7 @@ public class MessageSchedulerExecutor {
 
     public static void startWatcher() {
         ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-        scheduler.scheduleAtFixedRate(MessageSchedulerExecutor::checkDatabase, 0, 1, TimeUnit.MINUTES);
+        scheduler.scheduleAtFixedRate(MessageSchedulerExecutor::checkDatabase, 0, 5, TimeUnit.SECONDS);
     }
 
     private static void checkDatabase() {

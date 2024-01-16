@@ -1328,16 +1328,9 @@ public class DBEngine {
         ResultSet rs = null;
 
         try {
-            // Get the current machine time in UTC
-            java.util.Date currentTime = new Date();
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
-            sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
-            String currentUtcTime = sdf.format(currentTime);
-
-            String query = "SELECT message_uuid, toNumber, JSON_VALUE(message_json, '$.Body') AS body FROM queued_messages WHERE scheduledFor <= ?";
+            String query = "SELECT message_uuid, toNumber, JSON_VALUE(message_json, '$.Body') AS body FROM queued_messages WHERE scheduledFor <= GETUTCDATE()";
             conn = ds.getConnection();
             stmt = conn.prepareStatement(query);
-            stmt.setString(1, currentUtcTime);
             rs = stmt.executeQuery();
 
             while (rs.next()) {
