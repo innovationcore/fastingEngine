@@ -344,12 +344,12 @@ public class Sleep extends SleepBase {
                 break;
             case warnSleep:
                 //set end for sleep
-                setTimeout24Hours(TZHelper.getSecondsTo1pm());
-                String warnStartMessage = "Remember to text \"SLEEP\" when your begin trying to fall asleep and \"WAKE\" when wake up in the morning. Thank you!";
-                if (!this.isRestoring){
-                    Launcher.msgUtils.sendMessage(participantMap.get("number"), warnStartMessage, false);
-                }
-                logger.warn(warnStartMessage);
+                setTimeout24Hours(TZHelper.getSecondsTo5pm());
+//                String warnStartMessage = "Remember to text \"SLEEP\" when you begin trying to fall asleep and \"WAKE\" when wake up in the morning. Thank you!";
+//                if (!this.isRestoring){
+//                    Launcher.msgUtils.sendMessage(participantMap.get("number"), warnStartMessage, false);
+//                }
+                logger.warn("warnSleep()");
                 //save state info
                 stateJSON = saveStateJSON();
                 Launcher.dbEngine.uploadSaveState(stateJSON, participantMap.get("participant_uuid"));
@@ -387,8 +387,8 @@ public class Sleep extends SleepBase {
                 break;
             case warnWake:
                 //set end for wake
-                setTimeout24Hours(TZHelper.getSecondsTo1pm());
-                String warnWakeMessage = "Remember to let us know when you woke up today.";
+                setTimeout24Hours(TZHelper.getSecondsTo5pm());
+                String warnWakeMessage = "Remember to tell us when you tried to sleep last night and when you woke up this morning. Thank you!";
                 if (!this.isRestoring){
                     Launcher.msgUtils.sendMessage(participantMap.get("number"), warnWakeMessage, false);
                 }
@@ -398,7 +398,7 @@ public class Sleep extends SleepBase {
                 Launcher.dbEngine.uploadSaveState(stateJSON, participantMap.get("participant_uuid"));
                 break;
             case wake:
-                int secondsEnd = TZHelper.getSecondsTo1pm();
+                int secondsEnd = TZHelper.getSecondsTo5pm();
                 setTimeout24Hours(secondsEnd);
                 String wakeMessage = participantMap.get("participant_uuid") + " thanks for sending wake: timeout24 timeout " + TZHelper.getDateFromAddingSeconds(secondsEnd);
                 logger.info(wakeMessage);
@@ -504,7 +504,7 @@ public class Sleep extends SleepBase {
                         case warnSleep:
                             this.isRestoring = true;
                             //resetting warn timer
-                            setTimeout24Hours(TZHelper.getSecondsTo1pm());
+                            setTimeout24Hours(TZHelper.getSecondsTo5pm());
                             receivedWarnSleep(); // initial to warnStart
                             this.isRestoring = false;
                             break;
@@ -522,14 +522,14 @@ public class Sleep extends SleepBase {
                         case warnWake:
                             this.isRestoring = true;
                             //resetting warnEnd time
-                            setTimeout24Hours(TZHelper.getSecondsTo1pm());
+                            setTimeout24Hours(TZHelper.getSecondsTo5pm());
                             recievedWarnWake(); // initial to warnWake
                             this.isRestoring = false;
                             break;
                         case wake:
                             this.isRestoring = true;
                             // setting timeout24
-                            setTimeout24Hours(TZHelper.getSecondsTo1pm());
+                            setTimeout24Hours(TZHelper.getSecondsTo5pm());
                             receivedSleep();
                             receivedWake();
                             this.isRestoring = false;
@@ -539,7 +539,7 @@ public class Sleep extends SleepBase {
                     }
                 } else {
                     logger.info("restoreSaveState: no save state found for " + participantMap.get("participant_uuid"));
-                    setTimeout24Hours(TZHelper.getSecondsTo1pm());
+                    setTimeout24Hours(TZHelper.getSecondsTo5pm());
                     receivedWaitSleep(); // initial to waitStart
                 }
             }

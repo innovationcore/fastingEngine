@@ -542,7 +542,7 @@ public class TimezoneHelper {
     }
 
     /**
-     * return the seconds until 5pm in user's timezone
+     * return the seconds until 8pm in user's timezone
      * @return seconds
      */
     public int getSecondsTo8pm() {
@@ -550,8 +550,8 @@ public class TimezoneHelper {
         ZoneId userTZ = ZoneId.of(this.userTimezone);
         ZonedDateTime nowUserTimezone = ZonedDateTime.ofInstant(nowUTC, userTZ);
         LocalDateTime nowUserLocalTime = nowUserTimezone.toLocalDateTime();
-        LocalDateTime userLocalTime5pm = LocalDateTime.of(nowUserLocalTime.getYear(), nowUserLocalTime.getMonth(), nowUserLocalTime.getDayOfMonth(), 20, 0, 0);
-        long secondsUntil8pm = Duration.between(nowUserLocalTime, userLocalTime5pm).getSeconds();
+        LocalDateTime userLocalTime8pm = LocalDateTime.of(nowUserLocalTime.getYear(), nowUserLocalTime.getMonth(), nowUserLocalTime.getDayOfMonth(), 20, 0, 0);
+        long secondsUntil8pm = Duration.between(nowUserLocalTime, userLocalTime8pm).getSeconds();
         if (secondsUntil8pm < 0) {
             secondsUntil8pm += SEC_IN_DAY;
         }
@@ -559,12 +559,12 @@ public class TimezoneHelper {
     }
 
 
-    public int getSecondsTo1pm() {
+    public int getSecondsTo5pm() {
         Instant nowUTC = Instant.now();
         ZoneId userTZ = ZoneId.of(this.userTimezone);
         ZonedDateTime nowUserTimezone = ZonedDateTime.ofInstant(nowUTC, userTZ);
         LocalDateTime nowUserLocalTime = nowUserTimezone.toLocalDateTime();
-        LocalDateTime userLocalTime5pm = LocalDateTime.of(nowUserLocalTime.getYear(), nowUserLocalTime.getMonth(), nowUserLocalTime.getDayOfMonth(), 13, 0, 0);
+        LocalDateTime userLocalTime5pm = LocalDateTime.of(nowUserLocalTime.getYear(), nowUserLocalTime.getMonth(), nowUserLocalTime.getDayOfMonth(), 17, 0, 0);
         long secondsUntil1pm = Duration.between(nowUserLocalTime, userLocalTime5pm).getSeconds();
         if (secondsUntil1pm < 0) {
             secondsUntil1pm += SEC_IN_DAY;
