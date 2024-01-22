@@ -243,8 +243,7 @@ public class TimezoneHelper {
      * @return
      */
     public boolean isSameDaySleep(long lastKnownTime){
-        // check if lastKnownTime is on the same day as now and before the next day at 4am
-
+        // check if lastKnownTime is on the same day as now and before the next day at 5pm
         Instant lastKnownUTC = Instant.ofEpochMilli(lastKnownTime*1000L);
         ZoneId lastKnownTZ = ZoneId.of(this.userTimezone);
         ZonedDateTime lastKnownTimezone = ZonedDateTime.ofInstant(lastKnownUTC, lastKnownTZ);
@@ -255,11 +254,10 @@ public class TimezoneHelper {
         ZonedDateTime nowUserTimezone = ZonedDateTime.ofInstant(nowUTC, userTZ);
         LocalDateTime nowUserLocalTime = nowUserTimezone.toLocalDateTime();
 
-        LocalDateTime currentTime1pm = LocalDateTime.of(nowUserLocalTime.getYear(), nowUserLocalTime.getMonth(), nowUserLocalTime.getDayOfMonth(), 13, 5, 0);
-        currentTime1pm = currentTime1pm.plusDays(1);
-        long secondsUntil1pm = Duration.between(lastKnownLocalTime, currentTime1pm).getSeconds();
+        LocalDateTime currentTime5pm = LocalDateTime.of(nowUserLocalTime.getYear(), nowUserLocalTime.getMonth(), nowUserLocalTime.getDayOfMonth(), 17, 5, 0);
+        long secondsUntil5pm = Duration.between(lastKnownLocalTime, currentTime5pm).getSeconds();
 
-        return secondsUntil1pm <= 86400;
+        return secondsUntil5pm <= 86400;
     }
 
     /**

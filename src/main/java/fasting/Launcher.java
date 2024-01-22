@@ -88,7 +88,7 @@ public class Launcher {
 
             //testing
 //            TimezoneHelper TZHelper = new TimezoneHelper("America/Louisville","Etc/UTC");
-//            System.out.println(TZHelper.getSecondsTo1pm());
+//            System.out.println(TZHelper.isSameDaySleep(1705895100));
 //            System.exit(0);
 
             //start HPM protocols
