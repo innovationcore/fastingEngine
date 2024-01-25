@@ -163,7 +163,6 @@ public class CCW_ControlWatcher {
                     } else {
                         // invalid state
                         newState = "initial invalid";
-                        break;
                     }
                     break;
                 //warnStartCal,startcal,endProtocol
@@ -184,7 +183,6 @@ public class CCW_ControlWatcher {
                     } else {
                         // invalid state
                         newState = "waitstart invalid";
-                        break;
                     }
                     break;
                 // timeout24,startcal,endProtocol
@@ -205,7 +203,6 @@ public class CCW_ControlWatcher {
                     } else {
                         newState = "warnStartCal invalid";
                         // invalid state
-                        break;
                     }
                     break;
                 // startcal,endcal,warnEndCal,endProtocol
@@ -232,7 +229,6 @@ public class CCW_ControlWatcher {
                     } else {
                         newState = "startcal invalid";
                         // invalid state
-                        break;
                     }
                     break;
                 // missedEndCal,endcal,endProtocol
@@ -250,8 +246,8 @@ public class CCW_ControlWatcher {
                     } else {
                         // invalid state
                         newState = "warnEndCal invalid";
-                        break;
                     }
+                    break;
                 // endcal,waitStart,endProtocol
                 case endcal:
                     if (moveToState.equals("endcal")){
@@ -270,7 +266,6 @@ public class CCW_ControlWatcher {
                     } else {
                         // invalid state
                         newState = "endcal invalid";
-                        break;
                     }
                     break;
                 case timeout24:
@@ -278,8 +273,8 @@ public class CCW_ControlWatcher {
                         newState = "waitStart";
                     } else {
                         newState = "timeout24 invalid";
-                        break;
                     }
+                    break;
                 case endProtocol:
                     // no states to move to
                     newState = "endProtocol invalid";

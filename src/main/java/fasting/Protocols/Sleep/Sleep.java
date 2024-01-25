@@ -27,6 +27,7 @@ public class Sleep extends SleepBase {
     public String stateJSON;
     private final Gson gson;
     public ScheduledExecutorService uploadSave;
+    public boolean hasBeenWarned;
     private static final Logger logger = LoggerFactory.getLogger(fasting.Protocols.Sleep.Sleep.class.getName());
 
     public Sleep(Map<String, String> participantMap) {
@@ -35,6 +36,7 @@ public class Sleep extends SleepBase {
         this.stateMap = new HashMap<>();
         this.isRestoring = false;
         this.isReset = false;
+        this.hasBeenWarned = false;
 
         // this initializes the user's and machine's timezone
         this.TZHelper = new TimezoneHelper(participantMap.get("time_zone"), TimeZone.getDefault().getID());
@@ -331,7 +333,8 @@ public class Sleep extends SleepBase {
                 //no timers
                 break;
             case waitSleep:
-                int seconds = TZHelper.getSecondsTo2059pm();
+                this.hasBeenWarned = false;
+                int seconds = TZHelper.getSecondsTo1159am();
                 if (seconds <= 0) {
                     seconds = 300;
                 }
@@ -346,11 +349,12 @@ public class Sleep extends SleepBase {
                 //set end for sleep
                 int secondsWarn = TZHelper.getSecondsTo5pm();
                 setTimeout24Hours(secondsWarn);
-//                String warnSleepMessage = "Remember to text \"SLEEP\" when you begin trying to fall asleep and \"WAKE\" when wake up in the morning. Thank you!";
-//                if (!this.isRestoring){
-//                    Launcher.msgUtils.sendMessage(participantMap.get("number"), warnSleepMessage, false);
-//                }
-                logger.warn(participantMap.get("participant_uuid") + ": warnSleep --> timeout24Hours " +TZHelper.getDateFromAddingSeconds(secondsWarn));
+                String warnSleepMessage = "Remember to tell us when you tried to sleep last night and when you woke up this morning. Thank you!";
+                this.hasBeenWarned = true;
+                if (!this.isRestoring){
+                    Launcher.msgUtils.sendMessage(participantMap.get("number"), warnSleepMessage, false);
+                }
+                logger.warn(participantMap.get("participant_uuid") + ": in warnSleep -> timeout24Hours " +TZHelper.getDateFromAddingSeconds(secondsWarn));
                 //save state info
                 stateJSON = saveStateJSON();
                 Launcher.dbEngine.uploadSaveState(stateJSON, participantMap.get("participant_uuid"));
@@ -361,7 +365,7 @@ public class Sleep extends SleepBase {
                     secondsStart = 300;
                 }
                 setWakeWarnDeadline(secondsStart);
-                String sleepMessage = participantMap.get("participant_uuid") + " thanks for sending sleep: warnWake timeout " + TZHelper.getDateFromAddingSeconds(secondsStart);
+                String sleepMessage = participantMap.get("participant_uuid") + " in sleep -> warnWake timeout " + TZHelper.getDateFromAddingSeconds(secondsStart);
                 logger.info(sleepMessage);
 
                 // update sleep time in state_log
@@ -388,12 +392,13 @@ public class Sleep extends SleepBase {
                 break;
             case warnWake:
                 //set end for wake
-                setTimeout24Hours(TZHelper.getSecondsTo5pm());
-                String warnWakeMessage = "Remember to tell us when you tried to sleep last night and when you woke up this morning. Thank you!";
-                if (!this.isRestoring){
+                int secondsWarn5pm = TZHelper.getSecondsTo5pm();
+                setTimeout24Hours(secondsWarn5pm);
+                String warnWakeMessage = "Remember to tell us when you woke up this morning. Thank you!";
+                if (!this.isRestoring && !this.hasBeenWarned) {
                     Launcher.msgUtils.sendMessage(participantMap.get("number"), warnWakeMessage, false);
                 }
-                logger.warn(warnWakeMessage);
+                logger.warn(participantMap.get("participant_uuid") + " in warnWake -> timeout24 " + TZHelper.getDateFromAddingSeconds(secondsWarn5pm) + ": alreadyBeenWarned: " + this.hasBeenWarned);
                 //save state info
                 stateJSON = saveStateJSON();
                 Launcher.dbEngine.uploadSaveState(stateJSON, participantMap.get("participant_uuid"));
@@ -436,9 +441,6 @@ public class Sleep extends SleepBase {
                 break;
             case timeout24:
                 logger.warn(participantMap.get("participant_uuid") + " did not send sleep/wake in time.");
-                Launcher.msgUtils.sendMessage(participantMap.get("number"), "We haven't heard from you in a " +
-                        "while. Remember to text \"SLEEP\" when you start to fall asleep at night and \"WAKE\" " +
-                        "when you wake up in the morning! Let us know if you need help.", false);
                 Launcher.msgUtils.sendMessage(participantMap.get("number"), "[Sleep Baseline] Participant " +
                         participantMap.get("first_name") + " " + participantMap.get("last_name") +
                         " ("+participantMap.get("number")+") did not send SLEEP or WAKE during the last cycle.", true);
@@ -497,15 +499,12 @@ public class Sleep extends SleepBase {
                             break;
                         case waitSleep:
                             this.isRestoring = true;
-                            //resetting warn timer
-                            setSleepWarnDeadline(TZHelper.getSecondsTo2059pm());
                             receivedWaitSleep(); // initial to waitSleep
                             this.isRestoring = false;
                             break;
                         case warnSleep:
                             this.isRestoring = true;
                             //resetting warn timer
-                            setTimeout24Hours(TZHelper.getSecondsTo5pm());
                             receivedWarnSleep(); // initial to warnSleep
                             this.isRestoring = false;
                             break;
@@ -517,21 +516,15 @@ public class Sleep extends SleepBase {
                             }
                             Launcher.dbEngine.saveSleepTime(participantMap.get("participant_uuid"), unixTS);
                             receivedSleep();
-                            setWakeWarnDeadline(TZHelper.getSecondsTo1159am()); //get the seconds until noon
                             this.isRestoring = false;
                             break;
                         case warnWake:
                             this.isRestoring = true;
-                            //resetting warnEnd time
-                            setTimeout24Hours(TZHelper.getSecondsTo5pm());
                             recievedWarnWake(); // initial to warnWake
                             this.isRestoring = false;
                             break;
                         case wake:
                             this.isRestoring = true;
-                            // setting timeout24
-                            setTimeout24Hours(TZHelper.getSecondsTo5pm());
-                            receivedSleep();
                             receivedWake();
                             this.isRestoring = false;
                             break;
@@ -540,7 +533,6 @@ public class Sleep extends SleepBase {
                     }
                 } else {
                     logger.info("restoreSaveState: no save state found for " + participantMap.get("participant_uuid"));
-                    setTimeout24Hours(TZHelper.getSecondsTo5pm());
                     receivedWaitSleep(); // initial to waitSleep
                 }
             }

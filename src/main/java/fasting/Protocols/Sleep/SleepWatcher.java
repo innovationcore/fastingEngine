@@ -165,7 +165,6 @@ public class SleepWatcher {
                     } else {
                         // invalid state
                         newState = "initial invalid";
-                        break;
                     }
                     break;
                 //warnSleep,sleep,endProtocol
@@ -185,7 +184,6 @@ public class SleepWatcher {
                     } else {
                         // invalid state
                         newState = "waitSleep invalid";
-                        break;
                     }
                     break;
                 // timeout24,sleep,endProtocol
@@ -205,7 +203,6 @@ public class SleepWatcher {
                     } else {
                         newState = "warnSleep invalid";
                         // invalid state
-                        break;
                     }
                     break;
                 // sleep,wake,warnWake,endProtocol
@@ -231,16 +228,18 @@ public class SleepWatcher {
                     } else {
                         newState = "sleep invalid";
                         // invalid state
-                        break;
                     }
                     break;
-                // waitSleep,wake,endProtocol
+                // missedWake, waitSleep,wake,endProtocol
                 case warnWake:
                     if (moveToState.equals("missedWake")){
                         participant.timeoutwarnWakeTomissedWake();
                         newState = "waitSleep";
                     } else if (moveToState.equals("wake")){
+                        long timestamp = participant.TZHelper.parseTimeWebsite(time);
+                        Launcher.dbEngine.saveWakeTimeCreateTemp(participantId, timestamp);
                         participant.receivedWake();
+                        Launcher.dbEngine.removeTempWake(participantId);
                         newState = "wake";
                     } else if (moveToState.equals("endProtocol")){
                         participant.receivedEndProtocol();
@@ -248,8 +247,8 @@ public class SleepWatcher {
                     } else {
                         // invalid state
                         newState = "warnWake invalid";
-                        break;
                     }
+                    break;
                     // wake,waitSleep,endProtocol
                 case wake:
                     if (moveToState.equals("wake")){
@@ -267,7 +266,6 @@ public class SleepWatcher {
                     } else {
                         // invalid state
                         newState = "wake invalid";
-                        break;
                     }
                     break;
                 case missedWake:
@@ -275,15 +273,15 @@ public class SleepWatcher {
                         newState = "waitSleep";
                     } else {
                         newState = "missedWake invalid";
-                        break;
                     }
+                    break;
                 case timeout24:
                     if (moveToState.equals("waitSleep")) {
                         newState = "waitSleep";
                     } else {
                         newState = "timeout24 invalid";
-                        break;
                     }
+                    break;
                 case endProtocol:
                     // no states to move to
                     newState = "endProtocol invalid";

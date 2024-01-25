@@ -17,6 +17,7 @@ class SleepBase
       receivedWaitSleep -> waitSleep;
       receivedWarnSleep -> warnSleep;
       receivedSleep -> sleep;
+      receivedWake -> wake;
       recievedWarnWake -> warnWake;
       receivedEndProtocol -> endProtocol;
     }

@@ -423,8 +423,12 @@ public class CCW_Restricted extends CCW_RestrictedBase {
                 break;
             case warnStartCal:
                 //set start fail timer
-                setStartDeadline(TZHelper.getSecondsTo359am());
-                String warnStartCalMessageLog = participantMap.get("participant_uuid") + " please submit startcal: startdeadline timeout " + TZHelper.getDateFromAddingSeconds(TZHelper.getSecondsTo359am());
+                int secondsWarn4am = TZHelper.getSecondsTo359am();
+                if (secondsWarn4am < 0) {
+                    secondsWarn4am = 0;
+                }
+                setStartDeadline(secondsWarn4am);
+                String warnStartCalMessageLog = participantMap.get("participant_uuid") + " please submit startcal: startdeadline timeout " + TZHelper.getDateFromAddingSeconds(secondsWarn4am);
                 logger.warn(warnStartCalMessageLog);
                 // send reminder message at noon
                 String warnStartCalMessage = "No \"STARTCAL\" received yet today. Please send us your \"STARTCAL\" so we know when your calories began today.";
@@ -500,14 +504,18 @@ public class CCW_Restricted extends CCW_RestrictedBase {
                 break;
             case warnEndCal:
                 //set end for endcal
-                setEndDeadline(TZHelper.getSecondsTo359am());
+                int secondsWarnEnd4am = TZHelper.getSecondsTo359am();
+                if (secondsWarnEnd4am < 0) {
+                    secondsWarnEnd4am = 0;
+                }
+                setEndDeadline(secondsWarnEnd4am);
                 String warnEndCalMessage = participantMap.get("first_name") +  ", we haven't heard from you. Remember to text \"ENDCAL\" when you go calorie free.";
                 if (!this.pauseMessages){
                     Launcher.msgUtils.sendMessage(participantMap.get("number"), warnEndCalMessage, false);
                 } else {
                     this.pauseMessages = false;
                 }
-                logger.warn(warnEndCalMessage);
+                logger.warn(participantMap.get("participant_uuid") + " in warnEndCal -> endDeadline " + TZHelper.getDateFromAddingSeconds(secondsWarnEnd4am));
                 //save state info
                 stateJSON = saveStateJSON();
                 Launcher.dbEngine.uploadSaveState(stateJSON, participantMap.get("participant_uuid"));
@@ -631,8 +639,12 @@ public class CCW_Restricted extends CCW_RestrictedBase {
                 break;
             case endOfEpisode:
                 //set restart one minute after other timeouts
-                setEndOfEpisodeDeadline(TZHelper.getSecondsTo4am());// timeToD2359am() + 60);
-                String endOfEpisode = participantMap.get("participant_uuid") + " end of episode timeout " + TZHelper.getDateFromAddingSeconds(TZHelper.getSecondsTo4am());
+                int secondsEnd = TZHelper.getSecondsTo4am(); // timeToD2359am() + 60
+                if (secondsEnd < 0) {
+                    secondsEnd = 0;
+                }
+                setEndOfEpisodeDeadline(secondsEnd);
+                String endOfEpisode = participantMap.get("participant_uuid") + " end of episode timeout " + TZHelper.getDateFromAddingSeconds(secondsEnd);
                 logger.info(endOfEpisode);
                 //save state info
                 stateJSON = saveStateJSON();
@@ -761,62 +773,35 @@ public class CCW_Restricted extends CCW_RestrictedBase {
                             //no timers
                             break;
                         case waitStart:
-                            //resetting warn timer
-                            int startWarnDiff = TZHelper.getSecondsTo1159am();  //timeToD1T1159am();
-                            if (startWarnDiff <= 0) {
-                                startWarnDiff = 300;
-                            }
                             this.pauseMessages = true;
-                            setStartWarnDeadline(startWarnDiff);
                             receivedWaitStart(); // initial to waitStart
                             this.pauseMessages = false;
                             break;
                         case warnStartCal:
                             //reset startDeadline
-                            int secondsTo359am0 = TZHelper.getSecondsTo359am();
-                            if (secondsTo359am0 < 0) {
-                                secondsTo359am0 = 0;
-                            }
                             this.pauseMessages = true;
-                            setStartDeadline(secondsTo359am0); // timeToD2359am());
                             receivedWarnStartCal(); // initial to warnStartCal
                             this.pauseMessages = false;
                             break;
                         case startcal:
                             //reset endWarnDeadline
-                            int secondsTo2059pm = TZHelper.getSecondsTo2059pm();
-                            if (secondsTo2059pm < 0) {
-                                secondsTo2059pm = 0;
-                            }
                             long unixTS = Launcher.dbEngine.getStartCalTime(participantMap.get("participant_uuid"));
                             if (unixTS == 0) {
                                 unixTS = TZHelper.getUnixTimestampNow();
                             }
                             Launcher.dbEngine.saveStartCalTime(participantMap.get("participant_uuid"), unixTS);
                             this.pauseMessages = true;
-                            setEndWarnDeadline(secondsTo2059pm); //timeToD19pm());
                             receivedStartCal();
                             this.pauseMessages = false;
                             break;
                         case warnEndCal:
                             //reset endDeadline
-                            int secondsTo359am1 = TZHelper.getSecondsTo359am();
-                            if (secondsTo359am1 < 0) {
-                                secondsTo359am1 = 0;
-                            }
                             this.pauseMessages = true;
-                            setEndDeadline(secondsTo359am1);
                             recievedWarnEndCal();
                             this.pauseMessages = false;
                             break;
                         case endOfEpisode:
-                            // reset endOfEpisodeDeadline
-                            int secondsTo4am = TZHelper.getSecondsTo4am();
-                            if (secondsTo4am < 0) {
-                                secondsTo4am = 0;
-                            }
                             this.pauseMessages = true;
-                            setEndOfEpisodeDeadline(secondsTo4am);
                             // quickest path to endOfEpisode, move it but don't save it
                             receivedStartCal();
                             receivedEndCal();
@@ -827,11 +812,6 @@ public class CCW_Restricted extends CCW_RestrictedBase {
                     }
                 } else {
                     logger.info("restoreSaveState: no save state found for " + participantMap.get("participant_uuid"));
-                    int startWarnDiff = TZHelper.getSecondsTo1159am();  //timeToD1T1159am();
-                    if (startWarnDiff <= 0) {
-                        startWarnDiff = 300;
-                    }
-                    setStartWarnDeadline(startWarnDiff);
                     receivedWaitStart(); // initial to waitStart
                 }
             }

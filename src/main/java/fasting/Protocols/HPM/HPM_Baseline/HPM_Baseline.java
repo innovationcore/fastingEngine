@@ -352,12 +352,13 @@ public class HPM_Baseline extends HPM_BaselineBase {
                 break;
             case warnStartCal:
                 //set end for startcal
-                setTimeout24Hours(TZHelper.getSecondsTo359am());
+                int secondsTo4am = TZHelper.getSecondsTo359am();
+                setTimeout24Hours(secondsTo4am);
                 String warnStartMessage = "Remember to text \"STARTCAL\" when your calories start for the day and \"ENDCAL\" when your calories finish at night. Thank you!";
                 if (!this.isRestoring){
                     Launcher.msgUtils.sendMessage(participantMap.get("number"), warnStartMessage, false);
                 }
-                logger.warn(warnStartMessage);
+                logger.warn(participantMap.get("participant_uuid") + " in warnStartCal -> timeout24 " + TZHelper.getDateFromAddingSeconds(secondsTo4am));
                 //save state info
                 stateJSON = saveStateJSON();
                 Launcher.dbEngine.uploadSaveState(stateJSON, participantMap.get("participant_uuid"));
@@ -395,12 +396,13 @@ public class HPM_Baseline extends HPM_BaselineBase {
                 break;
             case warnEndCal:
                 //set end for endcal
-                setTimeout24Hours(TZHelper.getSecondsTo359am());
+                int secondsWarn4am = TZHelper.getSecondsTo359am();
+                setTimeout24Hours(secondsWarn4am);
                 String warnEndCalMessage = "Remember to enter your \"ENDCAL\" tonight after your last calories. Thank you!";
                 if (!this.isRestoring){
                     Launcher.msgUtils.sendMessage(participantMap.get("number"), warnEndCalMessage, false);
                 }
-                logger.warn(warnEndCalMessage);
+                logger.warn(participantMap.get("participant_uuid") + " in warnEndCal -> timeout24 " + TZHelper.getDateFromAddingSeconds(secondsWarn4am));
                 //save state info
                 stateJSON = saveStateJSON();
                 Launcher.dbEngine.uploadSaveState(stateJSON, participantMap.get("participant_uuid"));
@@ -502,15 +504,12 @@ public class HPM_Baseline extends HPM_BaselineBase {
                             break;
                         case waitStart:
                             this.isRestoring = true;
-                            //resetting warn timer
-                            setStartWarnDeadline(TZHelper.getSecondsTo1159am());
                             receivedWaitStart(); // initial to waitStart
                             this.isRestoring = false;
                             break;
                         case warnStartCal:
                             this.isRestoring = true;
                             //resetting warn timer
-                            setTimeout24Hours(TZHelper.getSecondsTo359am());
                             receivedWarnStart(); // initial to warnStart
                             this.isRestoring = false;
                             break;
@@ -522,20 +521,15 @@ public class HPM_Baseline extends HPM_BaselineBase {
                             }
                             Launcher.dbEngine.saveStartCalTime(participantMap.get("participant_uuid"), unixTS);
                             receivedStartCal();
-                            setEndWarnDeadline(TZHelper.getSecondsTo2059pm());
                             this.isRestoring = false;
                             break;
                         case warnEndCal:
                             this.isRestoring = true;
-                            //resetting warnEnd time
-                            setTimeout24Hours(TZHelper.getSecondsTo359am());
                             recievedWarnEndCal(); // initial to warnEndCal
                             this.isRestoring = false;
                             break;
                         case endcal:
                             this.isRestoring = true;
-                            // setting timeout24
-                            setTimeout24Hours(TZHelper.getSecondsTo359am());
                             receivedStartCal();
                             receivedEndCal();
                             this.isRestoring = false;

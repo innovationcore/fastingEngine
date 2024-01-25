@@ -11,7 +11,7 @@ import java.util.*;
  * UML State diagram for Sleeping messages, represented in Umple
  */
 // line 3 "model.ump"
-// line 113 "model.ump"
+// line 114 "model.ump"
 public class SleepBase
 {
 
@@ -170,6 +170,39 @@ public class SleepBase
         return wasEventProcessed;
     }
 
+    public boolean receivedWake()
+    {
+        boolean wasEventProcessed = false;
+
+        State aState = state;
+        switch (aState)
+        {
+            case initial:
+                setState(State.wake);
+                wasEventProcessed = true;
+                break;
+            case sleep:
+                exitState();
+                setState(State.wake);
+                wasEventProcessed = true;
+                break;
+            case warnWake:
+                exitState();
+                setState(State.wake);
+                wasEventProcessed = true;
+                break;
+            case wake:
+                exitState();
+                setState(State.wake);
+                wasEventProcessed = true;
+                break;
+            default:
+                // Other states do respond to this event
+        }
+
+        return wasEventProcessed;
+    }
+
     public boolean recievedWarnWake()
     {
         boolean wasEventProcessed = false;
@@ -269,35 +302,6 @@ public class SleepBase
         return wasEventProcessed;
     }
 
-    public boolean receivedWake()
-    {
-        boolean wasEventProcessed = false;
-
-        State aState = state;
-        switch (aState)
-        {
-            case sleep:
-                exitState();
-                setState(State.wake);
-                wasEventProcessed = true;
-                break;
-            case warnWake:
-                exitState();
-                setState(State.wake);
-                wasEventProcessed = true;
-                break;
-            case wake:
-                exitState();
-                setState(State.wake);
-                wasEventProcessed = true;
-                break;
-            default:
-                // Other states do respond to this event
-        }
-
-        return wasEventProcessed;
-    }
-
     public boolean timeoutsleepTowarnWake()
     {
         boolean wasEventProcessed = false;
@@ -355,7 +359,7 @@ public class SleepBase
         return wasEventProcessed;
     }
 
-    private boolean __autotransition188__()
+    private boolean __autotransition817__()
     {
         boolean wasEventProcessed = false;
 
@@ -373,7 +377,7 @@ public class SleepBase
         return wasEventProcessed;
     }
 
-    private boolean __autotransition189__()
+    private boolean __autotransition818__()
     {
         boolean wasEventProcessed = false;
 
@@ -426,50 +430,50 @@ public class SleepBase
                 stateNotify("initial");
                 break;
             case waitSleep:
-                // line 26 "model.ump"
+                // line 27 "model.ump"
                 // wait here until a sleep text is received
                 stateNotify("waitSleep");
                 startTimeoutwaitSleepTowarnSleepHandler();
                 break;
             case warnSleep:
-                // line 37 "model.ump"
+                // line 38 "model.ump"
                 // send a reminder message at a certain time
                 stateNotify("warnSleep");
                 startTimeoutwarnSleepTotimeout24Handler();
                 break;
             case sleep:
-                // line 48 "model.ump"
+                // line 49 "model.ump"
                 // receive additional sleep messages and update
                 // starting time, also receive wake
                 stateNotify("sleep");
                 startTimeoutsleepTowarnWakeHandler();
                 break;
             case warnWake:
-                // line 63 "model.ump"
+                // line 64 "model.ump"
                 stateNotify("warnWake");
                 startTimeoutwarnWakeTomissedWakeHandler();
                 break;
             case wake:
-                // line 72 "model.ump"
+                // line 73 "model.ump"
                 // receive additional wake messages and update
                 // end time
                 stateNotify("wake");
                 startTimeoutwakeTowaitSleepHandler();
                 break;
             case missedWake:
-                // line 83 "model.ump"
+                // line 84 "model.ump"
                 stateNotify("missedWake");
-                __autotransition188__();
+                __autotransition817__();
                 break;
             case timeout24:
-                // line 89 "model.ump"
+                // line 90 "model.ump"
                 // sends a message if sleep or wake are not
                 // received for the day
                 stateNotify("timeout24");
-                __autotransition189__();
+                __autotransition818__();
                 break;
             case endProtocol:
-                // line 99 "model.ump"
+                // line 100 "model.ump"
                 stateNotify("endProtocol");
                 break;
         }
@@ -599,12 +603,12 @@ public class SleepBase
     public void delete()
     {}
 
-    // line 106 "model.ump"
+    // line 107 "model.ump"
     public boolean stateNotify(String node){
         return true;
     }
 
-    // line 107 "model.ump"
+    // line 108 "model.ump"
     public int currentTime(){
         return 1;
     }

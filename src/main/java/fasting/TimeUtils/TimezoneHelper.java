@@ -67,9 +67,6 @@ public class TimezoneHelper {
         LocalDateTime nowUserLocalTime = nowUserTimezone.toLocalDateTime();
         LocalDateTime userLocalTimeNoon = LocalDateTime.of(nowUserLocalTime.getYear(), nowUserLocalTime.getMonth(), nowUserLocalTime.getDayOfMonth(), 11, 59, 30);
         long secondsUntilNoon = Duration.between(nowUserLocalTime, userLocalTimeNoon).getSeconds();
-        if (secondsUntilNoon < 0) {
-            secondsUntilNoon += SEC_IN_DAY;
-        }
         return (int) secondsUntilNoon;
     }
 
