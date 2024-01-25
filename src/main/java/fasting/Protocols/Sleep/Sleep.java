@@ -494,8 +494,11 @@ public class Sleep extends SleepBase {
                         case initial:
                         case missedWake:
                         case timeout24:
+                            // if participant is here, something broke. just restart at beginning
+                            receivedWaitSleep();
+                            break;
                         case endProtocol:
-                            // no timers
+                            // do nothing
                             break;
                         case waitSleep:
                             this.isRestoring = true;
