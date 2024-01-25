@@ -134,7 +134,7 @@ public class DBEngine {
         ResultSet rs = null;
         String participantId = null;
         try {
-            String queryString = "SELECT participant_uuid FROM participants WHERE JSON_VALUE(participant_json, '$.number') = ?";
+            String queryString = "SELECT participant_uuid FROM participants WHERE JSON_VALUE(participant_json, '$.number') = ? AND study != 'ADMIN'";
 
             conn = ds.getConnection();
             stmt = conn.prepareStatement(queryString);

@@ -34,6 +34,7 @@ public class MsgUtils {
     }
 
     public void sendMessage(String textTo, String body, Boolean toAdmin) {
+        Message message = null;
         try {
             String participantId = Launcher.dbEngine.getParticipantIdFromPhoneNumber(textTo);
             String study = Launcher.dbEngine.getStudyFromParticipantId(participantId);
@@ -63,7 +64,7 @@ public class MsgUtils {
                         } else {
                             toNumber = textTo;
                         }
-                        Message.creator(
+                        message = Message.creator(
                                         new PhoneNumber(toNumber),
                                         new PhoneNumber(textFromCCW),
                                         body)
@@ -75,15 +76,21 @@ public class MsgUtils {
                         } else {
                             toNumber = textTo;
                         }
-                        Message.creator(
+                        message = Message.creator(
                                         new PhoneNumber(toNumber),
                                         new PhoneNumber(textFromSleep),
                                         body)
                                 .create();
                         break;
+                    default:
+                        logger.error("MsgUtils: Unknown study for participant");
                 }
             }
 
+            Message.Status status = message.getStatus();
+            if (status.toString().equals("failed")) {
+                logger.error("Message not sent..." + status);
+            }
             String messageId = UUID.randomUUID().toString();
             String messageDirection = "outgoing";
 
