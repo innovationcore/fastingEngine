@@ -58,7 +58,19 @@ public class TimezoneHelper {
     }
 
     /**
-    * return the seconds until Noon -1 min for user timezone
+     * return T/F if the current user time is before 5pm
+     */
+    public boolean isAfter5pm() {
+        Instant nowUTC = Instant.now();
+        ZoneId userTZ = ZoneId.of(this.userTimezone);
+        ZonedDateTime nowUserTimezone = ZonedDateTime.ofInstant(nowUTC, userTZ);
+        LocalTime fivePm = LocalTime.of(17, 0);  // 5 pm
+
+        return nowUserTimezone.toLocalTime().isAfter(fivePm);
+    }
+
+    /**
+    * return the seconds until Noon -30 sec for user timezone
     */
     public int getSecondsTo1159am() {
         Instant nowUTC = Instant.now();
@@ -67,11 +79,14 @@ public class TimezoneHelper {
         LocalDateTime nowUserLocalTime = nowUserTimezone.toLocalDateTime();
         LocalDateTime userLocalTimeNoon = LocalDateTime.of(nowUserLocalTime.getYear(), nowUserLocalTime.getMonth(), nowUserLocalTime.getDayOfMonth(), 11, 59, 30);
         long secondsUntilNoon = Duration.between(nowUserLocalTime, userLocalTimeNoon).getSeconds();
+        if (isAfter5pm()) {
+            secondsUntilNoon += SEC_IN_DAY;
+        }
         return (int) secondsUntilNoon;
     }
 
     /**
-    * return the seconds until 9pm -1 min for user timezone
+    * return the seconds until 9pm -30 sec for user timezone
     */
     public int getSecondsTo2059pm() {
         Instant nowUTC = Instant.now();
