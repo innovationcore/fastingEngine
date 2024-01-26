@@ -575,11 +575,11 @@ public class TimezoneHelper {
         ZonedDateTime nowUserTimezone = ZonedDateTime.ofInstant(nowUTC, userTZ);
         LocalDateTime nowUserLocalTime = nowUserTimezone.toLocalDateTime();
         LocalDateTime userLocalTime5pm = LocalDateTime.of(nowUserLocalTime.getYear(), nowUserLocalTime.getMonth(), nowUserLocalTime.getDayOfMonth(), 17, 0, 0);
-        long secondsUntil1pm = Duration.between(nowUserLocalTime, userLocalTime5pm).getSeconds();
-        if (secondsUntil1pm < 0) {
-            secondsUntil1pm += SEC_IN_DAY;
+        long secondsUntil5pm = Duration.between(nowUserLocalTime, userLocalTime5pm).getSeconds();
+        if (secondsUntil5pm < 0) {
+            secondsUntil5pm += SEC_IN_DAY;
         }
-        return (int) secondsUntil1pm;
+        return (int) secondsUntil5pm;
     }
 
 
