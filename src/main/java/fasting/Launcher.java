@@ -87,8 +87,9 @@ public class Launcher {
             new MessageSchedulerExecutor().startWatcher();
 
             //testing
-//            TimezoneHelper TZHelper = new TimezoneHelper("Europe/London","Etc/UTC");
-//            System.out.println(TZHelper.getSecondsTo5pm());
+//            TimezoneHelper TZHelper = new TimezoneHelper("Europe/Berlin","Etc/UTC");
+//            System.out.println(TZHelper.isAfter5pm());
+//            System.out.println(TZHelper.getSecondsTo1159am());
 //            System.exit(0);
 
             //start HPM protocols
