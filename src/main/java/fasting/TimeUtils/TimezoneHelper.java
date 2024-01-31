@@ -64,7 +64,7 @@ public class TimezoneHelper {
         Instant nowUTC = Instant.now();
         ZoneId userTZ = ZoneId.of(this.userTimezone);
         ZonedDateTime nowUserTimezone = ZonedDateTime.ofInstant(nowUTC, userTZ);
-        LocalTime fivePm = LocalTime.of(17, 0);  // 5 pm
+        LocalTime fivePm = LocalTime.of(16, 45);  // 5 pm - 15 mins to stop a race condition at 5pm
 
         return nowUserTimezone.toLocalTime().isAfter(fivePm);
     }
