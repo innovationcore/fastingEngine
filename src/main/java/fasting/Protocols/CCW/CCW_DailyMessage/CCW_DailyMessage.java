@@ -106,7 +106,7 @@ public class CCW_DailyMessage extends CCW_DailyMessageBase {
                 }
 
                 String currentState = restrictedMap.get(participantMap.get("participant_uuid")).getState().toString();
-                if(isReset){
+                if (isReset) {
                     this.isReset = true;
                     int seconds = TZHelper.getSecondsTo8pm();
                     setTimeout24Hours(seconds);

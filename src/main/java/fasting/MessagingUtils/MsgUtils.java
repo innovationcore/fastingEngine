@@ -36,7 +36,8 @@ public class MsgUtils {
     public void sendMessage(String textTo, String body, Boolean toAdmin, String study) {
         Message message = null;
         try {
-            String participantId = Launcher.dbEngine.getParticipantIdFromPhoneNumber(textTo);
+            Map<String, String> participantIds = Launcher.dbEngine.getParticipantIdFromPhoneNumber(textTo);
+            String participantId = participantIds.get(study);
             Boolean isMessagingDisabled = Launcher.config.getBooleanParam("disable_messaging");
 
             if (isMessagingDisabled) {
@@ -89,7 +90,7 @@ public class MsgUtils {
                     logger.error("Message not sent..." + status);
                 }
             }
-            
+
             String messageId = UUID.randomUUID().toString();
             String messageDirection = "outgoing";
 
@@ -126,7 +127,8 @@ public class MsgUtils {
 
     public void sendScheduledMessage(String textTo, String body, ZonedDateTime dateTime, Boolean toAdmin, String study) {
         try {
-            String participantId = Launcher.dbEngine.getParticipantIdFromPhoneNumber(textTo);
+            Map<String, String> participantIds = Launcher.dbEngine.getParticipantIdFromPhoneNumber(textTo);
+            String participantId = participantIds.get(study);
             String fromNumber = null;
 
             switch (study) {

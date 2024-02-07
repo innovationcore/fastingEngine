@@ -128,21 +128,21 @@ public class DBEngine {
     }
 
 
-    public String getParticipantIdFromPhoneNumber(String PhoneNumber) {
+    public Map<String, String> getParticipantIdFromPhoneNumber(String PhoneNumber) {
         Connection conn = null;
         PreparedStatement stmt = null;
         ResultSet rs = null;
-        String participantId = null;
+        Map<String, String> participantId = new HashMap<>();
         try {
-            String queryString = "SELECT participant_uuid FROM participants WHERE JSON_VALUE(participant_json, '$.number') = ? AND study != 'ADMIN'";
+            String queryString = "SELECT participant_uuid, study FROM participants WHERE JSON_VALUE(participant_json, '$.number') = ? AND study != 'ADMIN'";
 
             conn = ds.getConnection();
             stmt = conn.prepareStatement(queryString);
             stmt.setString(1, PhoneNumber);
             rs = stmt.executeQuery();
 
-            if (rs.next()) {
-                participantId = rs.getString("participant_uuid");
+            while (rs.next()) {
+                participantId.put(rs.getString("study"), rs.getString("participant_uuid"));
             }
 
         } catch(Exception ex) {
@@ -1216,11 +1216,11 @@ public class DBEngine {
     }
 
 
-    public List<String> getStudyFromParticipantId(String uuid) {
+    public String getStudyFromParticipantId(String uuid) {
         Connection conn = null;
         PreparedStatement stmt = null;
         ResultSet rs = null;
-        List<String> studies = new ArrayList<>();
+        String studies = "";
 
         try{
             String query = "SELECT study FROM participants WHERE participant_uuid=?";
@@ -1229,8 +1229,8 @@ public class DBEngine {
             stmt.setString(1, uuid);
             rs = stmt.executeQuery();
 
-            while (rs.next()){
-                studies.add(rs.getString("study"));
+            if (rs.next()){
+                studies = rs.getString("study");
             }
 
         } catch (Exception ex) {

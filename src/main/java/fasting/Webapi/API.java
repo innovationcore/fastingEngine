@@ -36,10 +36,10 @@ public class API {
         try {
 
             String messageId = UUID.randomUUID().toString();
-            String participantId = Launcher.dbEngine.getParticipantIdFromPhoneNumber(formParams.get("From").get(0));
+            Map<String, String> participantIds = Launcher.dbEngine.getParticipantIdFromPhoneNumber(formParams.get("From").get(0));
             String textBody = formParams.get("Body").get(0);
 
-            if (participantId != null) {
+            if (!participantIds.isEmpty()) {
                 String messageDirection = "incoming";
                 //logger.error(gson.toJson(convertMultiToRegularMap(formParams)));
                 
@@ -48,7 +48,11 @@ public class API {
                 String json_string = gson.toJson(formsMap);
 
                 // get HPM, CCW, Sleep or a combo
-                List<String> studies = Launcher.dbEngine.getStudyFromParticipantId(participantId); // this returns HPM or CCW (check for sleep below)
+                List<String> studies = new ArrayList<>();
+                for (Map.Entry<String, String> entry : participantIds.entrySet()) {
+                    studies.add(Launcher.dbEngine.getStudyFromParticipantId(entry.getValue())); // this returns HPM or CCW (check for sleep below)
+                }
+
                 if (studies.contains("Sleep")) {
                     studies.remove("Sleep");
                 }
@@ -57,6 +61,7 @@ public class API {
                     study = "Sleep";
                 }
 
+                String participantId = participantIds.get(study);
 
                 String insertQuery = "INSERT INTO messages " +
                         "(message_uuid, participant_uuid, TS, message_direction, study, message_json)" +
@@ -79,7 +84,7 @@ public class API {
                         Launcher.HPM_ControlWatcher.incomingText(participantId, formsMap);
                     }
                 } else if (study.equals("CCW")){
-                    if (protocol.get(study).equals("TRE")) {
+                    if (protocol.get(study).equals("TRE")) { // TODO problem with study key not there
                         Launcher.CCW_RestrictedWatcher.incomingText(participantId, formsMap);
                     } else if (protocol.get(study).equals("Baseline")) {
                         Launcher.CCW_BaselineWatcher.incomingText(participantId, formsMap);
