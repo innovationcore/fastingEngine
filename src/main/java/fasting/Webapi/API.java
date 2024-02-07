@@ -37,6 +37,7 @@ public class API {
 
             String messageId = UUID.randomUUID().toString();
             String participantId = Launcher.dbEngine.getParticipantIdFromPhoneNumber(formParams.get("From").get(0));
+            String textBody = formParams.get("Body").get(0);
 
             if (participantId != null) {
                 String messageDirection = "incoming";
@@ -46,42 +47,47 @@ public class API {
                 Map<String, String> formsMap = convertMultiToRegularMap(formParams);
                 String json_string = gson.toJson(formsMap);
 
-                // get either HPM or CCW study
-                String participantStudy = Launcher.dbEngine.getStudyFromParticipantId(participantId);
+                // get HPM, CCW, Sleep or a combo
+                List<String> studies = Launcher.dbEngine.getStudyFromParticipantId(participantId); // this returns HPM or CCW (check for sleep below)
+                if (studies.contains("Sleep")) {
+                    studies.remove("Sleep");
+                }
+                String study = studies.get(0);
+                if (textBody.toLowerCase().contains("sleep") || textBody.toLowerCase().contains("wake")){
+                    study = "Sleep";
+                }
+
 
                 String insertQuery = "INSERT INTO messages " +
                         "(message_uuid, participant_uuid, TS, message_direction, study, message_json)" +
                         " VALUES ('" + messageId + "', '" +
                         participantId + "' , GETUTCDATE(), '" +
-                        messageDirection + "', '" + participantStudy + "', '" + json_string +
+                        messageDirection + "', '" + study + "', '" + json_string +
                         "')";
 
                 //record incoming
                 Launcher.dbEngine.executeUpdate(insertQuery);
 
                 //send to state machine
-                String enrollment = Launcher.dbEngine.getEnrollmentUUID(participantId);
-                String enrollmentName = Launcher.dbEngine.getEnrollmentName(enrollment);
-                if (participantStudy.equals("HPM")) {
-                    if (enrollmentName.equals("TRE")) {
+                Map<String, String> protocol = Launcher.dbEngine.getProtocolFromParticipantId(participantId);
+                if (study.equals("HPM")) {
+                    if (protocol.get(study).equals("TRE")) {
                         Launcher.HPM_RestrictedWatcher.incomingText(participantId, formsMap);
-                    } else if (enrollmentName.equals("Baseline")) {
+                    } else if (protocol.get(study).equals("Baseline")) {
                         Launcher.HPM_BaselineWatcher.incomingText(participantId, formsMap);
-                    } else if (enrollmentName.equals("Control")) {
+                    } else if (protocol.get(study).equals("Control")) {
                         Launcher.HPM_ControlWatcher.incomingText(participantId, formsMap);
                     }
-                } else if (participantStudy.equals("CCW")){
-                    if (enrollmentName.equals("TRE")) {
+                } else if (study.equals("CCW")){
+                    if (protocol.get(study).equals("TRE")) {
                         Launcher.CCW_RestrictedWatcher.incomingText(participantId, formsMap);
-                    } else if (enrollmentName.equals("Baseline")) {
+                    } else if (protocol.get(study).equals("Baseline")) {
                         Launcher.CCW_BaselineWatcher.incomingText(participantId, formsMap);
-                    } else if (enrollmentName.equals("Control")) {
+                    } else if (protocol.get(study).equals("Control")) {
                         Launcher.CCW_ControlWatcher.incomingText(participantId, formsMap);
                     }
-                } else if (participantStudy.equals("Sleep")) {
-                    if (enrollmentName.equals("Baseline")) {
-                        Launcher.sleepWatcher.incomingText(participantId, formsMap);
-                    }
+                } else if (study.equals("Sleep")) {
+                    Launcher.sleepWatcher.incomingText(participantId, formsMap);
                 } else {
                     logger.error("Text from participant not enrolled in any HPM, CCW, or Sleep protocol");
                 }
@@ -146,36 +152,34 @@ public class API {
     }
 
     @GET
-    @Path("/get-valid-next-states/{participant_uuid}")
+    @Path("/get-valid-next-states/{participant_uuid}/{participant_study}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getNextStates(@PathParam("participant_uuid") String participantId) {
+    public Response getNextStates(@PathParam("participant_uuid") String participantId,
+                                  @PathParam("participant_study") String participantStudy) {
         String responseString;
         try {
             if (!participantId.equals("")) {
                 // this returns a comma delimited list as a string
                 String validNextStates = "";
-                String protocol = Launcher.dbEngine.getProtocolFromParticipantId(participantId);
-                String study = Launcher.dbEngine.getStudyFromParticipantId(participantId);
-                if (study.equals("HPM")) {
-                    if (protocol.equals("TRE")) {
+                Map<String, String> protocol = Launcher.dbEngine.getProtocolFromParticipantId(participantId);
+                if (participantStudy.equals("HPM")) {
+                    if (protocol.get(participantStudy).equals("TRE")) {
                         validNextStates = Launcher.HPM_RestrictedWatcher.getValidNextStates(participantId);
-                    } else if (protocol.equals("Control")) {
+                    } else if (protocol.get(participantStudy).equals("Control")) {
                         validNextStates = Launcher.HPM_ControlWatcher.getValidNextStates(participantId);
-                    } else if (protocol.equals("Baseline")) {
+                    } else if (protocol.get(participantStudy).equals("Baseline")) {
                         validNextStates = Launcher.HPM_BaselineWatcher.getValidNextStates(participantId);
                     }
-                } else if (study.equals("CCW")) {
-                    if (protocol.equals("TRE")) {
+                } else if (participantStudy.equals("CCW")) {
+                    if (protocol.get(participantStudy).equals("TRE")) {
                         validNextStates = Launcher.CCW_RestrictedWatcher.getValidNextStates(participantId);
-                    } else if (protocol.equals("Control")) {
+                    } else if (protocol.get(participantStudy).equals("Control")) {
                         validNextStates = Launcher.CCW_ControlWatcher.getValidNextStates(participantId);
-                    } else if (protocol.equals("Baseline")) {
+                    } else if (protocol.get(participantStudy).equals("Baseline")) {
                         validNextStates = Launcher.CCW_BaselineWatcher.getValidNextStates(participantId);
                     }
-                } else if (study.equals("Sleep")){
-                    if (protocol.equals("Baseline")) {
-                        validNextStates = Launcher.sleepWatcher.getValidNextStates(participantId);
-                    }
+                } else if (participantStudy.equals("Sleep")){
+                    validNextStates = Launcher.sleepWatcher.getValidNextStates(participantId);
                 }
 
                 Map<String,String> response = new HashMap<>();
@@ -212,36 +216,34 @@ public class API {
         String participantId = data.get("participantUUID").get(0);
         String nextState = data.get("toState").get(0);
         String time = data.get("time").get(0);
+        String study = data.get("study").get(0);
         String responseString = "";
         try {
 
             if (participantId != null) {
                 //send to state machine
                 String newState = "";
-                String protocol = Launcher.dbEngine.getProtocolFromParticipantId(participantId);
-                String study = Launcher.dbEngine.getStudyFromParticipantId(participantId);
+                Map<String, String> protocol = Launcher.dbEngine.getProtocolFromParticipantId(participantId);
                 if (study.equals("HPM")) {
-                    if (protocol.equals("TRE")) {
+                    if (protocol.get(study).equals("TRE")) {
                         newState = Launcher.HPM_RestrictedWatcher.moveToState(participantId, nextState, time);
-                    } else if (protocol.equals("Control")) {
+                    } else if (protocol.get(study).equals("Control")) {
                         newState = Launcher.HPM_ControlWatcher.moveToState(participantId, nextState, time);
-                    } else if (protocol.equals("Baseline")) {
+                    } else if (protocol.get(study).equals("Baseline")) {
                         newState = Launcher.HPM_BaselineWatcher.moveToState(participantId, nextState, time);
                     }
                 } else if (study.equals("CCW")) {
-                    if (protocol.equals("TRE")) {
+                    if (protocol.get(study).equals("TRE")) {
                         newState = Launcher.CCW_RestrictedWatcher.moveToState(participantId, nextState, time);
                     }
-                    else if (protocol.equals("Control")) {
+                    else if (protocol.get(study).equals("Control")) {
                         newState = Launcher.CCW_ControlWatcher.moveToState(participantId, nextState, time);
                     }
-                    else if (protocol.equals("Baseline")) {
+                    else if (protocol.get(study).equals("Baseline")) {
                         newState = Launcher.CCW_BaselineWatcher.moveToState(participantId, nextState, time);
                     }
                 } else if (study.equals("Sleep")) {
-                    if (protocol.equals("Baseline")) {
-                        newState = Launcher.sleepWatcher.moveToState(participantId, nextState, time);
-                    }
+                    newState = Launcher.sleepWatcher.moveToState(participantId, nextState, time);
                 }
 
                 Map<String,String> response = new HashMap<>();
@@ -278,41 +280,38 @@ public class API {
         String responseString;
         try {
             String participantId = data.get("uuid").get(0);
+            String study = data.get("study").get(0);
             if (participantId != null) {
                 //send to state machine
-                String enrollment = Launcher.dbEngine.getEnrollmentUUID(participantId);
-                String enrollmentName = Launcher.dbEngine.getEnrollmentName(enrollment);
-                String study = Launcher.dbEngine.getStudyFromParticipantId(participantId);
+                Map<String, String> protocol = Launcher.dbEngine.getProtocolFromParticipantId(participantId);
                 if (study.equals("HPM")) {
-                    if (enrollmentName.equals("TRE")) {
+                    if (protocol.get(study).equals("TRE")) {
                         Launcher.HPM_RestrictedWatcher.resetStateMachine(participantId);
                         Launcher.HPM_DailyMessageWatcher.resetStateMachine(participantId);
-                    } else if (enrollmentName.equals("Baseline")) {
+                    } else if (protocol.get(study).equals("Baseline")) {
                         Launcher.HPM_BaselineWatcher.resetStateMachine(participantId);
                         Launcher.HPM_WeeklyMessageWatcher.resetStateMachine(participantId);
-                    } else if (enrollmentName.equals("Control")) {
+                    } else if (protocol.get(study).equals("Control")) {
                         Launcher.HPM_ControlWatcher.resetStateMachine(participantId);
                         Launcher.HPM_WeeklyMessageWatcher.resetStateMachine(participantId);
                     } else {
                         logger.error("Cannot reset machine, participant not in an active protocol.");
                     }
                 } else if (study.equals("CCW")) {
-                    if (enrollmentName.equals("TRE")) {
+                    if (protocol.get(study).equals("TRE")) {
                         Launcher.CCW_RestrictedWatcher.resetStateMachine(participantId);
                         Launcher.CCW_DailyMessageWatcher.resetStateMachine(participantId);
-                    } else if (enrollmentName.equals("Baseline")) {
+                    } else if (protocol.get(study).equals("Baseline")) {
                         Launcher.CCW_BaselineWatcher.resetStateMachine(participantId);
                         Launcher.CCW_WeeklyMessageWatcher.resetStateMachine(participantId);
-                    } else if (enrollmentName.equals("Control")) {
+                    } else if (protocol.get(study).equals("Control")) {
                         Launcher.CCW_ControlWatcher.resetStateMachine(participantId);
                         Launcher.CCW_WeeklyMessageWatcher.resetStateMachine(participantId);
                     } else {
                         logger.error("Cannot reset machine, participant not in an active protocol.");
                     }
                 } else if (study.equals("Sleep")) {
-                    if (enrollmentName.equals("Baseline")) {
-                        Launcher.sleepWatcher.resetStateMachine(participantId);
-                    }
+                    Launcher.sleepWatcher.resetStateMachine(participantId);
                 }
 
                 Map<String,String> response = new HashMap<>();
@@ -350,37 +349,34 @@ public class API {
         try {
             String participantId = data.get("uuid").get(0);
             String tz = data.get("tz").get(0);
+            String study = data.get("study").get(0);
             if (participantId != null) {
                 //send to state machine
-                String enrollment = Launcher.dbEngine.getEnrollmentUUID(participantId);
-                String enrollmentName = Launcher.dbEngine.getEnrollmentName(enrollment);
-                String study = Launcher.dbEngine.getStudyFromParticipantId(participantId);
+                Map<String, String> protocol = Launcher.dbEngine.getProtocolFromParticipantId(participantId);
                 if (study.equals("HPM")) {
-                    if (enrollmentName.equals("TRE")) {
+                    if (protocol.get(study).equals("TRE")) {
                         Launcher.HPM_RestrictedWatcher.updateTimeZone(participantId, tz);
                         Launcher.HPM_DailyMessageWatcher.updateTimeZone(participantId, tz);
-                    } else if (enrollmentName.equals("Baseline")) {
+                    } else if (protocol.get(study).equals("Baseline")) {
                         Launcher.HPM_BaselineWatcher.updateTimeZone(participantId, tz);
                         Launcher.HPM_WeeklyMessageWatcher.updateTimeZone(participantId, tz);
-                    } else if (enrollmentName.equals("Control")) {
+                    } else if (protocol.get(study).equals("Control")) {
                         Launcher.HPM_ControlWatcher.updateTimeZone(participantId, tz);
                         Launcher.HPM_WeeklyMessageWatcher.updateTimeZone(participantId, tz);
                     }
                 } else if (study.equals("CCW")) {
-                    if (enrollmentName.equals("TRE")) {
+                    if (protocol.get(study).equals("TRE")) {
                         Launcher.CCW_RestrictedWatcher.updateTimeZone(participantId, tz);
                         Launcher.CCW_DailyMessageWatcher.updateTimeZone(participantId, tz);
-                    } else if (enrollmentName.equals("Baseline")) {
+                    } else if (protocol.get(study).equals("Baseline")) {
                         Launcher.CCW_BaselineWatcher.updateTimeZone(participantId, tz);
                         Launcher.CCW_WeeklyMessageWatcher.updateTimeZone(participantId, tz);
-                    } else if (enrollmentName.equals("Control")) {
+                    } else if (protocol.get(study).equals("Control")) {
                         Launcher.CCW_ControlWatcher.updateTimeZone(participantId, tz);
                         Launcher.CCW_WeeklyMessageWatcher.updateTimeZone(participantId, tz);
                     }
                 } else if (study.equals("Sleep")) {
-                    if (enrollmentName.equals("Baseline")) {
-                        Launcher.sleepWatcher.updateTimeZone(participantId, tz);
-                    }
+                    Launcher.sleepWatcher.updateTimeZone(participantId, tz);
                 }
 
                 Map<String,String> response = new HashMap<>();

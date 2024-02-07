@@ -85,29 +85,29 @@ public class CCW_Control extends CCW_ControlBase {
                         String[] startCalSplit = textBody.split(" ", 2);
                         if (startCalSplit.length >= 2) {
                             if (!(startCalSplit[1].toLowerCase().contains("a") || startCalSplit[1].toLowerCase().contains("p"))){
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your STARTCAL time was not understood. Please send \"STARTCAL\" again with your starting time including \"am\" or \"pm\". For example, \"STARTCAL 7:30 am\".", false);
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your STARTCAL time was not understood. Please send \"STARTCAL\" again with your starting time including \"am\" or \"pm\". For example, \"STARTCAL 7:30 am\".", false, "CCW");
                                 break;
                             }
                             if (!isStartCal(startCalSplit[0])) {
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your STARTCAL time was not understood. Please send \"STARTCAL\" again with your starting time. For example, \"STARTCAL 7:30 am\".", false);
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your STARTCAL time was not understood. Please send \"STARTCAL\" again with your starting time. For example, \"STARTCAL 7:30 am\".", false, "CCW");
                                 break;
                             }
                             long parsedTime = TZHelper.parseTime(startCalSplit[1]);
                             if (parsedTime == -1L) {
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your STARTCAL time was not understood. Please send \"STARTCAL\" again with your starting time. For example, \"STARTCAL 7:30 am\".", false);
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your STARTCAL time was not understood. Please send \"STARTCAL\" again with your starting time. For example, \"STARTCAL 7:30 am\".", false, "CCW");
                                 break;
                             }
                         } else {
                             // if just sent startcal make sure its not startcal9:45 or something similar
                             if (startCalSplit[0].length() > 8){
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your STARTCAL time was not understood. Please send \"STARTCAL\" again with your starting time. For example, \"STARTCAL 7:30 am\".", false);
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your STARTCAL time was not understood. Please send \"STARTCAL\" again with your starting time. For example, \"STARTCAL 7:30 am\".", false, "CCW");
                                 break;
                             }
                         }
                         receivedStartCal();
                     } else {
                         Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Please send \"STARTCAL\" when you begin calories for " +
-                                                                                    "the day; \"ENDCAL\" when you are done with calories for the day.", false);
+                                                                                    "the day; \"ENDCAL\" when you are done with calories for the day.", false, "CCW");
                     }
                     break;
                 case startcal:
@@ -116,22 +116,22 @@ public class CCW_Control extends CCW_ControlBase {
                         String[] startCalSplit = textBody.split(" ", 2);
                         if (startCalSplit.length >= 2) {
                             if (!(startCalSplit[1].toLowerCase().contains("a") || startCalSplit[1].toLowerCase().contains("p"))){
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your STARTCAL time was not understood. Please send \"STARTCAL\" again with your starting time. For example, \"STARTCAL 7:30 am\".", false);
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your STARTCAL time was not understood. Please send \"STARTCAL\" again with your starting time. For example, \"STARTCAL 7:30 am\".", false, "CCW");
                                 break;
                             }
                             if (!isStartCal(startCalSplit[0])) {
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your STARTCAL time was not understood. Please send \"STARTCAL\" again with your starting time. For example, \"STARTCAL 7:30 am\".", false);
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your STARTCAL time was not understood. Please send \"STARTCAL\" again with your starting time. For example, \"STARTCAL 7:30 am\".", false, "CCW");
                                 break;
                             }
                             long parsedTime = TZHelper.parseTime(startCalSplit[1]);
                             if (parsedTime == -1L) {
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your STARTCAL time was not understood. Please send \"STARTCAL\" again with your starting time. For example, \"STARTCAL 7:30 am\".", false);
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your STARTCAL time was not understood. Please send \"STARTCAL\" again with your starting time. For example, \"STARTCAL 7:30 am\".", false, "CCW");
                                 break;
                             }
                         } else {
                             // if just sent startcal make sure its not startcal9:45 or something similar
                             if (startCalSplit[0].length() > 8){
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your STARTCAL time was not understood. Please send \"STARTCAL\" again with your starting time. For example, \"STARTCAL 7:30 am\".", false);
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your STARTCAL time was not understood. Please send \"STARTCAL\" again with your starting time. For example, \"STARTCAL 7:30 am\".", false, "CCW");
                                 break;
                             }
                         }
@@ -141,28 +141,28 @@ public class CCW_Control extends CCW_ControlBase {
                         String[] endCalSplit = textBody.split(" ", 2);
                         if (endCalSplit.length >= 2) {
                             if (!(endCalSplit[1].toLowerCase().contains("a") || endCalSplit[1].toLowerCase().contains("p"))){
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time including \"am\" or \"pm\". For example, \"ENDCAL 7:30 pm\".", false);
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time including \"am\" or \"pm\". For example, \"ENDCAL 7:30 pm\".", false, "CCW");
                                 break;
                             }
                             if (!isEndCal(endCalSplit[0])) {
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".", false);
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".", false, "CCW");
                                 break;
                             }
                             long parsedTime = TZHelper.parseTime(endCalSplit[1]);
                             if (parsedTime == -1L) {
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".", false);
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".", false, "CCW");
                                 break;
                             }
                         } else {
                             // if just sent stopcal/endcal make sure its not endcal9:45 or something similar
                             if (incomingMap.get("Body").toLowerCase().contains("stopcal")){
                                 if (endCalSplit[0].length() > 7){
-                                    Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".", false);
+                                    Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".", false, "CCW");
                                     break;
                                 }
                             } else if (incomingMap.get("Body").toLowerCase().contains("endcal")){
                                 if (endCalSplit[0].length() > 6){
-                                    Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".", false);
+                                    Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".", false, "CCW");
                                     break;
                                 }
                             }
@@ -170,7 +170,7 @@ public class CCW_Control extends CCW_ControlBase {
                         receivedEndCal();
                     } else {
                         Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Please send \"STARTCAL\" when you begin calories for " +
-                                "the day; \"ENDCAL\" when you are done with calories for the day.", false);
+                                "the day; \"ENDCAL\" when you are done with calories for the day.", false, "CCW");
                     }
                     break;
                 case warnEndCal:
@@ -179,28 +179,28 @@ public class CCW_Control extends CCW_ControlBase {
                         String[] endCalSplit = textBody.split(" ", 2);
                         if (endCalSplit.length >= 2) {
                             if (!(endCalSplit[1].toLowerCase().contains("a") || endCalSplit[1].toLowerCase().contains("p"))) {
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time including \"am\" or \"pm\". For example, \"ENDCAL 7:30 pm\".", false);
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time including \"am\" or \"pm\". For example, \"ENDCAL 7:30 pm\".", false, "CCW");
                                 break;
                             }
                             if (!isEndCal(endCalSplit[0])) {
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".", false);
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".", false, "CCW");
                                 break;
                             }
                             long parsedTime = TZHelper.parseTime(endCalSplit[1]);
                             if (parsedTime == -1L) {
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".", false);
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".", false, "CCW");
                                 break;
                             }
                         } else {
                             // if just sent stopcal/endcal make sure its not endcal9:45 or something similar
                             if (incomingMap.get("Body").toLowerCase().contains("stopcal")){
                                 if (endCalSplit[0].length() > 7){
-                                    Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".", false);
+                                    Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".", false, "CCW");
                                     break;
                                 }
                             } else if (incomingMap.get("Body").toLowerCase().contains("endcal")){
                                 if (endCalSplit[0].length() > 6){
-                                    Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".", false);
+                                    Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".", false, "CCW");
                                     break;
                                 }
                             }
@@ -209,7 +209,7 @@ public class CCW_Control extends CCW_ControlBase {
                     } else {
                         String endCalMessage = participantMap.get("participant_uuid") + " warnEndCal unexpected message";
                         logger.warn(endCalMessage);
-                        Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Text 270-402-2214 if you need help.", false);
+                        Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Text 270-402-2214 if you need help.", false, "CCW");
                     }
                     break;
                 case endcal:
@@ -218,28 +218,28 @@ public class CCW_Control extends CCW_ControlBase {
                         String[] endCalSplit = textBody.split(" ", 2);
                         if (endCalSplit.length >= 2) {
                             if (!(endCalSplit[1].toLowerCase().contains("a") || endCalSplit[1].toLowerCase().contains("p"))) {
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time including \"am\" or \"pm\". For example, \"ENDCAL 7:30 pm\".", false);
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time including \"am\" or \"pm\". For example, \"ENDCAL 7:30 pm\".", false, "CCW");
                                 break;
                             }
                             if (!isEndCal(endCalSplit[0])) {
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".", false);
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".", false, "CCW");
                                 break;
                             }
                             long parsedTime = TZHelper.parseTime(endCalSplit[1]);
                             if (parsedTime == -1L) {
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".", false);
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".", false, "CCW");
                                 break;
                             }
                         } else {
                             // if just sent stopcal/endcal make sure its not endcal9:45 or something similar
                             if (incomingMap.get("Body").toLowerCase().contains("stopcal")){
                                 if (endCalSplit[0].length() > 7){
-                                    Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".", false);
+                                    Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".", false, "CCW");
                                     break;
                                 }
                             } else if (incomingMap.get("Body").toLowerCase().contains("endcal")){
                                 if (endCalSplit[0].length() > 6){
-                                    Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".", false);
+                                    Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".", false, "CCW");
                                     break;
                                 }
                             }
@@ -248,14 +248,14 @@ public class CCW_Control extends CCW_ControlBase {
                     } else {
                         String endCalMessage = participantMap.get("participant_uuid") + " endCal unexpected message";
                         logger.warn(endCalMessage);
-                        Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Text 270-402-2214 if you need help.", false);
+                        Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Text 270-402-2214 if you need help.", false, "CCW");
                     }
                     break;
                 case timeout24:
                 case missedEndCal:
                     String timeoutMessage = participantMap.get("participant_uuid") + " timeout/missedEndCal unexpected message";
                     logger.warn(timeoutMessage);
-                    Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Text 270-402-2214 if you need help.", false);
+                    Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Text 270-402-2214 if you need help.", false, "CCW");
                     break;
                 case endProtocol:
                     logger.warn(participantMap.get("participant_uuid") + " endProtocol unexpected message");
@@ -359,7 +359,7 @@ public class CCW_Control extends CCW_ControlBase {
                 setTimeout24Hours(secondsTo4am);
                 String warnStartMessage = "Remember to text \"STARTCAL\" when your calories start for the day and \"ENDCAL\" when your calories finish at night. Thank you!";
                 if (!this.isRestoring){
-                    Launcher.msgUtils.sendMessage(participantMap.get("number"), warnStartMessage, false);
+                    Launcher.msgUtils.sendMessage(participantMap.get("number"), warnStartMessage, false, "CCW");
                 }
                 logger.warn(participantMap.get("participant_uuid") + " in warnStartCal -> timeout24 " + TZHelper.getDateFromAddingSeconds(secondsTo4am));
                 //save state info
@@ -403,7 +403,7 @@ public class CCW_Control extends CCW_ControlBase {
                 setTimeout24Hours(secondsWarn4am);
                 String warnEndCalMessage = "Remember to enter your \"ENDCAL\" tonight after your last calories. Thank you!";
                 if (!this.isRestoring){
-                    Launcher.msgUtils.sendMessage(participantMap.get("number"), warnEndCalMessage, false);
+                    Launcher.msgUtils.sendMessage(participantMap.get("number"), warnEndCalMessage, false, "CCW");
                 }
                 logger.warn(participantMap.get("participant_uuid") + " in warnEndCal -> timeout24 " + TZHelper.getDateFromAddingSeconds(secondsWarn4am));
                 //save state info
@@ -441,7 +441,7 @@ public class CCW_Control extends CCW_ControlBase {
             case missedEndCal:
                 logger.warn(participantMap.get("participant_uuid") + " did not send endcal in time. (missedEndCal)");
                 if (!isRestoring) {
-                    Launcher.msgUtils.sendScheduledMessage(participantMap.get("number"), "[CCW Control] Participant " + participantMap.get("first_name") + " " + participantMap.get("last_name") + " ("+participantMap.get("number")+") missed their ENDCAL.", TZHelper.getZonedDateTime8am(true), true);
+                    Launcher.msgUtils.sendScheduledMessage(participantMap.get("number"), "[CCW Control] Participant " + participantMap.get("first_name") + " " + participantMap.get("last_name") + " ("+participantMap.get("number")+") missed their ENDCAL.", TZHelper.getZonedDateTime8am(true), true, "CCW");
                 }
             case timeout24:
                 logger.warn(participantMap.get("participant_uuid") + " did not send startcal/endcal in time.");
@@ -449,8 +449,8 @@ public class CCW_Control extends CCW_ControlBase {
                     String message = "We haven't heard from you in a while. Remember to text \"STARTCAL\" when your " +
                             "calories start in the morning and \"ENDCAL\" when your calories finish at night! Let us " +
                             "know if you need help.";
-                    Launcher.msgUtils.sendScheduledMessage(participantMap.get("number"), message, TZHelper.getZonedDateTime8am(false), false);
-                    Launcher.msgUtils.sendScheduledMessage(participantMap.get("number"), "[CCW Control] Participant " + participantMap.get("first_name") + " " + participantMap.get("last_name") + " ("+participantMap.get("number")+") did not send STARTCAL or ENDCAL yesterday.", TZHelper.getZonedDateTime8am(true), true);
+                    Launcher.msgUtils.sendScheduledMessage(participantMap.get("number"), message, TZHelper.getZonedDateTime8am(false), false, "CCW");
+                    Launcher.msgUtils.sendScheduledMessage(participantMap.get("number"), "[CCW Control] Participant " + participantMap.get("first_name") + " " + participantMap.get("last_name") + " ("+participantMap.get("number")+") did not send STARTCAL or ENDCAL yesterday.", TZHelper.getZonedDateTime8am(true), true, "CCW");
                 }
                 break;
             case endProtocol:

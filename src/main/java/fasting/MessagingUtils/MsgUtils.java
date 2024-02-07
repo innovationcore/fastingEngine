@@ -33,11 +33,10 @@ public class MsgUtils {
         Twilio.init(Launcher.config.getStringParam("twilio_account_sid"), Launcher.config.getStringParam("twilio_auth_token"));
     }
 
-    public void sendMessage(String textTo, String body, Boolean toAdmin) {
+    public void sendMessage(String textTo, String body, Boolean toAdmin, String study) {
         Message message = null;
         try {
             String participantId = Launcher.dbEngine.getParticipantIdFromPhoneNumber(textTo);
-            String study = Launcher.dbEngine.getStudyFromParticipantId(participantId);
             Boolean isMessagingDisabled = Launcher.config.getBooleanParam("disable_messaging");
 
             if (isMessagingDisabled) {
@@ -85,12 +84,12 @@ public class MsgUtils {
                     default:
                         logger.error("MsgUtils: Unknown study for participant");
                 }
+                Message.Status status = message.getStatus();
+                if (status.toString().equals("failed")) {
+                    logger.error("Message not sent..." + status);
+                }
             }
-
-            Message.Status status = message.getStatus();
-            if (status.toString().equals("failed")) {
-                logger.error("Message not sent..." + status);
-            }
+            
             String messageId = UUID.randomUUID().toString();
             String messageDirection = "outgoing";
 
@@ -125,10 +124,9 @@ public class MsgUtils {
 
     }
 
-    public void sendScheduledMessage(String textTo, String body, ZonedDateTime dateTime, Boolean toAdmin) {
+    public void sendScheduledMessage(String textTo, String body, ZonedDateTime dateTime, Boolean toAdmin, String study) {
         try {
             String participantId = Launcher.dbEngine.getParticipantIdFromPhoneNumber(textTo);
-            String study = Launcher.dbEngine.getStudyFromParticipantId(participantId);
             String fromNumber = null;
 
             switch (study) {

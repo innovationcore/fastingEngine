@@ -92,7 +92,7 @@ public class CCW_WeeklyMessage extends CCW_WeeklyMessageBase {
             case sendWeeklyMessage:
                 String weeklyMessage = "Thank you for continuing to send us your \"STARTCAL\" and \"ENDCAL\" each day. Keep up the great work!";
                 logger.info(weeklyMessage);
-                Launcher.msgUtils.sendMessage(participantMap.get("number"), weeklyMessage, false);
+                Launcher.msgUtils.sendMessage(participantMap.get("number"), weeklyMessage, false, "CCW");
                 // wait 5 seconds, so multiple messages don't get sent at the same time
                 try { Thread.sleep(5000); } catch (InterruptedException e) { /* do nothing */ }
                 break;
@@ -110,9 +110,9 @@ public class CCW_WeeklyMessage extends CCW_WeeklyMessageBase {
         try {
             this.isRestoring = true;
             // get current protocol
-            String protocolNameDB = Launcher.dbEngine.getProtocolFromParticipantId(participantMap.get("participant_uuid"));
+            Map<String, String> protocolNameDB = Launcher.dbEngine.getProtocolFromParticipantId(participantMap.get("participant_uuid"));
 
-            if (protocolNameDB.equals("Baseline")) {
+            if (protocolNameDB.get("CCW").equals("Baseline")) {
                 Map<String, CCW_Baseline> baselineMap = Launcher.CCW_BaselineWatcher.getCCW_BaselineMap();
                 while (!baselineMap.containsKey(participantMap.get("participant_uuid"))) {
                     Thread.sleep(500);
@@ -135,7 +135,7 @@ public class CCW_WeeklyMessage extends CCW_WeeklyMessageBase {
                     }
                 }
 
-            } else if (protocolNameDB.equals("Control")){
+            } else if (protocolNameDB.get("CCW").equals("Control")){
                 Map<String, CCW_Control> controlMap = Launcher.CCW_ControlWatcher.getCCW_ControlMap();
                 while (!controlMap.containsKey(participantMap.get("participant_uuid"))) {
                     Thread.sleep(500);

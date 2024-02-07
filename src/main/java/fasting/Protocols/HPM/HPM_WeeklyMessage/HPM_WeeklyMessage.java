@@ -90,7 +90,7 @@ public class HPM_WeeklyMessage extends HPM_WeeklyMessageBase {
             case sendWeeklyMessage:
                 String weeklyMessage = "Thank you for continuing to send us your \"STARTCAL\" and \"ENDCAL\" each day. Keep up the great work!";
                 logger.info(weeklyMessage);
-                Launcher.msgUtils.sendMessage(participantMap.get("number"), weeklyMessage, false);
+                Launcher.msgUtils.sendMessage(participantMap.get("number"), weeklyMessage, false, "HPM");
                 // wait 5 seconds, so multiple messages don't get sent at the same time
                 try { Thread.sleep(5000); } catch (InterruptedException e) { /* do nothing */ }
                 break;
@@ -108,9 +108,9 @@ public class HPM_WeeklyMessage extends HPM_WeeklyMessageBase {
         try {
             this.isRestoring = true;
             // get current protocol
-            String protocolNameDB = Launcher.dbEngine.getProtocolFromParticipantId(participantMap.get("participant_uuid"));
+            Map<String, String> protocolNameDB = Launcher.dbEngine.getProtocolFromParticipantId(participantMap.get("participant_uuid"));
 
-            if (protocolNameDB.equals("Baseline")) {
+            if (protocolNameDB.get("HPM").equals("Baseline")) {
                 Map<String, HPM_Baseline> baselineMap = Launcher.HPM_BaselineWatcher.getHPM_BaselineMap();
                 while (!baselineMap.containsKey(participantMap.get("participant_uuid"))) {
                     Thread.sleep(500);
@@ -133,7 +133,7 @@ public class HPM_WeeklyMessage extends HPM_WeeklyMessageBase {
                     }
                 }
 
-            } else if (protocolNameDB.equals("Control")){
+            } else if (protocolNameDB.get("HPM").equals("Control")){
                 Map<String, HPM_Control> controlMap = Launcher.HPM_ControlWatcher.getHPM_ControlMap();
                 while (!controlMap.containsKey(participantMap.get("participant_uuid"))) {
                     Thread.sleep(500);

@@ -85,31 +85,31 @@ public class Sleep extends SleepBase {
                         String[] sleepSplit = textBody.split(" ", 2);
                         if (sleepSplit.length >= 2) {
                             if (!(sleepSplit[1].toLowerCase().contains("a") || sleepSplit[1].toLowerCase().contains("p"))){
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your SLEEP time was not understood. Please send \"SLEEP\" again with the time you started falling asleep including \"am\" or \"pm\". For example, \"SLEEP 9:30 pm\".", false);
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your SLEEP time was not understood. Please send \"SLEEP\" again with the time you started falling asleep including \"am\" or \"pm\". For example, \"SLEEP 9:30 pm\".", false, "Sleep");
                                 break;
                             }
                             if (!isSleep(sleepSplit[0])) {
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your SLEEP time was not understood. Please send \"SLEEP\" again with the time you started falling asleep. For example, \"SLEEP 9:30 pm\".", false);
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your SLEEP time was not understood. Please send \"SLEEP\" again with the time you started falling asleep. For example, \"SLEEP 9:30 pm\".", false, "Sleep");
                                 break;
                             }
                             long parsedTime = TZHelper.parseTime(sleepSplit[1]);
                             if (parsedTime == -1L) {
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your SLEEP time was not understood. Please send \"SLEEP\" again with the time you started falling asleep. For example, \"SLEEP 9:30 pm\".", false);
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your SLEEP time was not understood. Please send \"SLEEP\" again with the time you started falling asleep. For example, \"SLEEP 9:30 pm\".", false, "Sleep");
                                 break;
                             }
                         } else {
                             // if just sent sleep make sure it's not sleep9:45 or something similar
                             if (sleepSplit[0].length() > 5){
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your SLEEP time was not understood. Please send \"SLEEP\" again with the time you started falling asleep. For example, \"SLEEP 9:30 pm\".", false);
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your SLEEP time was not understood. Please send \"SLEEP\" again with the time you started falling asleep. For example, \"SLEEP 9:30 pm\".", false, "Sleep");
                                 break;
                             }
                         }
                         receivedSleep();
                     } else if(isSleep(incomingMap.get("Wake"))){
-                        Launcher.msgUtils.sendMessage(participantMap.get("number"), "No sleep time received for last night. Please send \"SLEEP\" time first followed by your \"WAKE\" time this morning.", false);
+                        Launcher.msgUtils.sendMessage(participantMap.get("number"), "No sleep time received for last night. Please send \"SLEEP\" time first followed by your \"WAKE\" time this morning.", false, "Sleep");
                     } else {
                         Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Please send \"SLEEP\" before you begin trying to fall asleep;" +
-                                " \"WAKE\" soon after you wake up in the morning.", false);
+                                " \"WAKE\" soon after you wake up in the morning.", false, "Sleep");
                     }
                     break;
                 case sleep:
@@ -118,22 +118,22 @@ public class Sleep extends SleepBase {
                         String[] sleepSplit = textBody.split(" ", 2);
                         if (sleepSplit.length >= 2) {
                             if (!(sleepSplit[1].toLowerCase().contains("a") || sleepSplit[1].toLowerCase().contains("p"))){
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your SLEEP time was not understood. Please send \"SLEEP\" again with the time you started falling asleep including \"am\" or \"pm\". For example, \"SLEEP 9:30 pm\".", false);
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your SLEEP time was not understood. Please send \"SLEEP\" again with the time you started falling asleep including \"am\" or \"pm\". For example, \"SLEEP 9:30 pm\".", false, "Sleep");
                                 break;
                             }
                             if (!isSleep(sleepSplit[0])) {
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your SLEEP time was not understood. Please send \"SLEEP\" again with the time you started falling asleep. For example, \"SLEEP 9:30 pm\".", false);
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your SLEEP time was not understood. Please send \"SLEEP\" again with the time you started falling asleep. For example, \"SLEEP 9:30 pm\".", false, "Sleep");
                                 break;
                             }
                             long parsedTime = TZHelper.parseTime(sleepSplit[1]);
                             if (parsedTime == -1L) {
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your SLEEP time was not understood. Please send \"SLEEP\" again with the time you started falling asleep. For example, \"SLEEP 9:30 pm\".", false);
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your SLEEP time was not understood. Please send \"SLEEP\" again with the time you started falling asleep. For example, \"SLEEP 9:30 pm\".", false, "Sleep");
                                 break;
                             }
                         } else {
                             // if just sent sleep make sure it's not sleep9:45 or something similar
                             if (sleepSplit[0].length() > 5){
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your SLEEP time was not understood. Please send \"SLEEP\" again with the time you started falling asleep. For example, \"SLEEP 9:30 pm\".", false);
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your SLEEP time was not understood. Please send \"SLEEP\" again with the time you started falling asleep. For example, \"SLEEP 9:30 pm\".", false, "Sleep");
                                 break;
                             }
                         }
@@ -143,23 +143,23 @@ public class Sleep extends SleepBase {
                         String[] wakeSplit = textBody.split(" ", 2);
                         if (wakeSplit.length >= 2) {
                             if (!(wakeSplit[1].toLowerCase().contains("a") || wakeSplit[1].toLowerCase().contains("p"))){
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your WAKE time was not understood. Please send \"WAKE\" again with the time you woke up including \"am\" or \"pm\". For example, \"WAKE 7:30 am\".", false);
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your WAKE time was not understood. Please send \"WAKE\" again with the time you woke up including \"am\" or \"pm\". For example, \"WAKE 7:30 am\".", false, "Sleep");
                                 break;
                             }
                             if (!isWake(wakeSplit[0])) {
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your WAKE time was not understood. Please send \"WAKE\" again with the time you woke up. For example, \"WAKE 7:30 am\".", false);
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your WAKE time was not understood. Please send \"WAKE\" again with the time you woke up. For example, \"WAKE 7:30 am\".", false, "Sleep");
                                 break;
                             }
                             long parsedTime = TZHelper.parseTime(wakeSplit[1]);
                             if (parsedTime == -1L) {
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your WAKE time was not understood. Please send \"WAKE\" again with the time you woke up. For example, \"WAKE 7:30 am\".", false);
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your WAKE time was not understood. Please send \"WAKE\" again with the time you woke up. For example, \"WAKE 7:30 am\".", false, "Sleep");
                                 break;
                             }
                         } else {
                             // if just sent wake make sure it's not wake9:45 or something similar
                             if (incomingMap.get("Body").toLowerCase().contains("wake")){
                                 if (wakeSplit[0].length() > 4){
-                                    Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your WAKE time was not understood. Please send \"WAKE\" again with the time you woke up. For example, \"WAKE 7:30 am\".", false);
+                                    Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your WAKE time was not understood. Please send \"WAKE\" again with the time you woke up. For example, \"WAKE 7:30 am\".", false, "Sleep");
                                     break;
                                 }
                             }
@@ -167,7 +167,7 @@ public class Sleep extends SleepBase {
                         receivedWake();
                     } else {
                         Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Please send \"SLEEP\" before you begin trying to fall asleep;" +
-                                " \"WAKE\" soon after you wake up in the morning.", false);
+                                " \"WAKE\" soon after you wake up in the morning.", false, "Sleep");
                     }
                     break;
                 case warnWake:
@@ -176,23 +176,23 @@ public class Sleep extends SleepBase {
                         String[] wakeSplit = textBody.split(" ", 2);
                         if (wakeSplit.length >= 2) {
                             if (!(wakeSplit[1].toLowerCase().contains("a") || wakeSplit[1].toLowerCase().contains("p"))) {
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your WAKE time was not understood. Please send \"WAKE\" again with the time you woke up including \"am\" or \"pm\". For example, \"WAKE 7:30 am\".", false);
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your WAKE time was not understood. Please send \"WAKE\" again with the time you woke up including \"am\" or \"pm\". For example, \"WAKE 7:30 am\".", false, "Sleep");
                                 break;
                             }
                             if (!isWake(wakeSplit[0])) {
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your WAKE time was not understood. Please send \"WAKE\" again with the time you woke up. For example, \"WAKE 7:30 am\".", false);
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your WAKE time was not understood. Please send \"WAKE\" again with the time you woke up. For example, \"WAKE 7:30 am\".", false, "Sleep");
                                 break;
                             }
                             long parsedTime = TZHelper.parseTime(wakeSplit[1]);
                             if (parsedTime == -1L) {
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your WAKE time was not understood. Please send \"WAKE\" again with the time you woke up. For example, \"WAKE 7:30 am\".", false);
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your WAKE time was not understood. Please send \"WAKE\" again with the time you woke up. For example, \"WAKE 7:30 am\".", false, "Sleep");
                                 break;
                             }
                         } else {
                             // if just sent wake make sure it's not wake9:45 or something similar
                             if (incomingMap.get("Body").toLowerCase().contains("wake")){
                                 if (wakeSplit[0].length() > 4){
-                                    Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your WAKE time was not understood. Please send \"WAKE\" again with the time you woke up. For example, \"WAKE 7:30 am\".", false);
+                                    Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your WAKE time was not understood. Please send \"WAKE\" again with the time you woke up. For example, \"WAKE 7:30 am\".", false, "Sleep");
                                     break;
                                 }
                             }
@@ -201,7 +201,7 @@ public class Sleep extends SleepBase {
                     } else {
                         String wakeMessage = participantMap.get("participant_uuid") + " warnWake unexpected message";
                         logger.warn(wakeMessage);
-                        Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Text 270-402-2214 if you need help.", false);
+                        Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Text 270-402-2214 if you need help.", false, "Sleep");
                     }
                     break;
                 case wake:
@@ -210,23 +210,23 @@ public class Sleep extends SleepBase {
                         String[] wakeSplit = textBody.split(" ", 2);
                         if (wakeSplit.length >= 2) {
                             if (!(wakeSplit[1].toLowerCase().contains("a") || wakeSplit[1].toLowerCase().contains("p"))) {
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your WAKE time was not understood. Please send \"WAKE\" again with the time you woke up including \"am\" or \"pm\". For example, \"WAKE 7:30 am\".", false);
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your WAKE time was not understood. Please send \"WAKE\" again with the time you woke up including \"am\" or \"pm\". For example, \"WAKE 7:30 am\".", false, "Sleep");
                                 break;
                             }
                             if (!isWake(wakeSplit[0])) {
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your WAKE time was not understood. Please send \"WAKE\" again with the time you woke up. For example, \"WAKE 7:30 am\".", false);
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your WAKE time was not understood. Please send \"WAKE\" again with the time you woke up. For example, \"WAKE 7:30 am\".", false, "Sleep");
                                 break;
                             }
                             long parsedTime = TZHelper.parseTime(wakeSplit[1]);
                             if (parsedTime == -1L) {
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your WAKE time was not understood. Please send \"WAKE\" again with the time you woke up. For example, \"WAKE 7:30 am\".", false);
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your WAKE time was not understood. Please send \"WAKE\" again with the time you woke up. For example, \"WAKE 7:30 am\".", false, "Sleep");
                                 break;
                             }
                         } else {
                             // if just sent wake make sure it's not wake9:45 or something similar
                             if (incomingMap.get("Body").toLowerCase().contains("wake")){
                                 if (wakeSplit[0].length() > 4){
-                                    Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your WAKE time was not understood. Please send \"WAKE\" again with the time you woke up. For example, \"WAKE 7:30 am\".", false);
+                                    Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your WAKE time was not understood. Please send \"WAKE\" again with the time you woke up. For example, \"WAKE 7:30 am\".", false, "Sleep");
                                     break;
                                 }
                             }
@@ -235,18 +235,18 @@ public class Sleep extends SleepBase {
                     } else {
                         String wakeMessage = participantMap.get("participant_uuid") + " wake unexpected message";
                         logger.warn(wakeMessage);
-                        Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Text 270-402-2214 if you need help.", false);
+                        Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Text 270-402-2214 if you need help.", false, "Sleep");
                     }
                     break;
                 case missedWake:
                     String message = participantMap.get("participant_uuid") + " missedWake unexpected message";
                     logger.warn(message);
-                    Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Text 270-402-2214 if you need help.", false);
+                    Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Text 270-402-2214 if you need help.", false, "Sleep");
                     break;
                 case timeout24:
                     String timeoutMessage = participantMap.get("participant_uuid") + " timeout24 unexpected message";
                     logger.warn(timeoutMessage);
-                    Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Text 270-402-2214 if you need help.", false);
+                    Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Text 270-402-2214 if you need help.", false, "Sleep");
                     break;
                 case endProtocol:
                     Launcher.dbEngine.addProtocolNameToLog("Sleep", participantMap.get("participant_uuid"));
@@ -352,7 +352,7 @@ public class Sleep extends SleepBase {
                 String warnSleepMessage = "Remember to tell us when you tried to sleep last night and when you woke up this morning. Thank you!";
                 this.hasBeenWarned = true;
                 if (!this.isRestoring){
-                    Launcher.msgUtils.sendMessage(participantMap.get("number"), warnSleepMessage, false);
+                    Launcher.msgUtils.sendMessage(participantMap.get("number"), warnSleepMessage, false, "Sleep");
                 }
                 logger.warn(participantMap.get("participant_uuid") + ": in warnSleep -> timeout24Hours " +TZHelper.getDateFromAddingSeconds(secondsWarn));
                 //save state info
@@ -396,7 +396,7 @@ public class Sleep extends SleepBase {
                 setTimeout24Hours(secondsWarn5pm);
                 String warnWakeMessage = "Remember to tell us when you woke up this morning. Thank you!";
                 if (!this.isRestoring && !this.hasBeenWarned) {
-                    Launcher.msgUtils.sendMessage(participantMap.get("number"), warnWakeMessage, false);
+                    Launcher.msgUtils.sendMessage(participantMap.get("number"), warnWakeMessage, false, "Sleep");
                 }
                 logger.warn(participantMap.get("participant_uuid") + " in warnWake -> timeout24 " + TZHelper.getDateFromAddingSeconds(secondsWarn5pm) + ": alreadyBeenWarned: " + this.hasBeenWarned);
                 //save state info
@@ -436,14 +436,14 @@ public class Sleep extends SleepBase {
                 if (!isRestoring) {
                     Launcher.msgUtils.sendMessage(participantMap.get("number"), "[Sleep Baseline] Participant " +
                             participantMap.get("first_name") + " " + participantMap.get("last_name") +
-                            " ("+participantMap.get("number")+") sent their SLEEP time but missed their WAKE time.", true);
+                            " ("+participantMap.get("number")+") sent their SLEEP time but missed their WAKE time.", true, "Sleep");
                 }
                 break;
             case timeout24:
                 logger.warn(participantMap.get("participant_uuid") + " did not send sleep/wake in time.");
                 Launcher.msgUtils.sendMessage(participantMap.get("number"), "[Sleep Baseline] Participant " +
                         participantMap.get("first_name") + " " + participantMap.get("last_name") +
-                        " ("+participantMap.get("number")+") did not send SLEEP or WAKE during the last cycle.", true);
+                        " ("+participantMap.get("number")+") did not send SLEEP or WAKE during the last cycle.", true, "Sleep");
                 break;
             case endProtocol:
                 logger.warn(participantMap.get("participant_uuid") + " is not longer in protocol.");

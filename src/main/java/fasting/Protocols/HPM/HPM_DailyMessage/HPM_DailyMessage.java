@@ -78,7 +78,7 @@ public class HPM_DailyMessage extends HPM_DailyMessageBase {
             case sendDailyMessage:
                 String dailyMessage = getRandomDailyMessage();
                 logger.info(dailyMessage);
-                Launcher.msgUtils.sendMessage(participantMap.get("number"), dailyMessage, false);
+                Launcher.msgUtils.sendMessage(participantMap.get("number"), dailyMessage, false, "HPM");
                 // wait 5 seconds, so multiple messages don't get sent at the same time
                 try { Thread.sleep(5000); } catch (InterruptedException e) { /* do nothing */ }
                 break;
@@ -96,9 +96,9 @@ public class HPM_DailyMessage extends HPM_DailyMessageBase {
         try {
             this.isRestoring = true;
             // get current protocol
-            String protocolNameDB = Launcher.dbEngine.getProtocolFromParticipantId(participantMap.get("participant_uuid"));
+            Map<String, String> protocolNameDB = Launcher.dbEngine.getProtocolFromParticipantId(participantMap.get("participant_uuid"));
 
-            if (protocolNameDB.equals("TRE")) {
+            if (protocolNameDB.get("HPM").equals("TRE")) {
                 Map<String, HPM_Restricted> restrictedMap = Launcher.HPM_RestrictedWatcher.getHPM_RestrictedMap();
                 while (!restrictedMap.containsKey(participantMap.get("participant_uuid"))) {
                     Thread.sleep(500);

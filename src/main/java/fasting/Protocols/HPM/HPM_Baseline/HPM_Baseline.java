@@ -83,29 +83,29 @@ public class HPM_Baseline extends HPM_BaselineBase {
                         String[] startCalSplit = textBody.split(" ", 2);
                         if (startCalSplit.length >= 2) {
                             if (!(startCalSplit[1].toLowerCase().contains("a") || startCalSplit[1].toLowerCase().contains("p"))){
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your STARTCAL time was not understood. Please send \"STARTCAL\" again with your starting time including \"am\" or \"pm\". For example, \"STARTCAL 7:30 am\".", false);
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your STARTCAL time was not understood. Please send \"STARTCAL\" again with your starting time including \"am\" or \"pm\". For example, \"STARTCAL 7:30 am\".", false, "HPM");
                                 break;
                             }
                             if (!isStartCal(startCalSplit[0])) {
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your STARTCAL time was not understood. Please send \"STARTCAL\" again with your starting time. For example, \"STARTCAL 7:30 am\".", false);
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your STARTCAL time was not understood. Please send \"STARTCAL\" again with your starting time. For example, \"STARTCAL 7:30 am\".", false, "HPM");
                                 break;
                             }
                             long parsedTime = TZHelper.parseTime(startCalSplit[1]);
                             if (parsedTime == -1L) {
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your STARTCAL time was not understood. Please send \"STARTCAL\" again with your starting time. For example, \"STARTCAL 7:30 am\".", false);
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your STARTCAL time was not understood. Please send \"STARTCAL\" again with your starting time. For example, \"STARTCAL 7:30 am\".", false, "HPM");
                                 break;
                             }
                         } else {
                             // if just sent startcal make sure its not startcal9:45 or something similar
                             if (startCalSplit[0].length() > 8){
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your STARTCAL time was not understood. Please send \"STARTCAL\" again with your starting time. For example, \"STARTCAL 7:30 am\".", false);
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your STARTCAL time was not understood. Please send \"STARTCAL\" again with your starting time. For example, \"STARTCAL 7:30 am\".", false, "HPM");
                                 break;
                             }
                         }
                         receivedStartCal();
                     } else {
                         Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Please send \"STARTCAL\" when you begin calories for " +
-                                                                                    "the day; \"ENDCAL\" when you are done with calories for the day.", false);
+                                                                                    "the day; \"ENDCAL\" when you are done with calories for the day.", false, "HPM");
                     }
                     break;
                 case startcal:
@@ -114,22 +114,22 @@ public class HPM_Baseline extends HPM_BaselineBase {
                         String[] startCalSplit = textBody.split(" ", 2);
                         if (startCalSplit.length >= 2) {
                             if (!(startCalSplit[1].toLowerCase().contains("a") || startCalSplit[1].toLowerCase().contains("p"))){
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your STARTCAL time was not understood. Please send \"STARTCAL\" again with your starting time. For example, \"STARTCAL 7:30 am\".", false);
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your STARTCAL time was not understood. Please send \"STARTCAL\" again with your starting time. For example, \"STARTCAL 7:30 am\".", false, "HPM");
                                 break;
                             }
                             if (!isStartCal(startCalSplit[0])) {
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your STARTCAL time was not understood. Please send \"STARTCAL\" again with your starting time. For example, \"STARTCAL 7:30 am\".", false);
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your STARTCAL time was not understood. Please send \"STARTCAL\" again with your starting time. For example, \"STARTCAL 7:30 am\".", false, "HPM");
                                 break;
                             }
                             long parsedTime = TZHelper.parseTime(startCalSplit[1]);
                             if (parsedTime == -1L) {
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your STARTCAL time was not understood. Please send \"STARTCAL\" again with your starting time. For example, \"STARTCAL 7:30 am\".", false);
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your STARTCAL time was not understood. Please send \"STARTCAL\" again with your starting time. For example, \"STARTCAL 7:30 am\".", false, "HPM");
                                 break;
                             }
                         } else {
                             // if just sent startcal make sure its not startcal9:45 or something similar
                             if (startCalSplit[0].length() > 8){
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your STARTCAL time was not understood. Please send \"STARTCAL\" again with your starting time. For example, \"STARTCAL 7:30 am\".", false);
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your STARTCAL time was not understood. Please send \"STARTCAL\" again with your starting time. For example, \"STARTCAL 7:30 am\".", false, "HPM");
                                 break;
                             }
                         }
@@ -139,28 +139,28 @@ public class HPM_Baseline extends HPM_BaselineBase {
                         String[] endCalSplit = textBody.split(" ", 2);
                         if (endCalSplit.length >= 2) {
                             if (!(endCalSplit[1].toLowerCase().contains("a") || endCalSplit[1].toLowerCase().contains("p"))){
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time including \"am\" or \"pm\". For example, \"ENDCAL 7:30 pm\".", false);
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time including \"am\" or \"pm\". For example, \"ENDCAL 7:30 pm\".", false, "HPM");
                                 break;
                             }
                             if (!isEndCal(endCalSplit[0])) {
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".", false);
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".", false, "HPM");
                                 break;
                             }
                             long parsedTime = TZHelper.parseTime(endCalSplit[1]);
                             if (parsedTime == -1L) {
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".", false);
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".", false, "HPM");
                                 break;
                             }
                         } else {
                             // if just sent stopcal/endcal make sure its not endcal9:45 or something similar
                             if (incomingMap.get("Body").toLowerCase().contains("stopcal")){
                                 if (endCalSplit[0].length() > 7){
-                                    Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".", false);
+                                    Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".", false, "HPM");
                                     break;
                                 }
                             } else if (incomingMap.get("Body").toLowerCase().contains("endcal")){
                                 if (endCalSplit[0].length() > 6){
-                                    Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".", false);
+                                    Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".", false, "HPM");
                                     break;
                                 }
                             }
@@ -168,7 +168,7 @@ public class HPM_Baseline extends HPM_BaselineBase {
                         receivedEndCal();
                     } else {
                         Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Please send \"STARTCAL\" when you begin calories for " +
-                                                                                    "the day; \"ENDCAL\" when you are done with calories for the day.", false);
+                                                                                    "the day; \"ENDCAL\" when you are done with calories for the day.", false, "HPM");
                     }
                     break;
                 case warnEndCal:
@@ -177,28 +177,28 @@ public class HPM_Baseline extends HPM_BaselineBase {
                         String[] endCalSplit = textBody.split(" ", 2);
                         if (endCalSplit.length >= 2) {
                             if (!(endCalSplit[1].toLowerCase().contains("a") || endCalSplit[1].toLowerCase().contains("p"))) {
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time including \"am\" or \"pm\". For example, \"ENDCAL 7:30 pm\".", false);
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time including \"am\" or \"pm\". For example, \"ENDCAL 7:30 pm\".", false, "HPM");
                                 break;
                             }
                             if (!isEndCal(endCalSplit[0])) {
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".", false);
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".", false, "HPM");
                                 break;
                             }
                             long parsedTime = TZHelper.parseTime(endCalSplit[1]);
                             if (parsedTime == -1L) {
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".", false);
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".", false, "HPM");
                                 break;
                             }
                         } else {
                             // if just sent stopcal/endcal make sure its not endcal9:45 or something similar
                             if (incomingMap.get("Body").toLowerCase().contains("stopcal")){
                                 if (endCalSplit[0].length() > 7){
-                                    Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".", false);
+                                    Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".", false, "HPM");
                                     break;
                                 }
                             } else if (incomingMap.get("Body").toLowerCase().contains("endcal")){
                                 if (endCalSplit[0].length() > 6){
-                                    Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".", false);
+                                    Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".", false, "HPM");
                                     break;
                                 }
                             }
@@ -207,7 +207,7 @@ public class HPM_Baseline extends HPM_BaselineBase {
                     } else {
                         String endCalMessage = participantMap.get("participant_uuid") + " warnEndCal unexpected message";
                         logger.warn(endCalMessage);
-                        Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Text 270-402-2214 if you need help.", false);
+                        Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Text 270-402-2214 if you need help.", false, "HPM");
                     }
                     break;
                 case endcal:
@@ -216,28 +216,28 @@ public class HPM_Baseline extends HPM_BaselineBase {
                         String[] endCalSplit = textBody.split(" ", 2);
                         if (endCalSplit.length >= 2) {
                             if (!(endCalSplit[1].toLowerCase().contains("a") || endCalSplit[1].toLowerCase().contains("p"))) {
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time including \"am\" or \"pm\". For example, \"ENDCAL 7:30 pm\".", false);
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time including \"am\" or \"pm\". For example, \"ENDCAL 7:30 pm\".", false, "HPM");
                                 break;
                             }
                             if (!isEndCal(endCalSplit[0])) {
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".", false);
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".", false, "HPM");
                                 break;
                             }
                             long parsedTime = TZHelper.parseTime(endCalSplit[1]);
                             if (parsedTime == -1L) {
-                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".", false);
+                                Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".", false, "HPM");
                                 break;
                             }
                         } else {
                             // if just sent stopcal/endcal make sure its not endcal9:45 or something similar
                             if (incomingMap.get("Body").toLowerCase().contains("stopcal")){
                                 if (endCalSplit[0].length() > 7){
-                                    Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".", false);
+                                    Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".", false, "HPM");
                                     break;
                                 }
                             } else if (incomingMap.get("Body").toLowerCase().contains("endcal")){
                                 if (endCalSplit[0].length() > 6){
-                                    Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".", false);
+                                    Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your ENDCAL time was not understood. Please send \"ENDCAL\" again with your ending time. For example, \"ENDCAL 7:30 pm\".", false, "HPM");
                                     break;
                                 }
                             }
@@ -246,13 +246,13 @@ public class HPM_Baseline extends HPM_BaselineBase {
                     } else {
                         String endCalMessage = participantMap.get("participant_uuid") + " endCal unexpected message";
                         logger.warn(endCalMessage);
-                        Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Text 270-402-2214 if you need help.", false);
+                        Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Text 270-402-2214 if you need help.", false, "HPM");
                     }
                     break;
                 case timeout24:
                     String timeoutMessage = participantMap.get("participant_uuid") + " timeout unexpected message";
                     logger.warn(timeoutMessage);
-                    Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Text 270-402-2214 if you need help.", false);
+                    Launcher.msgUtils.sendMessage(participantMap.get("number"), "Your text was not understood. Text 270-402-2214 if you need help.", false, "HPM");
                     break;
                 case endProtocol:
                     Launcher.dbEngine.addProtocolNameToLog("Baseline", participantMap.get("participant_uuid"));
@@ -356,7 +356,7 @@ public class HPM_Baseline extends HPM_BaselineBase {
                 setTimeout24Hours(secondsTo4am);
                 String warnStartMessage = "Remember to text \"STARTCAL\" when your calories start for the day and \"ENDCAL\" when your calories finish at night. Thank you!";
                 if (!this.isRestoring){
-                    Launcher.msgUtils.sendMessage(participantMap.get("number"), warnStartMessage, false);
+                    Launcher.msgUtils.sendMessage(participantMap.get("number"), warnStartMessage, false, "HPM");
                 }
                 logger.warn(participantMap.get("participant_uuid") + " in warnStartCal -> timeout24 " + TZHelper.getDateFromAddingSeconds(secondsTo4am));
                 //save state info
@@ -400,7 +400,7 @@ public class HPM_Baseline extends HPM_BaselineBase {
                 setTimeout24Hours(secondsWarn4am);
                 String warnEndCalMessage = "Remember to enter your \"ENDCAL\" tonight after your last calories. Thank you!";
                 if (!this.isRestoring){
-                    Launcher.msgUtils.sendMessage(participantMap.get("number"), warnEndCalMessage, false);
+                    Launcher.msgUtils.sendMessage(participantMap.get("number"), warnEndCalMessage, false, "HPM");
                 }
                 logger.warn(participantMap.get("participant_uuid") + " in warnEndCal -> timeout24 " + TZHelper.getDateFromAddingSeconds(secondsWarn4am));
                 //save state info
@@ -438,7 +438,7 @@ public class HPM_Baseline extends HPM_BaselineBase {
             case missedEndCal:
                 logger.warn(participantMap.get("participant_uuid") + " did not send endcal in time. (missedEndCal)");
                 if (!isRestoring) {
-                    Launcher.msgUtils.sendScheduledMessage(participantMap.get("number"), "[HPM Baseline] Participant " + participantMap.get("first_name") + " " + participantMap.get("last_name") + " ("+participantMap.get("number")+") missed their ENDCAL.", TZHelper.getZonedDateTime8am(true), true);
+                    Launcher.msgUtils.sendScheduledMessage(participantMap.get("number"), "[HPM Baseline] Participant " + participantMap.get("first_name") + " " + participantMap.get("last_name") + " ("+participantMap.get("number")+") missed their ENDCAL.", TZHelper.getZonedDateTime8am(true), true, "HPM");
                 }
             case timeout24:
                 logger.warn(participantMap.get("participant_uuid") + " did not send startcal/endcal in time.");
@@ -446,8 +446,8 @@ public class HPM_Baseline extends HPM_BaselineBase {
                     String message = "We haven't heard from you in a while. Remember to text \"STARTCAL\" when your " +
                             "calories start in the morning and \"ENDCAL\" when your calories finish at night! Let us " +
                             "know if you need help.";
-                    Launcher.msgUtils.sendScheduledMessage(participantMap.get("number"), message, TZHelper.getZonedDateTime8am(false), false);
-                    Launcher.msgUtils.sendScheduledMessage(participantMap.get("number"), "[HPM Baseline] Participant " + participantMap.get("first_name") + " " + participantMap.get("last_name") + " ("+participantMap.get("number")+") did not send STARTCAL or ENDCAL yesterday.", TZHelper.getZonedDateTime8am(true), true);
+                    Launcher.msgUtils.sendScheduledMessage(participantMap.get("number"), message, TZHelper.getZonedDateTime8am(false), false, "HPM");
+                    Launcher.msgUtils.sendScheduledMessage(participantMap.get("number"), "[HPM Baseline] Participant " + participantMap.get("first_name") + " " + participantMap.get("last_name") + " ("+participantMap.get("number")+") did not send STARTCAL or ENDCAL yesterday.", TZHelper.getZonedDateTime8am(true), true, "HPM");
                 }
                 break;
             case endProtocol:

@@ -350,7 +350,7 @@ public class DBEngine {
             stmt.setString(1, uuid);
             rs = stmt.executeQuery();
 
-            if (rs.next()) {
+            while (rs.next()) {
                 result = rs.getString(1);
             }
         } catch (Exception ex) {
@@ -1188,21 +1188,21 @@ public class DBEngine {
         return timestamp;
     }
 
-    public String getProtocolFromParticipantId(String uuid) {
+    public Map<String, String> getProtocolFromParticipantId(String uuid) {
         Connection conn = null;
         PreparedStatement stmt = null;
         ResultSet rs = null;
-        String protocol = "";
+        Map<String, String> protocol = new HashMap<>();
 
         try{
-            String query = "SELECT name FROM protocol_types WHERE protocol_type_uuid IN (SELECT protocol_type_uuid FROM enrollments WHERE participant_uuid = ? AND status = 1)";
+            String query = "SELECT study, name FROM protocol_types WHERE protocol_type_uuid IN (SELECT protocol_type_uuid FROM enrollments WHERE participant_uuid = ? AND status = 1)";
             conn = ds.getConnection();
             stmt = conn.prepareStatement(query);
             stmt.setString(1, uuid);
             rs = stmt.executeQuery();
 
-            if(rs.next()){
-                protocol = rs.getString("name");
+            while (rs.next()){
+                protocol.put(rs.getString("study"), rs.getString("name"));
             }
 
         } catch (Exception ex) {
@@ -1216,11 +1216,11 @@ public class DBEngine {
     }
 
 
-    public String getStudyFromParticipantId(String uuid) {
+    public List<String> getStudyFromParticipantId(String uuid) {
         Connection conn = null;
         PreparedStatement stmt = null;
         ResultSet rs = null;
-        String study = "";
+        List<String> studies = new ArrayList<>();
 
         try{
             String query = "SELECT study FROM participants WHERE participant_uuid=?";
@@ -1229,8 +1229,8 @@ public class DBEngine {
             stmt.setString(1, uuid);
             rs = stmt.executeQuery();
 
-            if(rs.next()){
-                study = rs.getString("study");
+            while (rs.next()){
+                studies.add(rs.getString("study"));
             }
 
         } catch (Exception ex) {
@@ -1240,7 +1240,7 @@ public class DBEngine {
             try { stmt.close(); } catch (Exception e) { /* Null Ignored */ }
             try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
         }
-        return study;
+        return studies;
     }
 
     /**
@@ -1328,7 +1328,7 @@ public class DBEngine {
         ResultSet rs = null;
 
         try {
-            String query = "SELECT message_uuid, toNumber, JSON_VALUE(message_json, '$.Body') AS body FROM queued_messages WHERE scheduledFor <= GETUTCDATE()";
+            String query = "SELECT message_uuid, study, toNumber, JSON_VALUE(message_json, '$.Body') AS body FROM queued_messages WHERE scheduledFor <= GETUTCDATE()";
             conn = ds.getConnection();
             stmt = conn.prepareStatement(query);
             rs = stmt.executeQuery();
@@ -1337,10 +1337,11 @@ public class DBEngine {
                 String toNumber = rs.getString("toNumber");
                 String messageJson = rs.getString("body");
                 String messageId = rs.getString("message_uuid");
+                String study = rs.getString("study");
                 if (toNumber.equals(Launcher.adminPhoneNumber)) {
-                    Launcher.msgUtils.sendMessage(toNumber, messageJson, true);
+                    Launcher.msgUtils.sendMessage(toNumber, messageJson, true, study);
                 } else {
-                    Launcher.msgUtils.sendMessage(toNumber, messageJson, false);
+                    Launcher.msgUtils.sendMessage(toNumber, messageJson, false, study);
                 }
                 removeFromQueuedMessage(messageId);
             }
