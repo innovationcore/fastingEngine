@@ -56,9 +56,11 @@ public class API {
                 if (studies.contains("Sleep")) {
                     studies.remove("Sleep");
                 }
-                String study = studies.get(0);
+                String study;
                 if (textBody.toLowerCase().contains("sleep") || textBody.toLowerCase().contains("wake")){
                     study = "Sleep";
+                } else {
+                    study = studies.get(0);
                 }
 
                 String participantId = participantIds.get(study);
