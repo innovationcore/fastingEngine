@@ -30,6 +30,7 @@ public class CCW_Restricted extends CCW_RestrictedBase {
     private int endcalRepeats;
 
     private boolean wasSucessfulFast;
+    private boolean wasAfter8pm;
     private int numberOfCyclesInProtocol; // keeps a count of the number of cycles that a participant has been in
     public String stateJSON;
     private final Gson gson;
@@ -45,6 +46,7 @@ public class CCW_Restricted extends CCW_RestrictedBase {
         this.isDayOff = false;
         this.endcalRepeats = 0;
         this.wasSucessfulFast = false;
+        this.wasAfter8pm = false;
 
         // this initializes the user's and machine's timezone
         this.TZHelper = new TimezoneHelper(participantMap.get("time_zone"), TimeZone.getDefault().getID());
@@ -94,10 +96,23 @@ public class CCW_Restricted extends CCW_RestrictedBase {
                     if (isDayoff(incomingMap.get("Body"))) {
                         receivedDayOff();
                     } else if (isEndCal(incomingMap.get("Body"))){
-                        // send error to participant
-                        Launcher.msgUtils.sendMessage(participantMap.get("number"), "Cannot receive \"ENDCAL\" after 4am. Please note the time of \"ENDCAL\" and tell the study coordinator at your next communication.", false, "CCW");
-                        // send message to study admin
-                        Launcher.msgUtils.sendMessage("+12704022214", "Participant " +participantMap.get("first_name")+ " " + participantMap.get("last_name") + " sent ENDCAL after 4am and before STARTCAL.", false, "CCW");
+                        // if Startcal sent yesterday
+                        long lastStartCalTime = Launcher.dbEngine.getLastStartCalTime(participantMap.get("participant_uuid"));
+                        boolean wasStartCalSentYesterday;
+                        if (lastStartCalTime == -1L){
+                            wasStartCalSentYesterday = false;
+                        } else {
+                            wasStartCalSentYesterday = TZHelper.didStartCalHappenYesterday(lastStartCalTime);
+                        }
+                        if (wasStartCalSentYesterday) {
+                            // send error to participant
+                            Launcher.msgUtils.sendMessage(participantMap.get("number"), "Cannot receive \"ENDCAL\" after 4am. Please note the time of \"ENDCAL\" and tell the study coordinator at your next communication.", false, "CCW");
+                            // send message to study admin
+                            Launcher.msgUtils.sendMessage("+12704022214", "Participant " + participantMap.get("first_name") + " " + participantMap.get("last_name") + " sent ENDCAL after 4am and before STARTCAL.", false, "CCW");
+                        } else {
+                            //else send info message
+                            Launcher.msgUtils.sendMessage(participantMap.get("number"), "No \"STARTCAL\" received yet today. Please send us your \"STARTCAL\" so we know when your calories began today.", false, "CCW");
+                        }
                     } else if(isStartCal(incomingMap.get("Body"))) {
                         String textBody = incomingMap.get("Body").trim(); // removes whitespace before and after
                         String[] startCalSplit = textBody.split(" ", 2);
@@ -491,7 +506,7 @@ public class CCW_Restricted extends CCW_RestrictedBase {
                 if (!this.pauseMessages && !this.isDayOff) {
                     Launcher.msgUtils.sendScheduledMessage(participantMap.get("number"), missedStartCalMessage, TZHelper.getZonedDateTime8am(false),false, "CCW");
                     if (this.numberOfCyclesInProtocol >= this.TRIAL_PERIOD) {
-                        Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false, false);
+                        Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false, false, false);
                         Launcher.msgUtils.sendScheduledMessage(participantMap.get("number"), "[CCW TRE] Participant " + participantMap.get("first_name") + " " + participantMap.get("last_name") + " ("+participantMap.get("number")+") missed their STARTCAL.", TZHelper.getZonedDateTime8am(true), true, "CCW");
                     } else {
                         Launcher.msgUtils.sendScheduledMessage(participantMap.get("number"), "[CCW TRE] Participant " + participantMap.get("first_name") + " " + participantMap.get("last_name") + " ("+participantMap.get("number")+") missed their STARTCAL during the trial period (<7 days).", TZHelper.getZonedDateTime8am(true), true, "CCW");
@@ -564,7 +579,7 @@ public class CCW_Restricted extends CCW_RestrictedBase {
                     if (!this.pauseMessages && !this.isDayOff){
                         // update the success rate
                         if (this.numberOfCyclesInProtocol >= this.TRIAL_PERIOD) {
-                            Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false, isRepeat);
+                            Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false, isRepeat, false);
                         }
 
                         String before9Msg = pickRandomLess9TRE(startTime, endTime);
@@ -574,7 +589,7 @@ public class CCW_Restricted extends CCW_RestrictedBase {
                     if (!this.pauseMessages && !this.isDayOff){
                         // update the success rate
                         if (this.numberOfCyclesInProtocol >= this.TRIAL_PERIOD) {
-                            Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false, isRepeat);
+                            Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false, isRepeat, false);
                         }
 
                         String after11Msg = pickRandomGreater11TRE();
@@ -585,7 +600,8 @@ public class CCW_Restricted extends CCW_RestrictedBase {
                         // update the success rate
                         if(TZHelper.isAfter8PM(endTime) && !this.isDayOff){
                             if (this.numberOfCyclesInProtocol >= this.TRIAL_PERIOD) {
-                                Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false, isRepeat);
+                                Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false, isRepeat, true);
+                                this.wasAfter8pm = true;
                             }
                             String after8PMMsg = randomAfter8PMMessage();
                             Launcher.msgUtils.sendMessage(participantMap.get("number"), after8PMMsg, false, "CCW");
@@ -595,7 +611,7 @@ public class CCW_Restricted extends CCW_RestrictedBase {
                             }
                         } else{
                             if (!this.isDayOff && this.numberOfCyclesInProtocol >= this.TRIAL_PERIOD) {
-                                Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), true, isRepeat);
+                                Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), true, isRepeat, false);
 
                                 this.wasSucessfulFast = true;
                                 if (this.numberOfCyclesInProtocol >= this.TRIAL_PERIOD) {
@@ -626,7 +642,7 @@ public class CCW_Restricted extends CCW_RestrictedBase {
                 if (!this.pauseMessages && !this.isDayOff){
                     if(this.numberOfCyclesInProtocol >= this.TRIAL_PERIOD) {
                         // finished with trial period
-                        Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false, false);
+                        Launcher.dbEngine.setSuccessRate(participantMap.get("participant_uuid"), false, false, false);
                         Launcher.msgUtils.sendScheduledMessage(participantMap.get("number"), "[CCW TRE] Participant " + participantMap.get("first_name") + " " + participantMap.get("last_name") + " ("+participantMap.get("number")+") missed their ENDCAL.", TZHelper.getZonedDateTime8am(true), true, "CCW");
                     } else {
                         // still in trial period
@@ -661,6 +677,7 @@ public class CCW_Restricted extends CCW_RestrictedBase {
                 this.endcalRepeats = 0;
                 this.isDayOff = false;
                 this.wasSucessfulFast = false;
+                this.wasAfter8pm = false;
                 break;
             case dayOffWait:
                 this.isDayOff = true;
@@ -690,7 +707,7 @@ public class CCW_Restricted extends CCW_RestrictedBase {
                 }
                 this.isDayOff = true;
                 // check if endcal was successful or not, variable that is reset
-                Launcher.dbEngine.updateSuccessRate(participantMap.get("participant_uuid"), this.wasSucessfulFast); // this updates the success rate and returns a string of success
+                Launcher.dbEngine.updateSuccessRate(participantMap.get("participant_uuid"), this.wasSucessfulFast, this.wasAfter8pm); // this updates the success rate and returns a string of success
                 Launcher.msgUtils.sendMessage(participantMap.get("number"), "Got it, no TRE today! Thank you for telling us. Please still let us know your \"ENDCAL\" today.", false, "CCW");
                 logger.info(participantMap.get("participant_uuid") + " DayOff in endOfEpisode");
                 break;

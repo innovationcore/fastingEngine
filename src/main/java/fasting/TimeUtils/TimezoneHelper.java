@@ -445,9 +445,9 @@ public class TimezoneHelper {
 
         int duration = (int)(end - start);
 
-        if (duration < 32400) { // 9 hours
+        if (duration < 32100) { // 9 hours - 5 mins
             return -1;
-        } else if (duration > 39600) { // 11 hours
+        } else if (duration > 39900) { // 11 hours + 5 mins
             return 1;
         } else {
             return 0;
@@ -607,6 +607,26 @@ public class TimezoneHelper {
             Duration timeUntil8am = Duration.between(nowUserTimezone, userLocalTime8am);
             return nowUserTimezone.plus(timeUntil8am).withZoneSameInstant(ZoneOffset.UTC);
         }
+    }
+
+    public boolean didStartCalHappenYesterday(long time) {
+        Instant unixUTC = Instant.ofEpochSecond(time);
+        ZoneId userTZ = ZoneId.of(this.userTimezone);
+        ZonedDateTime startCalTimezone = ZonedDateTime.ofInstant(unixUTC, userTZ);
+        LocalDate today = startCalTimezone.toLocalDate();
+
+        Instant nowUTC = Instant.now();
+        ZonedDateTime nowUserTimezone = ZonedDateTime.ofInstant(nowUTC, userTZ);
+        LocalDateTime nowUserLocalTime = nowUserTimezone.toLocalDateTime();
+
+        // Get today's 4am
+        LocalDateTime today4AM = LocalDateTime.of(nowUserLocalTime.getYear(), nowUserLocalTime.getMonth(), nowUserLocalTime.getDayOfMonth(), 4, 0, 0);
+
+        // Get yesterday's 4am
+        LocalDateTime yesterday4AM = today4AM.minusDays(1);
+
+        // Check if the timestamp is between yesterday 4am and today 4am
+        return startCalTimezone.toLocalDateTime().isAfter(yesterday4AM) && startCalTimezone.toLocalDateTime().isBefore(today4AM);
     }
 
     /**
