@@ -349,7 +349,7 @@ public class Sleep extends SleepBase {
                 //set end for sleep
                 int secondsWarn = TZHelper.getSecondsTo5pm();
                 setTimeout24Hours(secondsWarn);
-                String warnSleepMessage = "Remember to tell us when you tried to sleep last night and when you woke up this morning. Thank you!";
+                String warnSleepMessage = "We haven't received your \"SLEEP\" time from last night or your \"WAKE\" time from this morning. Please send these by 5:00pm today. Thank you!";
                 this.hasBeenWarned = true;
                 if (!this.isRestoring){
                     Launcher.msgUtils.sendMessage(participantMap.get("number"), warnSleepMessage, false, "Sleep");
@@ -394,7 +394,7 @@ public class Sleep extends SleepBase {
                 //set end for wake
                 int secondsWarn5pm = TZHelper.getSecondsTo5pm();
                 setTimeout24Hours(secondsWarn5pm);
-                String warnWakeMessage = "Remember to tell us when you woke up this morning. Thank you!";
+                String warnWakeMessage = "We haven't received your \"WAKE\" time from this morning. Please send this by 5:00pm today. Thank you!";
                 if (!this.isRestoring && !this.hasBeenWarned) {
                     Launcher.msgUtils.sendMessage(participantMap.get("number"), warnWakeMessage, false, "Sleep");
                 }

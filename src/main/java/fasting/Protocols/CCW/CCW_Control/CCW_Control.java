@@ -30,6 +30,7 @@ public class CCW_Control extends CCW_ControlBase {
     private final Gson gson;
     public ScheduledExecutorService uploadSave;
     private static final Logger logger = LoggerFactory.getLogger(CCW_Control.class.getName());
+    private boolean sentMissedEndCalMessage;
 
     public CCW_Control(Map<String, String> participantMap) {
         this.gson = new Gson();
@@ -37,6 +38,7 @@ public class CCW_Control extends CCW_ControlBase {
         this.stateMap = new HashMap<>();
         this.isRestoring = false;
         this.isReset = false;
+        this.sentMissedEndCalMessage = false;
 
         // this initializes the user's and machine's timezone
         this.TZHelper = new TimezoneHelper(participantMap.get("time_zone"), TimeZone.getDefault().getID());
@@ -342,6 +344,7 @@ public class CCW_Control extends CCW_ControlBase {
                 //no timers
                 break;
             case waitStart:
+                this.sentMissedEndCalMessage = false; // resetting this variable
                 int seconds = TZHelper.getSecondsTo1159am();
                 if (seconds <= 0) {
                     seconds = 300;
@@ -442,6 +445,7 @@ public class CCW_Control extends CCW_ControlBase {
                 logger.warn(participantMap.get("participant_uuid") + " did not send endcal in time. (missedEndCal)");
                 if (!isRestoring) {
                     Launcher.msgUtils.sendScheduledMessage(participantMap.get("number"), "[CCW Control] Participant " + participantMap.get("first_name") + " " + participantMap.get("last_name") + " ("+participantMap.get("number")+") missed their ENDCAL.", TZHelper.getZonedDateTime8am(true), true, "CCW");
+                    this.sentMissedEndCalMessage = true;
                 }
             case timeout24:
                 logger.warn(participantMap.get("participant_uuid") + " did not send startcal/endcal in time.");
@@ -450,7 +454,9 @@ public class CCW_Control extends CCW_ControlBase {
                             "calories start in the morning and \"ENDCAL\" when your calories finish at night! Let us " +
                             "know if you need help.";
                     Launcher.msgUtils.sendScheduledMessage(participantMap.get("number"), message, TZHelper.getZonedDateTime8am(false), false, "CCW");
-                    Launcher.msgUtils.sendScheduledMessage(participantMap.get("number"), "[CCW Control] Participant " + participantMap.get("first_name") + " " + participantMap.get("last_name") + " ("+participantMap.get("number")+") did not send STARTCAL or ENDCAL yesterday.", TZHelper.getZonedDateTime8am(true), true, "CCW");
+                    if (!this.sentMissedEndCalMessage) {
+                        Launcher.msgUtils.sendScheduledMessage(participantMap.get("number"), "[CCW Control] Participant " + participantMap.get("first_name") + " " + participantMap.get("last_name") + " (" + participantMap.get("number") + ") did not send STARTCAL or ENDCAL yesterday.", TZHelper.getZonedDateTime8am(true), true, "CCW");
+                    }
                 }
                 break;
             case endProtocol:

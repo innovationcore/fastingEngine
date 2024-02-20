@@ -30,13 +30,14 @@ public class CCW_Baseline extends CCW_BaselineBase {
     private final Gson gson;
     public ScheduledExecutorService uploadSave;
     private static final Logger logger = LoggerFactory.getLogger(CCW_Baseline.class.getName());
-
+    private boolean sentMissedEndCalMessage;
     public CCW_Baseline(Map<String, String> participantMap) {
         this.gson = new Gson();
         this.participantMap = participantMap;
         this.stateMap = new HashMap<>();
         this.isRestoring = false;
         this.isReset = false;
+        this.sentMissedEndCalMessage = false;
 
         // this initializes the user's and machine's timezone
         this.TZHelper = new TimezoneHelper(participantMap.get("time_zone"), TimeZone.getDefault().getID());
@@ -342,6 +343,7 @@ public class CCW_Baseline extends CCW_BaselineBase {
                 //no timers
                 break;
             case waitStart:
+                this.sentMissedEndCalMessage = false; // resetting this variable
                 int seconds = TZHelper.getSecondsTo1159am();
                 if (seconds <= 0) {
                     seconds = 300;
@@ -442,6 +444,7 @@ public class CCW_Baseline extends CCW_BaselineBase {
                 logger.warn(participantMap.get("participant_uuid") + " did not send endcal in time. (missedEndCal)");
                 if (!isRestoring) {
                     Launcher.msgUtils.sendScheduledMessage(participantMap.get("number"), "[CCW Baseline] Participant " + participantMap.get("first_name") + " " + participantMap.get("last_name") + " ("+participantMap.get("number")+") missed their ENDCAL.", TZHelper.getZonedDateTime8am(true), true, "CCW");
+                    this.sentMissedEndCalMessage = true;
                 }
             case timeout24:
                 logger.warn(participantMap.get("participant_uuid") + " did not send startcal/endcal in time.");

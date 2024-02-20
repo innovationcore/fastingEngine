@@ -28,6 +28,7 @@ public class HPM_Control extends HPM_ControlBase {
     private final Gson gson;
     public ScheduledExecutorService uploadSave;
     private static final Logger logger = LoggerFactory.getLogger(HPM_Control.class.getName());
+    private boolean sentMissedEndCalMessage;
 
     public HPM_Control(Map<String, String> participantMap) {
         this.gson = new Gson();
@@ -35,6 +36,7 @@ public class HPM_Control extends HPM_ControlBase {
         this.stateMap = new HashMap<>();
         this.isRestoring = false;
         this.isReset = false;
+        this.sentMissedEndCalMessage = false;
 
         // this initializes the user's and machine's timezone
         this.TZHelper = new TimezoneHelper(participantMap.get("time_zone"), TimeZone.getDefault().getID());
@@ -340,6 +342,7 @@ public class HPM_Control extends HPM_ControlBase {
                 //no timers
                 break;
             case waitStart:
+                this.sentMissedEndCalMessage = false; // resetting this variable
                 int seconds = TZHelper.getSecondsTo1159am();
                 if (seconds <= 0) {
                     seconds = 300;
@@ -440,6 +443,7 @@ public class HPM_Control extends HPM_ControlBase {
                 logger.warn(participantMap.get("participant_uuid") + " did not send endcal in time. (missedEndCal)");
                 if (!isRestoring) {
                     Launcher.msgUtils.sendScheduledMessage(participantMap.get("number"), "[HPM Control] Participant " + participantMap.get("first_name") + " " + participantMap.get("last_name") + " ("+participantMap.get("number")+") missed their ENDCAL.", TZHelper.getZonedDateTime8am(true), true, "HPM");
+                    this.sentMissedEndCalMessage = true;
                 }
             case timeout24:
                 logger.warn(participantMap.get("participant_uuid") + " did not send startcal/endcal in time.");
@@ -448,7 +452,9 @@ public class HPM_Control extends HPM_ControlBase {
                             "calories start in the morning and \"ENDCAL\" when your calories finish at night! Let us " +
                             "know if you need help.";
                     Launcher.msgUtils.sendScheduledMessage(participantMap.get("number"), message, TZHelper.getZonedDateTime8am(false), false, "HPM");
-                    Launcher.msgUtils.sendScheduledMessage(participantMap.get("number"), "[HPM Control] Participant " + participantMap.get("first_name") + " " + participantMap.get("last_name") + " ("+participantMap.get("number")+") did not send STARTCAL or ENDCAL yesterday.", TZHelper.getZonedDateTime8am(true), true, "HPM");
+                    if (!this.sentMissedEndCalMessage) {
+                        Launcher.msgUtils.sendScheduledMessage(participantMap.get("number"), "[HPM Control] Participant " + participantMap.get("first_name") + " " + participantMap.get("last_name") + " (" + participantMap.get("number") + ") did not send STARTCAL or ENDCAL yesterday.", TZHelper.getZonedDateTime8am(true), true, "HPM");
+                    }
                 }
                 break;
             case endProtocol:
