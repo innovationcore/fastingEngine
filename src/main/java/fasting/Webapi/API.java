@@ -95,6 +95,8 @@ public class API {
                     }
                 } else if (study.equals("Sleep")) {
                     Launcher.sleepWatcher.incomingText(participantId, formsMap);
+                } else if (study.equals("SEC")) {
+                    Launcher.SEC_BaselineWatcher.incomingText(participantId, formsMap);
                 } else {
                     logger.error("Text from participant not enrolled in any HPM, CCW, or Sleep protocol");
                 }
@@ -187,6 +189,8 @@ public class API {
                     }
                 } else if (participantStudy.equals("Sleep")){
                     validNextStates = Launcher.sleepWatcher.getValidNextStates(participantId);
+                } else if (participantStudy.equals("SEC")){
+                    validNextStates = Launcher.SEC_BaselineWatcher.getValidNextStates(participantId);
                 }
 
                 Map<String,String> response = new HashMap<>();
@@ -251,6 +255,8 @@ public class API {
                     }
                 } else if (study.equals("Sleep")) {
                     newState = Launcher.sleepWatcher.moveToState(participantId, nextState, time);
+                } else if (study.equals("SEC")){
+                    newState = Launcher.SEC_BaselineWatcher.moveToState(participantId, nextState, time);
                 }
 
                 Map<String,String> response = new HashMap<>();
@@ -319,6 +325,8 @@ public class API {
                     }
                 } else if (study.equals("Sleep")) {
                     Launcher.sleepWatcher.resetStateMachine(participantId);
+                } else if (study.equals("SEC")){
+                    Launcher.SEC_BaselineWatcher.resetStateMachine(participantId);
                 }
 
                 Map<String,String> response = new HashMap<>();
@@ -384,6 +392,8 @@ public class API {
                     }
                 } else if (study.equals("Sleep")) {
                     Launcher.sleepWatcher.updateTimeZone(participantId, tz);
+                } else if (study.equals("SEC")){
+                    Launcher.SEC_BaselineWatcher.updateTimeZone(participantId, tz);
                 }
 
                 Map<String,String> response = new HashMap<>();

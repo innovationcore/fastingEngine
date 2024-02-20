@@ -15,6 +15,7 @@ import fasting.Protocols.HPM.HPM_Control.HPM_ControlWatcher;
 import fasting.Protocols.HPM.HPM_DailyMessage.HPM_DailyMessageWatcher;
 import fasting.Protocols.HPM.HPM_Restricted.HPM_RestrictedWatcher;
 import fasting.Protocols.HPM.HPM_WeeklyMessage.HPM_WeeklyMessageWatcher;
+import fasting.Protocols.SEC.SEC_BaselineWatcher;
 import fasting.Protocols.Sleep.SleepWatcher;
 import fasting.TimeUtils.TimezoneHelper;
 import org.glassfish.grizzly.http.server.HttpServer;
@@ -48,6 +49,8 @@ public class Launcher {
     public static CCW_WeeklyMessageWatcher CCW_WeeklyMessageWatcher;
     public static CCW_DailyMessageWatcher CCW_DailyMessageWatcher;
     public static SleepWatcher sleepWatcher;
+    public static SEC_BaselineWatcher SEC_BaselineWatcher;
+
     public static TimezoneHelper TZHelper;
     public static String adminPhoneNumber;
     public static String adminTimeZone;
@@ -105,8 +108,11 @@ public class Launcher {
             CCW_WeeklyMessageWatcher = new CCW_WeeklyMessageWatcher(); // only for Baseline/Control
             CCW_DailyMessageWatcher = new CCW_DailyMessageWatcher(); // only for TRE
 
-            //start sleep protocol
+            //start Sleep protocol
             sleepWatcher = new SleepWatcher();
+
+            //start SEC protocols
+            SEC_BaselineWatcher = new SEC_BaselineWatcher();
 
         } catch (Exception ex) {
             ex.printStackTrace();
