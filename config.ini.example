@@ -15,6 +15,7 @@ twilio_auth_token=0
 twilio_from_number_HPM=0
 twilio_from_number_CCW=0
 twilio_from_number_Sleep=0
+twilio_from_number_SEC=0
 
 admin_phone_number=0
 admin_time_zone=America/Louisville

@@ -21,6 +21,7 @@ public class MsgUtils {
     private final String textFromHPM;
     private final String textFromCCW;
     private final String textFromSleep;
+    private final String textFromSEC;
     private final Logger logger;
     private final Gson gson;
 
@@ -29,6 +30,8 @@ public class MsgUtils {
         textFromHPM = Launcher.config.getStringParam("twilio_from_number_HPM");
         textFromCCW = Launcher.config.getStringParam("twilio_from_number_CCW");
         textFromSleep = Launcher.config.getStringParam("twilio_from_number_Sleep");
+        textFromSEC = Launcher.config.getStringParam("twilio_from_number_SEC");
+
         gson = new Gson();
         Twilio.init(Launcher.config.getStringParam("twilio_account_sid"), Launcher.config.getStringParam("twilio_auth_token"));
     }
@@ -79,6 +82,18 @@ public class MsgUtils {
                         message = Message.creator(
                                         new PhoneNumber(toNumber),
                                         new PhoneNumber(textFromSleep),
+                                        body)
+                                .create();
+                        break;
+                    case "SEC":
+                        if (toAdmin) {
+                            toNumber = Launcher.adminPhoneNumber;
+                        } else {
+                            toNumber = textTo;
+                        }
+                        message = Message.creator(
+                                        new PhoneNumber(toNumber),
+                                        new PhoneNumber(textFromSEC),
                                         body)
                                 .create();
                         break;
@@ -140,6 +155,11 @@ public class MsgUtils {
                     break;
                 case "Sleep":
                     fromNumber = textFromSleep;
+                    break;
+                case "SEC":
+                    fromNumber = textFromSEC;
+                    break;
+                default:
                     break;
             }
 
