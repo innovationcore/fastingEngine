@@ -86,7 +86,7 @@ public class API {
                         Launcher.HPM_ControlWatcher.incomingText(participantId, formsMap);
                     }
                 } else if (study.equals("CCW")){
-                    if (protocol.get(study).equals("TRE")) { // TODO problem with study key not there
+                    if (protocol.get(study).equals("TRE")) {
                         Launcher.CCW_RestrictedWatcher.incomingText(participantId, formsMap);
                     } else if (protocol.get(study).equals("Baseline")) {
                         Launcher.CCW_BaselineWatcher.incomingText(participantId, formsMap);
@@ -96,9 +96,11 @@ public class API {
                 } else if (study.equals("Sleep")) {
                     Launcher.sleepWatcher.incomingText(participantId, formsMap);
                 } else if (study.equals("SEC")) {
-                    Launcher.SEC_BaselineWatcher.incomingText(participantId, formsMap);
+                    if (!textBody.toLowerCase().contains("snack")){ // if snack then it just gets logged and nothing else happens
+                        Launcher.SEC_BaselineWatcher.incomingText(participantId, formsMap);
+                    }
                 } else {
-                    logger.error("Text from participant not enrolled in any HPM, CCW, or Sleep protocol");
+                    logger.error("Text from participant not enrolled in any HPM, CCW, Sleep, or SEC protocol");
                 }
 
                 Map<String,String> responce = new HashMap<>();
