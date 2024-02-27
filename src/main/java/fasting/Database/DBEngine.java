@@ -8,12 +8,13 @@ import org.apache.commons.pool2.impl.GenericObjectPool;
 
 import javax.sql.DataSource;
 import java.sql.*;
-import java.text.SimpleDateFormat;
-import java.util.*;
-import java.util.Date;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class DBEngine {
-
+    private final int MAX_RETRIES = 5;
     private Gson gson;
     private DataSource ds;
     public DBEngine() {
@@ -32,49 +33,6 @@ public class DBEngine {
 
     }
 
-    public static DataSource setupDataSource(String connectURI) {
-        //
-        // First, we'll create a ConnectionFactory that the
-        // pool will use to create Connections.
-        // We'll use the DriverManagerConnectionFactory,
-        // using the connect string passed in the command line
-        // arguments.
-        //
-        ConnectionFactory connectionFactory = null;
-        connectionFactory = new DriverManagerConnectionFactory(connectURI, null);
-
-
-        //
-        // Next we'll create the PoolableConnectionFactory, which wraps
-        // the "real" Connections created by the ConnectionFactory with
-        // the classes that implement the pooling functionality.
-        //
-        PoolableConnectionFactory poolableConnectionFactory =
-                new PoolableConnectionFactory(connectionFactory, null);
-
-        //
-        // Now we'll need a ObjectPool that serves as the
-        // actual pool of connections.
-        //
-        // We'll use a GenericObjectPool instance, although
-        // any ObjectPool implementation will suffice.
-        //
-        ObjectPool<PoolableConnection> connectionPool =
-                new GenericObjectPool<>(poolableConnectionFactory);
-
-        // Set the factory's pool property to the owning pool
-        poolableConnectionFactory.setPool(connectionPool);
-
-        //
-        // Finally, we create the PoolingDriver itself,
-        // passing in the object pool we created.
-        //
-        PoolingDataSource<PoolableConnection> dataSource =
-                new PoolingDataSource<>(connectionPool);
-
-        return dataSource;
-    }
-
     public static DataSource setupDataSource(String connectURI, String login, String password) {
         //
         // First, we'll create a ConnectionFactory that the
@@ -83,7 +41,7 @@ public class DBEngine {
         // using the connect string passed in the command line
         // arguments.
         //
-        ConnectionFactory connectionFactory = null;
+        ConnectionFactory connectionFactory;
         if(login == null && password == null) {
             connectionFactory = new DriverManagerConnectionFactory(connectURI, null);
         } else {
@@ -120,11 +78,8 @@ public class DBEngine {
         //
         // Finally, we create the PoolingDriver itself,
         // passing in the object pool we created.
-        //
-        PoolingDataSource<PoolableConnection> dataSource =
-                new PoolingDataSource<>(connectionPool);
 
-        return dataSource;
+        return new PoolingDataSource<>(connectionPool);
     }
 
 
@@ -206,75 +161,6 @@ public class DBEngine {
             try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
         }
         return  result;
-    }
-
-    public boolean databaseExist(String databaseName)  {
-        boolean exist = false;
-        try {
-
-            if(!ds.getConnection().isClosed()) {
-                exist = true;
-            }
-
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-        return exist;
-    }
-
-    public boolean tableExist(String tableName)  {
-        boolean exist = false;
-
-        ResultSet result = null;
-        DatabaseMetaData metadata = null;
-
-        try {
-            metadata = ds.getConnection().getMetaData();
-            result = metadata.getTables(null, null, tableName.toUpperCase(), null);
-
-            if(result.next()) {
-                exist = true;
-            }
-        } catch(SQLException e) {
-            e.printStackTrace();
-        }
-
-        catch(Exception ex) {
-            ex.printStackTrace();
-        } finally {
-            try { result.close(); } catch (Exception e) { /* Null Ignored */ }
-        }
-        return exist;
-    }
-
-
-    public List<Map<String,String>> getAccessLogs() {
-        Connection conn = null;
-        Statement stmt = null;
-        ResultSet rs = null;
-        List<Map<String,String>> accessMapList = null;
-        try {
-            accessMapList = new ArrayList<>();
-            String queryString = "SELECT * FROM accesslog";
-
-            conn = ds.getConnection();
-            stmt = conn.createStatement();
-            rs = stmt.executeQuery(queryString);
-
-            while (rs.next()) {
-                Map<String, String> accessMap = new HashMap<>();
-                accessMap.put("remote_ip", rs.getString("remote_ip"));
-                accessMap.put("access_ts", rs.getString("access_ts"));
-                accessMapList.add(accessMap);
-            }
-        } catch(Exception ex) {
-            ex.printStackTrace();
-        } finally {
-            try { rs.close(); }   catch (Exception e) { /* Null Ignored */ }
-            try { stmt.close(); } catch (Exception e) { /* Null Ignored */ }
-            try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
-        }
-        return accessMapList;
     }
 
     public int getDaysWithoutEndCal(String participant_id){
@@ -486,207 +372,315 @@ public class DBEngine {
     }
 
     public void saveStartCalTime(String participantUUID, long unixTS) {
+        int retryCount = 0;
         Connection conn = null;
         PreparedStatement stmt = null;
 
-        try {
-
-            String query = "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.start_cal_time', ?) WHERE TS IN (SELECT TOP 1 TS FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'startcal' ORDER BY TS DESC)";
-
-            conn = ds.getConnection();
-            stmt = conn.prepareStatement(query);
-            stmt.setString(1, Long.toString(unixTS));
-            stmt.setString(2, participantUUID);
-            stmt.executeUpdate();
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        } finally {
-            try { stmt.close(); } catch (Exception e) { /* Null Ignored */ }
-            try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
+        while (retryCount < MAX_RETRIES) {
+            try {
+                String query = "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.start_cal_time', ?) WHERE TS IN (SELECT TOP 1 TS FROM state_log WITH (UPDLOCK) WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'startcal' ORDER BY TS DESC)";
+                conn = ds.getConnection();
+                stmt = conn.prepareStatement(query);
+                stmt.setString(1, Long.toString(unixTS));
+                stmt.setString(2, participantUUID);
+                stmt.executeUpdate();
+                break;
+            } catch (SQLException e) {
+                if (e.getErrorCode() == 1205) { // SQL Server deadlock error code
+                    // Handle deadlock
+                    System.out.println("saveStartCalTime(): Deadlock occurred. Retrying.");
+                    retryCount++;
+                } else {
+                    e.printStackTrace();
+                    break;
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                break;
+            } finally {
+                try { stmt.close(); } catch (Exception e) { /* Null Ignored */ }
+                try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
+            }
         }
     }
 
     public void saveSleepTime(String participantUUID, long unixTS) {
+        int retryCount = 0;
         Connection conn = null;
         PreparedStatement stmt = null;
 
-        try {
-
-            String query = "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.sleep_time', ?) WHERE TS IN (SELECT TOP 1 TS FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'sleep' ORDER BY TS DESC)";
-
-            conn = ds.getConnection();
-            stmt = conn.prepareStatement(query);
-            stmt.setString(1, Long.toString(unixTS));
-            stmt.setString(2, participantUUID);
-            stmt.executeUpdate();
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        } finally {
-            try { stmt.close(); } catch (Exception e) { /* Null Ignored */ }
-            try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
+        while (retryCount < MAX_RETRIES) {
+            try {
+                String query = "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.sleep_time', ?) WHERE TS IN (SELECT TOP 1 TS FROM state_log WITH (UPDLOCK) WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'sleep' ORDER BY TS DESC)";
+                conn = ds.getConnection();
+                stmt = conn.prepareStatement(query);
+                stmt.setString(1, Long.toString(unixTS));
+                stmt.setString(2, participantUUID);
+                stmt.executeUpdate();
+                break;
+            } catch (SQLException e) {
+                if (e.getErrorCode() == 1205) { // SQL Server deadlock error code
+                    // Handle deadlock
+                    System.out.println("saveSleepTime(): Deadlock occurred. Retrying.");
+                    retryCount++;
+                } else {
+                    e.printStackTrace();
+                    break;
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                break;
+            } finally {
+                try { stmt.close(); } catch (Exception e) { /* Null Ignored */ }
+                try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
+            }
         }
     }
 
     public long getStartCalTime(String participantUUID) {
+        int retryCount = 0;
         Connection conn = null;
         PreparedStatement stmt = null;
         ResultSet rs = null;
-        String unixString = "";
+        String unixString;
         long unixTS = 0;
 
-        try {
-            // changing this from TOP 1 bc a new log without time gets logged which will always make this return null
-            String query = "SELECT JSON_VALUE(log_json, '$.start_cal_time') FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'startcal' ORDER BY TS DESC";
-            conn = ds.getConnection();
-            stmt = conn.prepareStatement(query);
-            stmt.setString(1, participantUUID);
-            rs = stmt.executeQuery();
+        while (retryCount < MAX_RETRIES) {
+            try {
+                // changing this from TOP 1 bc a new log without time gets logged which will always make this return null
+                String query = "SELECT JSON_VALUE(log_json, '$.start_cal_time') FROM state_log WITH (UPDLOCK) WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'startcal' ORDER BY TS DESC";
+                conn = ds.getConnection();
+                stmt = conn.prepareStatement(query);
+                stmt.setString(1, participantUUID);
+                rs = stmt.executeQuery();
 
-            while (rs.next()) {
-                unixString = rs.getString(1);
-                if(!rs.wasNull()){
-                    unixTS = Long.parseLong(unixString);
+                while (rs.next()) {
+                    unixString = rs.getString(1);
+                    if (!rs.wasNull()) {
+                        unixTS = Long.parseLong(unixString);
+                        break;
+                    }
+                }
+                break;
+            } catch (SQLException e) {
+                if (e.getErrorCode() == 1205) { // SQL Server deadlock error code
+                    // Handle deadlock
+                    System.out.println("getStartCalTime(): Deadlock occurred. Retrying.");
+                    retryCount++;
+                } else {
+                    e.printStackTrace();
                     break;
                 }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                break;
+            } finally {
+                try { rs.close(); } catch (Exception e) { /* Null Ignored */ }
+                try { stmt.close(); } catch (Exception e) { /* Null Ignored */ }
+                try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
             }
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        } finally {
-            try { rs.close(); }   catch (Exception e) { /* Null Ignored */ }
-            try { stmt.close(); } catch (Exception e) { /* Null Ignored */ }
-            try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
         }
         return unixTS;
     }
 
     public long getSleepTime(String participantUUID) {
+        int retryCount = 0;
         Connection conn = null;
         PreparedStatement stmt = null;
         ResultSet rs = null;
-        String unixString = "";
+        String unixString;
         long unixTS = 0;
 
-        try {
-            // changing this from TOP 1 bc a new log without time gets logged which will always make this return null
-            String query = "SELECT JSON_VALUE(log_json, '$.sleep_time') FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'sleep' ORDER BY TS DESC";
-            conn = ds.getConnection();
-            stmt = conn.prepareStatement(query);
-            stmt.setString(1, participantUUID);
-            rs = stmt.executeQuery();
+        while (retryCount < MAX_RETRIES) {
+            try {
+                // changing this from TOP 1 bc a new log without time gets logged which will always make this return null
+                String query = "SELECT JSON_VALUE(log_json, '$.sleep_time') FROM state_log WITH (UPDLOCK) WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'sleep' ORDER BY TS DESC";
+                conn = ds.getConnection();
+                stmt = conn.prepareStatement(query);
+                stmt.setString(1, participantUUID);
+                rs = stmt.executeQuery();
 
-            while (rs.next()) {
-                unixString = rs.getString(1);
-                if(!rs.wasNull()){
-                    unixTS = Long.parseLong(unixString);
+                while (rs.next()) {
+                    unixString = rs.getString(1);
+                    if(!rs.wasNull()){
+                        unixTS = Long.parseLong(unixString);
+                        break;
+                    }
+                }
+                break;
+            } catch (SQLException e) {
+                if (e.getErrorCode() == 1205) { // SQL Server deadlock error code
+                    // Handle deadlock
+                    System.out.println("getSleepTime(): Deadlock occurred. Retrying.");
+                    retryCount++;
+                } else {
+                    e.printStackTrace();
                     break;
                 }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                break;
+            } finally {
+                try { rs.close(); }   catch (Exception e) { /* Null Ignored */ }
+                try { stmt.close(); } catch (Exception e) { /* Null Ignored */ }
+                try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
             }
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        } finally {
-            try { rs.close(); }   catch (Exception e) { /* Null Ignored */ }
-            try { stmt.close(); } catch (Exception e) { /* Null Ignored */ }
-            try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
         }
         return unixTS;
     }
 
     public void saveEndCalTime(String participantUUID, long unixTS) {
+        int retryCount = 0;
         Connection conn = null;
         PreparedStatement stmt = null;
 
-        try {
-            String query = "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.end_cal_time', ?) WHERE TS IN (SELECT TOP 1 TS FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'endcal' ORDER BY TS DESC)";
-            conn = ds.getConnection();
-            stmt = conn.prepareStatement(query);
-            stmt.setString(1, Long.toString(unixTS));
-            stmt.setString(2, participantUUID);
-            stmt.executeUpdate();
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        } finally {
-            try { stmt.close(); } catch (Exception e) { /* Null Ignored */ }
-            try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
+        while (retryCount < MAX_RETRIES) {
+            try {
+                String query = "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.end_cal_time', ?) WHERE TS IN (SELECT TOP 1 TS FROM state_log WITH (UPDLOCK) WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'endcal' ORDER BY TS DESC)";
+                conn = ds.getConnection();
+                stmt = conn.prepareStatement(query);
+                stmt.setString(1, Long.toString(unixTS));
+                stmt.setString(2, participantUUID);
+                stmt.executeUpdate();
+                break;
+            } catch (SQLException e) {
+                if (e.getErrorCode() == 1205) { // SQL Server deadlock error code
+                    // Handle deadlock
+                    System.out.println("saveEndCalTime(): Deadlock occurred. Retrying.");
+                    retryCount++;
+                } else {
+                    e.printStackTrace();
+                    break;
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                break;
+            } finally {
+                try { stmt.close(); } catch (Exception e) { /* Null Ignored */ }
+                try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
+            }
         }
     }
 
     public void saveWakeTime(String participantUUID, long unixTS) {
+        int retryCount = 0;
         Connection conn = null;
         PreparedStatement stmt = null;
 
-        try {
-            String query = "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.wake_time', ?) WHERE TS IN (SELECT TOP 1 TS FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'wake' ORDER BY TS DESC)";
-            conn = ds.getConnection();
-            stmt = conn.prepareStatement(query);
-            stmt.setString(1, Long.toString(unixTS));
-            stmt.setString(2, participantUUID);
-            stmt.executeUpdate();
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        } finally {
-            try { stmt.close(); } catch (Exception e) { /* Null Ignored */ }
-            try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
+        while (retryCount < MAX_RETRIES) {
+            try {
+                String query = "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.wake_time', ?) WHERE TS IN (SELECT TOP 1 TS FROM state_log WITH (UPDLOCK) WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'wake' ORDER BY TS DESC)";
+                conn = ds.getConnection();
+                stmt = conn.prepareStatement(query);
+                stmt.setString(1, Long.toString(unixTS));
+                stmt.setString(2, participantUUID);
+                stmt.executeUpdate();
+                break;
+            } catch (SQLException e) {
+                if (e.getErrorCode() == 1205) { // SQL Server deadlock error code
+                    // Handle deadlock
+                    System.out.println("saveWakeTime(): Deadlock occurred. Retrying.");
+                    retryCount++;
+                } else {
+                    e.printStackTrace();
+                    break;
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                break;
+            } finally {
+                try { stmt.close(); } catch (Exception e) { /* Null Ignored */ }
+                try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
+            }
         }
     }
 
     public long getEndCalTime(String participantUUID) {
+        int retryCount = 0;
         Connection conn = null;
         PreparedStatement stmt = null;
         ResultSet rs = null;
-        String unixString = "";
+        String unixString;
         long unixTS = 0;
 
-        try {
-            String query = "SELECT JSON_VALUE(log_json, '$.end_cal_time') FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'endcal' ORDER BY TS DESC";
-            conn = ds.getConnection();
-            stmt = conn.prepareStatement(query);
-            stmt.setString(1, participantUUID);
-            rs = stmt.executeQuery();
+        while (retryCount < MAX_RETRIES) {
+            try {
+                String query = "SELECT JSON_VALUE(log_json, '$.end_cal_time') FROM state_log WITH (UPDLOCK) WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'endcal' ORDER BY TS DESC";
+                conn = ds.getConnection();
+                stmt = conn.prepareStatement(query);
+                stmt.setString(1, participantUUID);
+                rs = stmt.executeQuery();
 
-            while (rs.next()) {
-                unixString = rs.getString(1);
-                if(!rs.wasNull()){
-                    unixTS = Long.parseLong(unixString);
+                while (rs.next()) {
+                    unixString = rs.getString(1);
+                    if(!rs.wasNull()){
+                        unixTS = Long.parseLong(unixString);
+                        break;
+                    }
+                }
+                break;
+            } catch (SQLException e) {
+                if (e.getErrorCode() == 1205) { // SQL Server deadlock error code
+                    // Handle deadlock
+                    System.out.println("getEndCalTime(): Deadlock occurred. Retrying.");
+                    retryCount++;
+                } else {
+                    e.printStackTrace();
                     break;
                 }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                break;
+            } finally {
+                try { rs.close(); }   catch (Exception e) { /* Null Ignored */ }
+                try { stmt.close(); } catch (Exception e) { /* Null Ignored */ }
+                try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
             }
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        } finally {
-            try { rs.close(); }   catch (Exception e) { /* Null Ignored */ }
-            try { stmt.close(); } catch (Exception e) { /* Null Ignored */ }
-            try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
         }
         return unixTS;
     }
 
     public long getWakeTime(String participantUUID) {
+        int retryCount = 0;
         Connection conn = null;
         PreparedStatement stmt = null;
         ResultSet rs = null;
-        String unixString = "";
+        String unixString;
         long unixTS = 0;
 
-        try {
-            String query = "SELECT JSON_VALUE(log_json, '$.wake_time') FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'wake' ORDER BY TS DESC";
-            conn = ds.getConnection();
-            stmt = conn.prepareStatement(query);
-            stmt.setString(1, participantUUID);
-            rs = stmt.executeQuery();
+        while (retryCount < MAX_RETRIES) {
+            try {
+                String query = "SELECT JSON_VALUE(log_json, '$.wake_time') FROM state_log WITH (UPDLOCK) WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'wake' ORDER BY TS DESC";
+                conn = ds.getConnection();
+                stmt = conn.prepareStatement(query);
+                stmt.setString(1, participantUUID);
+                rs = stmt.executeQuery();
 
-            while (rs.next()) {
-                unixString = rs.getString(1);
-                if(!rs.wasNull()){
-                    unixTS = Long.parseLong(unixString);
+                while (rs.next()) {
+                    unixString = rs.getString(1);
+                    if(!rs.wasNull()){
+                        unixTS = Long.parseLong(unixString);
+                        break;
+                    }
+                }
+                break;
+            } catch (SQLException e) {
+                if (e.getErrorCode() == 1205) { // SQL Server deadlock error code
+                    // Handle deadlock
+                    System.out.println("getWakeTime(): Deadlock occurred. Retrying.");
+                    retryCount++;
+                } else {
+                    e.printStackTrace();
                     break;
                 }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                break;
+            } finally {
+                try { rs.close(); }   catch (Exception e) { /* Null Ignored */ }
+                try { stmt.close(); } catch (Exception e) { /* Null Ignored */ }
+                try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
             }
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        } finally {
-            try { rs.close(); }   catch (Exception e) { /* Null Ignored */ }
-            try { stmt.close(); } catch (Exception e) { /* Null Ignored */ }
-            try { conn.close(); } catch (Exception e) { /* Null Ignored */ }
         }
         return unixTS;
     }
@@ -986,7 +980,7 @@ public class DBEngine {
     public void setSuccessRate(String participantUUID, boolean wasSuccessful, boolean isRepeat, boolean isAfter8pm){
         Connection conn = null;
         PreparedStatement stmt = null;
-        String query = "";
+        String query;
 
         try {
             // need to get values from second endcal to update to latest endcal
@@ -997,59 +991,55 @@ public class DBEngine {
             conn = ds.getConnection();
             if (!isRepeat) {
                 if (totalCount == 0 && wasSuccessful) {
-                    System.out.println(1);
                     // initial addition to json
-                    query = "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.successful_TRE', 1) WHERE TS IN (SELECT TOP 1 TS FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'startcal' ORDER BY TS DESC);";
+                    query = "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.successful_TRE', 1) WHERE TS IN (SELECT TOP 1 TS FROM state_log WITH (UPDLOCK) WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'startcal' ORDER BY TS DESC);";
                     if (isAfter8pm) {
-                        query += "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.after8pm', 1) WHERE TS IN (SELECT TOP 1 TS FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'startcal' ORDER BY TS DESC);";
+                        query += "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.after8pm', 1) WHERE TS IN (SELECT TOP 1 TS FROM state_log WITH (UPDLOCK) WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'startcal' ORDER BY TS DESC);";
                     } else {
-                        query += "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.after8pm', 0) WHERE TS IN (SELECT TOP 1 TS FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'startcal' ORDER BY TS DESC);";
+                        query += "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.after8pm', 0) WHERE TS IN (SELECT TOP 1 TS FROM state_log WITH (UPDLOCK) WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'startcal' ORDER BY TS DESC);";
                     }
-                    query += "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.total_TRE', 1) WHERE TS IN (SELECT TOP 1 TS FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'startcal' ORDER BY TS DESC)";
+                    query += "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.total_TRE', 1) WHERE TS IN (SELECT TOP 1 TS FROM state_log WITH (UPDLOCK) WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'startcal' ORDER BY TS DESC)";
                     stmt = conn.prepareStatement(query);
                     stmt.setString(1, participantUUID);
                     stmt.setString(2, participantUUID);
                     stmt.setString(3, participantUUID);
                 } else if (totalCount == 0 && !wasSuccessful) {
-                    System.out.println(2);
                     // initial addition to json
-                    query = "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.successful_TRE', 0) WHERE TS IN (SELECT TOP 1 TS FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'startcal' ORDER BY TS DESC);";
+                    query = "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.successful_TRE', 0) WHERE TS IN (SELECT TOP 1 TS FROM state_log WITH (UPDLOCK) WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'startcal' ORDER BY TS DESC);";
                     if (isAfter8pm) {
-                        query += "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.after8pm', 1) WHERE TS IN (SELECT TOP 1 TS FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'startcal' ORDER BY TS DESC);";
+                        query += "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.after8pm', 1) WHERE TS IN (SELECT TOP 1 TS FROM state_log WITH (UPDLOCK) WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'startcal' ORDER BY TS DESC);";
                     } else {
-                        query += "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.after8pm', 0) WHERE TS IN (SELECT TOP 1 TS FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'startcal' ORDER BY TS DESC);";
+                        query += "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.after8pm', 0) WHERE TS IN (SELECT TOP 1 TS FROM state_log WITH (UPDLOCK) WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'startcal' ORDER BY TS DESC);";
                     }
-                    query += "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.total_TRE', 1) WHERE TS IN (SELECT TOP 1 TS FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'startcal' ORDER BY TS DESC)";
+                    query += "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.total_TRE', 1) WHERE TS IN (SELECT TOP 1 TS FROM state_log WITH (UPDLOCK) WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'startcal' ORDER BY TS DESC)";
                     stmt = conn.prepareStatement(query);
                     stmt.setString(1, participantUUID);
                     stmt.setString(2, participantUUID);
                     stmt.setString(3, participantUUID);
                 } else if (totalCount > 0 && wasSuccessful) {
-                    System.out.println(3);
                     // increment if successful
-                    query = "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.successful_TRE', " + (successCount + 1) + ") WHERE TS IN (SELECT TOP 1 TS FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'startcal' ORDER BY TS DESC);";
+                    query = "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.successful_TRE', " + (successCount + 1) + ") WHERE TS IN (SELECT TOP 1 TS FROM state_log WITH (UPDLOCK) WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'startcal' ORDER BY TS DESC);";
                     if (isAfter8pm) {
-                        query += "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.after8pm', " + (count8pm + 1) + ") WHERE TS IN (SELECT TOP 1 TS FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'startcal' ORDER BY TS DESC);";
+                        query += "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.after8pm', " + (count8pm + 1) + ") WHERE TS IN (SELECT TOP 1 TS FROM state_log WITH (UPDLOCK) WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'startcal' ORDER BY TS DESC);";
                     } else {
                         if (count8pm == 0) { count8pm = 1; }
-                        query += "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.after8pm', " + (count8pm) + ") WHERE TS IN (SELECT TOP 1 TS FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'startcal' ORDER BY TS DESC);";
+                        query += "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.after8pm', " + (count8pm) + ") WHERE TS IN (SELECT TOP 1 TS FROM state_log WITH (UPDLOCK) WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'startcal' ORDER BY TS DESC);";
                     }
-                    query += "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.total_TRE', " + (totalCount + 1) + ") WHERE TS IN (SELECT TOP 1 TS FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'startcal' ORDER BY TS DESC)";
+                    query += "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.total_TRE', " + (totalCount + 1) + ") WHERE TS IN (SELECT TOP 1 TS FROM state_log WITH (UPDLOCK) WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'startcal' ORDER BY TS DESC)";
                     stmt = conn.prepareStatement(query);
                     stmt.setString(1, participantUUID);
                     stmt.setString(2, participantUUID);
                     stmt.setString(3, participantUUID);
                 } else if (totalCount > 0 && !wasSuccessful) {
-                    System.out.println(4);
                     // don't increment if not successful
-                    query = "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.successful_TRE', " + successCount + ") WHERE TS IN (SELECT TOP 1 TS FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'startcal' ORDER BY TS DESC);";
+                    query = "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.successful_TRE', " + successCount + ") WHERE TS IN (SELECT TOP 1 TS FROM state_log WITH (UPDLOCK) WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'startcal' ORDER BY TS DESC);";
                     if (isAfter8pm) {
-                        query += "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.after8pm', " + (count8pm + 1) + ") WHERE TS IN (SELECT TOP 1 TS FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'startcal' ORDER BY TS DESC);";
+                        query += "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.after8pm', " + (count8pm + 1) + ") WHERE TS IN (SELECT TOP 1 TS FROM state_log WITH (UPDLOCK) WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'startcal' ORDER BY TS DESC);";
                     } else {
                         if (count8pm == 0) { count8pm = 1; }
-                        query += "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.after8pm', " + (count8pm) + ") WHERE TS IN (SELECT TOP 1 TS FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'startcal' ORDER BY TS DESC);";
+                        query += "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.after8pm', " + (count8pm) + ") WHERE TS IN (SELECT TOP 1 TS FROM state_log WITH (UPDLOCK) WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'startcal' ORDER BY TS DESC);";
                     }
-                    query += "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.total_TRE', " + (totalCount + 1) + ") WHERE TS IN (SELECT TOP 1 TS FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'startcal' ORDER BY TS DESC)";
+                    query += "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.total_TRE', " + (totalCount + 1) + ") WHERE TS IN (SELECT TOP 1 TS FROM state_log WITH (UPDLOCK) WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'startcal' ORDER BY TS DESC)";
                     stmt = conn.prepareStatement(query);
                     stmt.setString(1, participantUUID);
                     stmt.setString(2, participantUUID);
@@ -1057,27 +1047,25 @@ public class DBEngine {
                 }
             } else {
                 if (wasLastTRESuccessful && !wasSuccessful){
-                    System.out.println(5);
                     // decrement success rate, ignore total
-                    query = "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.successful_TRE', " + (successCount - 1) + ") WHERE TS IN (SELECT TOP 1 TS FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'startcal' ORDER BY TS DESC)";
+                    query = "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.successful_TRE', " + (successCount - 1) + ") WHERE TS IN (SELECT TOP 1 TS FROM state_log WITH (UPDLOCK) WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'startcal' ORDER BY TS DESC)";
                     if (isAfter8pm) {
-                        query += "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.after8pm', " + (count8pm + 1) + ") WHERE TS IN (SELECT TOP 1 TS FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'startcal' ORDER BY TS DESC);";
+                        query += "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.after8pm', " + (count8pm + 1) + ") WHERE TS IN (SELECT TOP 1 TS FROM state_log WITH (UPDLOCK) WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'startcal' ORDER BY TS DESC);";
                     } else {
                         if (count8pm == 0) { count8pm = 1; }
-                        query += "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.after8pm', " + (count8pm - 1) + ") WHERE TS IN (SELECT TOP 1 TS FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'startcal' ORDER BY TS DESC);";
+                        query += "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.after8pm', " + (count8pm - 1) + ") WHERE TS IN (SELECT TOP 1 TS FROM state_log WITH (UPDLOCK) WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'startcal' ORDER BY TS DESC);";
                     }
                     stmt = conn.prepareStatement(query);
                     stmt.setString(1, participantUUID);
                     stmt.setString(2, participantUUID);
                 } else if (!wasLastTRESuccessful && wasSuccessful) {
-                    System.out.println(6);
                     // increment success rate, ignore total
-                    query = "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.successful_TRE', " + (successCount + 1) + ") WHERE TS IN (SELECT TOP 1 TS FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'startcal' ORDER BY TS DESC)";
+                    query = "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.successful_TRE', " + (successCount + 1) + ") WHERE TS IN (SELECT TOP 1 TS FROM state_log WITH (UPDLOCK) WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'startcal' ORDER BY TS DESC)";
                     if (isAfter8pm) {
-                        query += "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.after8pm', " + (count8pm + 1) + ") WHERE TS IN (SELECT TOP 1 TS FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'startcal' ORDER BY TS DESC);";
+                        query += "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.after8pm', " + (count8pm + 1) + ") WHERE TS IN (SELECT TOP 1 TS FROM state_log WITH (UPDLOCK) WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'startcal' ORDER BY TS DESC);";
                     } else {
                         if (count8pm == 0) { count8pm = 1; }
-                        query += "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.after8pm', " + (count8pm - 1) + ") WHERE TS IN (SELECT TOP 1 TS FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'startcal' ORDER BY TS DESC);";
+                        query += "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.after8pm', " + (count8pm - 1) + ") WHERE TS IN (SELECT TOP 1 TS FROM state_log WITH (UPDLOCK) WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'startcal' ORDER BY TS DESC);";
                     }
                     stmt = conn.prepareStatement(query);
                     stmt.setString(1, participantUUID);
@@ -1145,10 +1133,10 @@ public class DBEngine {
             if (wasFastSuccessful){
                 //subtract 1 from success and total
                 if(successCount > 0) {
-                    query = "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.successful_TRE', " + (successCount - 1) + ") WHERE TS IN (SELECT TOP 1 TS FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'startcal' ORDER BY TS DESC);";
+                    query = "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.successful_TRE', " + (successCount - 1) + ") WHERE TS IN (SELECT TOP 1 TS FROM state_log WITH (UPDLOCK) WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'startcal' ORDER BY TS DESC);";
                 }
                 if (totalCount > 0) {
-                    query += "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.total_TRE', " + (totalCount - 1) + ") WHERE TS IN (SELECT TOP 1 TS FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'startcal' ORDER BY TS DESC)";
+                    query += "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.total_TRE', " + (totalCount - 1) + ") WHERE TS IN (SELECT TOP 1 TS FROM state_log WITH (UPDLOCK) WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'startcal' ORDER BY TS DESC)";
                 }
                 if (successCount > 0 || totalCount > 0) {
                     stmt = conn.prepareStatement(query);
@@ -1160,10 +1148,10 @@ public class DBEngine {
             } else {
                 // only subtract 1 from total and after 8pm count (if applicable)
                 if (wasAfter8pm && count8pm > 0) {
-                    query = "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.after8pm', " + (count8pm - 1) + ") WHERE TS IN (SELECT TOP 1 TS FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'startcal' ORDER BY TS DESC);";
+                    query = "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.after8pm', " + (count8pm - 1) + ") WHERE TS IN (SELECT TOP 1 TS FROM state_log WITH (UPDLOCK) WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'startcal' ORDER BY TS DESC);";
                 }
                 if (totalCount > 0) {
-                    query += "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.total_TRE', " + (totalCount - 1) + ") WHERE TS IN (SELECT TOP 1 TS FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'startcal' ORDER BY TS DESC)";
+                    query += "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.total_TRE', " + (totalCount - 1) + ") WHERE TS IN (SELECT TOP 1 TS FROM state_log WITH (UPDLOCK) WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'startcal' ORDER BY TS DESC)";
                 }
                 if ((wasAfter8pm && count8pm > 0) || totalCount > 0) {
                     stmt = conn.prepareStatement(query);
@@ -1338,15 +1326,15 @@ public class DBEngine {
 
     /**
      * Probably won't need this
-     * @param protocol
-     * @param participantUUID
+     * @param protocol the protocol
+     * @param participantUUID the participant uuid
      */
     public void addProtocolNameToLog(String protocol, String participantUUID){
         Connection conn = null;
         PreparedStatement stmt = null;
 
         try {
-            String query = "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.protocol', ?) WHERE TS IN (SELECT TOP 1 TS FROM state_log WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'endProtocol' ORDER BY TS DESC)";
+            String query = "UPDATE state_log SET log_json=JSON_MODIFY(log_json, '$.protocol', ?) WHERE TS IN (SELECT TOP 1 TS FROM state_log WITH (UPDLOCK) WHERE participant_uuid = ? AND JSON_VALUE(log_json, '$.state') = 'endProtocol' ORDER BY TS DESC)";
             conn = ds.getConnection();
             stmt = conn.prepareStatement(query);
             stmt.setString(1, protocol);
@@ -1402,8 +1390,6 @@ public class DBEngine {
 
             if(rs.next()){
                 numCycles = rs.getInt("numCycles");
-            } else {
-                numCycles = 0;
             }
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -1508,7 +1494,7 @@ public class DBEngine {
         Connection conn = null;
         PreparedStatement stmt = null;
         ResultSet rs = null;
-        Boolean isAdded = false;
+        boolean isAdded = false;
 
         try {
             String query = "SELECT COUNT(participant_uuid) AS numAdmins FROM participants WHERE study = 'ADMIN'";
