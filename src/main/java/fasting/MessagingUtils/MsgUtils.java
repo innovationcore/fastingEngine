@@ -100,10 +100,14 @@ public class MsgUtils {
                     default:
                         logger.error("MsgUtils: Unknown study for participant");
                 }
-                Message.Status status = message.getStatus();
-                if (status.toString().equals("failed")) {
-                    logger.error("Message not sent..." + status);
-                }
+//                Message.Status status = message.getStatus();
+//                if (status != null) {
+//                    if (status.toString().equals("failed")) {
+//                        logger.error("Message not sent..." + status);
+//                    }
+//                } else {
+//                    logger.error("Message status was null.");
+//                }
             }
 
             String messageId = UUID.randomUUID().toString();
