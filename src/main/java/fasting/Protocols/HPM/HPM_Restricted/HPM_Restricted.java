@@ -790,11 +790,6 @@ public class HPM_Restricted extends HPM_RestrictedBase {
                             this.pauseMessages = false;
                             break;
                         case startcal:
-                            long unixTS = Launcher.dbEngine.getStartCalTime(participantMap.get("participant_uuid"));
-                            if (unixTS == 0) {
-                                unixTS = TZHelper.getUnixTimestampNow();
-                            }
-                            Launcher.dbEngine.saveStartCalTime(participantMap.get("participant_uuid"), unixTS);
                             this.pauseMessages = true;
                             receivedStartCal();
                             this.pauseMessages = false;

@@ -525,11 +525,6 @@ public class CCW_Control extends CCW_ControlBase {
                             break;
                         case startcal:
                             this.isRestoring = true;
-                            long unixTS = Launcher.dbEngine.getStartCalTime(participantMap.get("participant_uuid"));
-                            if (unixTS == 0) {
-                                unixTS = TZHelper.getUnixTimestampNow();
-                            }
-                            Launcher.dbEngine.saveStartCalTime(participantMap.get("participant_uuid"), unixTS);
                             receivedStartCal();
                             this.isRestoring = false;
                             break;

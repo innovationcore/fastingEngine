@@ -351,7 +351,7 @@ public class TimezoneHelper {
 
             return currentDateAndTime.toEpochSecond(userTZ.getRules().getOffset(currentDateAndTime));
         } catch (Exception e){
-            logger.error("parseTime", e);
+            logger.error("parseTime: Could not parse time");
             // if fails to parse time, return the time now
             return -1L;
         }

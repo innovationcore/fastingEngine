@@ -522,11 +522,6 @@ public class SEC_Baseline extends SEC_BaselineBase {
                             break;
                         case startcal:
                             this.isRestoring = true;
-                            long unixTS = Launcher.dbEngine.getStartCalTime(participantMap.get("participant_uuid"));
-                            if (unixTS == 0) {
-                                unixTS = TZHelper.getUnixTimestampNow();
-                            }
-                            Launcher.dbEngine.saveStartCalTime(participantMap.get("participant_uuid"), unixTS);
                             receivedStartCal();
                             this.isRestoring = false;
                             break;

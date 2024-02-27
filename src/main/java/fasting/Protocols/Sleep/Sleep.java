@@ -513,11 +513,6 @@ public class Sleep extends SleepBase {
                             break;
                         case sleep:
                             this.isRestoring = true;
-                            long unixTS = Launcher.dbEngine.getSleepTime(participantMap.get("participant_uuid"));
-                            if (unixTS == 0) {
-                                unixTS = TZHelper.getUnixTimestampNow();
-                            }
-                            Launcher.dbEngine.saveSleepTime(participantMap.get("participant_uuid"), unixTS);
                             receivedSleep();
                             this.isRestoring = false;
                             break;

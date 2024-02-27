@@ -523,12 +523,6 @@ public class HPM_Control extends HPM_ControlBase {
                             break;
                         case startcal:
                             this.isRestoring = true;
-                            //reset endWarnDeadline
-                            long unixTS = Launcher.dbEngine.getStartCalTime(participantMap.get("participant_uuid"));
-                            if (unixTS == 0) {
-                                unixTS = TZHelper.getUnixTimestampNow();
-                            }
-                            Launcher.dbEngine.saveStartCalTime(participantMap.get("participant_uuid"), unixTS);
                             receivedStartCal();
                             this.isRestoring = false;
                             break;
